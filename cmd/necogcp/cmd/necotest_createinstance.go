@@ -85,7 +85,7 @@ func init() {
 	necotestCreateInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
 	necotestCreateInstanceCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestCreateInstanceCmd.Flags().StringVarP(&serviceAccountName, "service-account", "a",
-		"815807730957-compute@developer.gserviceaccount.com", "Service account to obtain account.json in Secret Manager")
+		"default", "Service account to obtain account.json in Secret Manager")
 	necotestCreateInstanceCmd.Flags().StringVarP(&machineType, "machine-type", "t", "n1-standard-32", "Machine type")
 	necotestCreateInstanceCmd.Flags().StringVarP(&instanceName, "instance-name", "n", "", "Instance name")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of neco to run")

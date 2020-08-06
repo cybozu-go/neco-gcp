@@ -57,8 +57,8 @@ func (r Runner) CreateInstancesIfNotExist(
 			return nil
 		})
 	}
-	well.Stop()
-	return well.Wait()
+	e.Stop()
+	return e.Wait()
 }
 
 // DeleteInstancesMatchingFilter deletes instances which match the given filter
@@ -83,8 +83,8 @@ func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string
 			return nil
 		})
 	}
-	well.Stop()
-	return well.Wait()
+	e.Stop()
+	return e.Wait()
 }
 
 // MakeVMXEnabledImageURL returns vmx-enabled image URL in the project

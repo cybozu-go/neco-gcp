@@ -72,7 +72,8 @@ HOME=/root
 GOPATH=${HOME}/go
 GO111MODULE=on
 PATH=${PATH}:/usr/local/go/bin:${GOPATH}/bin
-export HOME GOPATH GO111MODULE PAT
+NECO_DIR=${GOPATH}/src/github.com/cybozu-go/neco
+export HOME GOPATH GO111MODULE PATH NECO_DIR
 
 # Run neco
 mkdir -p ${GOPATH}/src/github.com/cybozu-go

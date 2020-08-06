@@ -20,7 +20,7 @@ Please DO NOT use this command except for the purpose.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		well.Go(func(ctx context.Context) error {
-			if projectID == "neco-test" {
+			if projectID == "neco-test" || projectID == "neco-dev" {
 				log.Info("this operation is not permitted", map[string]interface{}{})
 				return nil
 			}
