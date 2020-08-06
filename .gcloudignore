@@ -1,0 +1,7 @@
+cmd/
+vendor/
+necogcp-app/
+build/
+Makefile
+*_test.go
+.gitignore
