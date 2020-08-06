@@ -42,7 +42,7 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
-	s := `#! /bin/sh
+	s := `#! /bin/sh -eu
 # mkfs and mount local SSD on /var/scratch
 mkfs -t ext4 -F /dev/disk/by-id/google-local-ssd-0
 mkdir -p /var/scratch
@@ -81,7 +81,7 @@ cd ${GOPATH}/src/github.com/cybozu-go
 git clone https://github.com/cybozu-go/neco
 cd ${GOPATH}/src/github.com/cybozu-go/neco/dctest
 git checkout %s
-make setup placemat test SUITE=./bootstrap
+make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 `, b.necoBranch)
 	}
 

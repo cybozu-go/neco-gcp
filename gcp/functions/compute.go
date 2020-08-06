@@ -64,6 +64,14 @@ func (c *ComputeClient) Create(
 					SourceImage: imageURL,
 				},
 			},
+			{
+				Type: "SCRATCH",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskType: "zones/asia-northeast1-c/diskTypes/local-ssd",
+				},
+				AutoDelete: true,
+				Interface:  "SCSI",
+			},
 		},
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
