@@ -1,9 +1,25 @@
+GO111MODULE = on
+GOFLAGS     = -mod=vendor
+export GO111MODULE GOFLAGS
+
 GCP_PROJECT ?= tapih-test
 ZONE ?= us-west1-a
 ACCOUNT_JSON_PATH ?= hoge
 SERVICE_ACCOUNT_NAME ?= fuga
 
+STATIK = gcp/statik/statik.go
+STATIK_FILES := $(shell find gcp/public -type f)
+
 all:
+
+setup:
+	go install github.com/rakyll/statik
+
+mod:
+	go mod tidy
+	go mod vendor
+	git add -f vendor
+	git add go.mod
 
 test: build
 	test -z "$$(gofmt -s -l . | grep -v '^vendor/\|^menu/assets.go\|^build/' | tee /dev/stderr)"
@@ -12,7 +28,6 @@ test: build
 	test -z "$$(custom-checker -restrictpkg.packages=html/template,log $$(go list -tags='$(GOTAGS)' ./... | grep -v /vendor/ ) 2>&1 | tee /dev/stderr)"
 	ineffassign .
 	go test -tags='$(GOTAGS)' -race -v ./...
-	RUN_COMPACTION_TEST=yes go test -tags='$(GOTAGS)' -race -v -run=TestEtcdCompaction ./worker/
 	go vet -tags='$(GOTAGS)' ./...
 
 build: build-dev build-necogcp
@@ -21,9 +36,15 @@ build-dev:
 	mkdir -p build
 	go build -mod=vendor -o build/dev ./cmd/dev
 
-build-necogcp:
+build-necogcp: statik
 	mkdir -p build
 	go build -mod=vendor -o build/necogcp ./cmd/necogcp
+
+statik: $(STATIK)
+
+$(STATIK): $(STATIK_FILES)
+	mkdir -p $(dir $(STATIK))
+	go generate ./cmd/necogcp/...
 
 deploy-function:
 	gcloud functions deploy auto-dctest \
@@ -61,8 +82,14 @@ deploy-force-delete-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest all instances'
 
+clean:
+	rm -rf ./gcp/statik
+
 .PHONY: \
+	setup \
+	mod \
 	test \
+	statik \
 	build \
 	build-dev \
 	build-necogcp \
