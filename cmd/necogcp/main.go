@@ -1,4 +1,4 @@
-//go:generate statik -f -src=./../../gcp/public -dest=./../../gcp
+//go:generate statik -f -include * -src=./../../gcp/public -dest=./../../gcp
 
 package main
 
