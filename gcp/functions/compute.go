@@ -67,7 +67,7 @@ func (c *ComputeClient) Create(
 			{
 				Type: "SCRATCH",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskType: "zones/asia-northeast1-c/diskTypes/local-ssd",
+					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
 				},
 				AutoDelete: true,
 				Interface:  "SCSI",
