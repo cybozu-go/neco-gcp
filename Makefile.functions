@@ -1,9 +1,24 @@
 GCP_PROJECT ?=
 ZONE ?= asia-northeast1-c
+SERVICE_ACCOUNT_NAME := neco-dev
 
-all:
+all: \
+	create-service-account \
+	deploy-auto-dctest \
+	create-creating-scheduler \
+	create-deleting-scheduler \
+	create-force-deleting-scheduler
 
-deploy-function:
+create-service-account:
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT)
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+		--role=roles/secretmanager.secretAccessor
+
+deploy-auto-dctest:
 	gcloud functions deploy auto-dctest \
 		--project $(GCP_PROJECT) \
 		--entry-point PubSubEntryPoint \
@@ -12,7 +27,7 @@ deploy-function:
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE) \
 		--timeout 300s
 
-deploy-create-scheduler:
+create-creating-scheduler:
 	gcloud beta scheduler jobs create pubsub create-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 9 * * 1-5' \
@@ -21,7 +36,7 @@ deploy-create-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically create dctest instance'
 
-deploy-delete-scheduler:
+create-deleting-scheduler:
 	gcloud beta scheduler jobs create pubsub delete-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 20 * * *' \
@@ -30,7 +45,7 @@ deploy-delete-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest instances except for ones with skip-auto-delete label'
 
-deploy-force-delete-scheduler:
+create-force-deleting-scheduler:
 	gcloud beta scheduler jobs create pubsub force-delete-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 23 * * *' \
@@ -40,7 +55,8 @@ deploy-force-delete-scheduler:
 		--description 'automatically delete dctest all instances'
 
 .PHONY: \
-	deploy-function \
-	deploy-create-scheduler \
-	deploy-delete-scheduler \
-	deploy-force-delete-scheduler
+	create-service-account \
+	deploy-auto-dctest \
+	create-creating-scheduler \
+	create-deleting-scheduler \
+	create-force-deleting-scheduler
