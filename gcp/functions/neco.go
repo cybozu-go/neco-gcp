@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	accountJSONName    = "neco-apps-gcp-account"
+	accountSecretName  = "cloud-dns-admin-account"
 	serviceAccountName = "neco-dev"
 )
 
@@ -97,7 +97,7 @@ cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test
 git checkout %s
 gcloud secrets versions access latest --secret="%s" > account.json
 make setup dctest BOOTSTRAP=1
-`, b.necoAppsBranch, accountJSONName)
+`, b.necoAppsBranch, accountSecretName)
 	}
 	return s
 }
