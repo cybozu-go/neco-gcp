@@ -23,12 +23,6 @@ func NewNecoStartupScriptBuilder() *NecoStartupScriptBuilder {
 	return &NecoStartupScriptBuilder{}
 }
 
-// DeleteIfFail enables automatic deletion if failed
-func (b *NecoStartupScriptBuilder) DeleteIfFail() *NecoStartupScriptBuilder {
-	b.deleteIfFail = true
-	return b
-}
-
 // WithFluentd enables fluentd
 func (b *NecoStartupScriptBuilder) WithFluentd() *NecoStartupScriptBuilder {
 	b.withFluentd = true
@@ -53,19 +47,6 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
 	s := `#! /bin/sh`
-
-	if b.deleteIfFail {
-		s += `
-trap handle_error 1 2 3 6 14 15
-handle_error() {
-	echo "Exit with error code. Delete the instance..."
-	export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
-	export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
-	/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
-	exit 1
-}
-`
-	}
 
 	s += `
 # mkfs and mount local SSD on /var/scratch

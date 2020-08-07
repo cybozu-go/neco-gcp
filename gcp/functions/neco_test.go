@@ -12,7 +12,6 @@ func TestNecoStartupScriptBuilder(t *testing.T) {
 	}
 
 	builder, err := NewNecoStartupScriptBuilder().
-		DeleteIfFail().
 		WithFluentd().
 		WithNeco("this-is-neco").
 		WithNecoApps("this-is-neco-apps")
