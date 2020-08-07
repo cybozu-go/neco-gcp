@@ -100,6 +100,7 @@ func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		}
 
 		builder, err := functions.NewNecoStartupScriptBuilder().
+			DeleteIfFail().
 			WithFluentd().
 			WithNeco(necoBranch).
 			WithNecoApps(necoAppsBranch)
