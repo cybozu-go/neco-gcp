@@ -25,7 +25,7 @@ func loadConfig() (*gcp.Config, error) {
 	}
 	data, err := ioutil.ReadFile(cfgFile)
 	if err != nil {
-		// lint:ignore nilerr  If cfgFile does not exist, use neco-test config
+		// lint:ignore nilerr If cfgFile does not exist, use neco-test config
 		return gcp.NecoTestConfig(), nil
 	}
 	err = yaml.Unmarshal(data, cfg)

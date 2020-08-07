@@ -21,9 +21,7 @@ const (
 	machineType = "n1-standard-32"
 
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
-	excludeSkipAutoDeleteFilter = "labels." + skipAutoDeleteLabelKey + "!=true"
-
-	imageURL = "https://console.cloud.google.com/compute/imagesDetail/projects/neco-dev/global/images/vmx-enabled"
+	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
 )
 
 // Body is body of Pub/Sub message.
@@ -32,6 +30,7 @@ type Body struct {
 	InstanceNamePrefix string `json:"namePrefix"`
 	InstancesNum       int    `json:"num"`
 	DoForceDelete      bool   `json:"doForce"`
+	Debug              bool   `json:"debug"`
 }
 
 // Env is cloud function environment variables
@@ -115,14 +114,16 @@ func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			b.InstancesNum,
 			functions.MakeNecoDevServiceAccountEmail(e.ProjectID),
 			machineType,
-			imageURL,
+			functions.MakeVMXEnabledImageURL(e.ProjectID),
 			builder.Build(),
 		)
 	case deleteInstancesMode:
 		log.Info("delete all instance(s)", map[string]interface{}{
-			"project": e.ProjectID,
-			"force":   b.DoForceDelete,
+			"force": b.DoForceDelete,
 		})
+		if b.DoForceDelete {
+			return runner.DeleteInstancesMatchingFilter(ctx, "")
+		}
 		return runner.DeleteInstancesMatchingFilter(ctx, excludeSkipAutoDeleteFilter)
 	default:
 		err := fmt.Errorf("invalid mode was given: %s", b.Mode)

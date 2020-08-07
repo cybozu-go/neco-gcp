@@ -21,6 +21,7 @@ create-service-account:
 deploy-auto-dctest:
 	gcloud functions deploy auto-dctest \
 		--project $(GCP_PROJECT) \
+		--region asia-northeast1 \
 		--entry-point PubSubEntryPoint \
 		--runtime go113 \
 		--trigger-topic autodctest-scheduler-events \

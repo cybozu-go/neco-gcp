@@ -8,8 +8,8 @@ setup:
 	GO111MODULE=off go get -u github.com/gordonklaus/ineffassign
 	GO111MODULE=off go get -u github.com/gostaticanalysis/nilerr/cmd/nilerr
 	GO111MODULE=off go get -u golang.org/x/lint/golint
-	go install github.com/rakyll/statik
-	
+	GOFLAGS= go install github.com/rakyll/statik
+
 test: build
 	test -z "$$(gofmt -s -l . | grep -v '^vendor/\|^statik/statik.go\|^build/' | tee /dev/stderr)"
 	test -z "$$(golint $$(go list -tags='$(GOTAGS)' ./... | grep -v /vendor/) | grep -v '/dctest/.*: should not use dot imports' | tee /dev/stderr)"

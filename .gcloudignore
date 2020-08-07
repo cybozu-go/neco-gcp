@@ -1,12 +1,14 @@
 .circleci/
+.git/
 .github/
 build/
 cmd/
 docs/
+gcp/app
+gcp/*.go
 necogcp-app/
 vendor/
 
-.git
 .gitignore
 *_test.go
 *.md

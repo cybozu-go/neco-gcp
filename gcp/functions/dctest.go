@@ -27,7 +27,7 @@ func (r Runner) CreateInstancesIfNotExist(
 	ctx context.Context,
 	instanceNamePrefix string,
 	instancesNum int,
-	serviceAccountName string,
+	serviceAccountEmail string,
 	machineType string,
 	imageURL string,
 	startupScript string,
@@ -40,6 +40,9 @@ func (r Runner) CreateInstancesIfNotExist(
 		return err
 	}
 
+	log.Info("fetched instances successfully", map[string]interface{}{
+		"names": set,
+	})
 	e := well.NewEnvironment(ctx)
 	for i := 0; i < instancesNum; i++ {
 		name := r.makeInstanceName(instanceNamePrefix, i)
@@ -56,7 +59,7 @@ func (r Runner) CreateInstancesIfNotExist(
 			})
 			err := r.compute.Create(
 				name,
-				serviceAccountName,
+				serviceAccountEmail,
 				machineType,
 				imageURL,
 				startupScript,
@@ -88,6 +91,9 @@ func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string
 		return err
 	}
 
+	log.Info("fetched instances successfully", map[string]interface{}{
+		"names": set,
+	})
 	e := well.NewEnvironment(ctx)
 	for n := range set {
 		name := n
