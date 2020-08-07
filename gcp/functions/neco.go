@@ -5,7 +5,10 @@ import (
 	"fmt"
 )
 
-const accountJSONName = "neco-apps-gcp-account"
+const (
+	accountJSONName    = "neco-apps-gcp-account"
+	serviceAccountName = "neco-dev"
+)
 
 // NecoStartupScriptBuilder creates startup-script builder to run dctest
 type NecoStartupScriptBuilder struct {
@@ -104,7 +107,7 @@ func MakeVMXEnabledImageURL(projectID string) string {
 	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
 }
 
-// MakeCustomServiceAccountEmail returns custom service account name in the project
-func MakeCustomServiceAccountEmail(serviceAccountName, projectID string) string {
+// MakeNecoDevServiceAccountEmail returns custom service account name in the project
+func MakeNecoDevServiceAccountEmail(projectID string) string {
 	return fmt.Sprintf("%s@%s.iam.gserviceaccount.com", serviceAccountName, projectID)
 }

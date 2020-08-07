@@ -3,8 +3,8 @@ package functions
 import (
 	"context"
 	"fmt"
-	"log"
 
+	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/well"
 )
 
@@ -34,7 +34,9 @@ func (r Runner) CreateInstancesIfNotExist(
 ) error {
 	set, err := r.compute.GetNameSet("")
 	if err != nil {
-		log.Printf("error: failed to get instances list because %q", err)
+		log.Error("failed to get instances list", map[string]interface{}{
+			log.FnError: err,
+		})
 		return err
 	}
 
@@ -42,12 +44,16 @@ func (r Runner) CreateInstancesIfNotExist(
 	for i := 0; i < instancesNum; i++ {
 		name := r.makeInstanceName(instanceNamePrefix, i)
 		if _, ok := set[name]; ok {
-			log.Printf("info: skip creating %s because it already exists", name)
+			log.Info("skip creating instance because it already exists", map[string]interface{}{
+				"name": name,
+			})
 			continue
 		}
 
 		e.Go(func(ctx context.Context) error {
-			log.Printf("info: start creating %s", name)
+			log.Info("start creating instance", map[string]interface{}{
+				"name": name,
+			})
 			err := r.compute.Create(
 				name,
 				serviceAccountName,
@@ -56,10 +62,15 @@ func (r Runner) CreateInstancesIfNotExist(
 				startupScript,
 			)
 			if err != nil {
-				log.Printf("error: failed to create %s instance because %q", name, err)
+				log.Error("failed to create instance", map[string]interface{}{
+					log.FnError: err,
+					"name":      name,
+				})
 				return err
 			}
-			log.Printf("info: create %s successfully", name)
+			log.Info("instance is created successfully", map[string]interface{}{
+				"name": name,
+			})
 			return nil
 		})
 	}
@@ -71,7 +82,9 @@ func (r Runner) CreateInstancesIfNotExist(
 func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string) error {
 	set, err := r.compute.GetNameSet(filter)
 	if err != nil {
-		log.Printf("error: failed to get instances list with %q because %q", filter, err)
+		log.Error("failed to get instances list", map[string]interface{}{
+			log.FnError: err,
+		})
 		return err
 	}
 
@@ -79,13 +92,20 @@ func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string
 	for n := range set {
 		name := n
 		e.Go(func(ctx context.Context) error {
-			log.Printf("info: start deleting %s", name)
+			log.Info("start deleting instance", map[string]interface{}{
+				"name": name,
+			})
 			err := r.compute.Delete(name)
 			if err != nil {
-				log.Printf("error: failed to delete %s instance because %q", name, err)
+				log.Error("failed to delete instance", map[string]interface{}{
+					log.FnError: err,
+					"name":      name,
+				})
 				return err
 			}
-			log.Printf("info: delete %s successfully", name)
+			log.Info("instance is deleted successfully", map[string]interface{}{
+				"name": name,
+			})
 			return nil
 		})
 	}

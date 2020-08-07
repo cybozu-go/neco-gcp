@@ -20,8 +20,6 @@ var (
 	necoAppsBranch string
 )
 
-const serviceAccountName = "neco-dev"
-
 var necotestCreateInstanceCmd = &cobra.Command{
 	Use:   "create-instance",
 	Short: "Create dctest env for neco (and neco-apps)",
@@ -60,7 +58,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				return err
 			}
 
-			sa := functions.MakeCustomServiceAccountEmail(serviceAccountName, projectID)
+			sa := functions.MakeNecoDevServiceAccountEmail(projectID)
 			log.Info("start creating instance", map[string]interface{}{
 				"project":        projectID,
 				"zone":           zone,
