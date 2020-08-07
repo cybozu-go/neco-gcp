@@ -35,6 +35,9 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 			if len(instanceNamePrefix) == 0 {
 				log.ErrorExit(errors.New("instance name is required"))
 			}
+			if len(projectID) == 0 {
+				log.ErrorExit(errors.New("project ID is required"))
+			}
 
 			cc, err := functions.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
@@ -71,7 +74,7 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 }
 
 func init() {
-	createCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
+	createCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
 	createCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	createCmd.Flags().StringVarP(&instanceNamePrefix, "name-prefix", "n", "", "Instance name prefix")
 	createCmd.Flags().IntVarP(&instancesNum, "instances-num", "i", 1, "Instance num to create")

@@ -1,5 +1,5 @@
 GCP_PROJECT ?=
-ZONE ?= asia-northeast1-c
+ZONE := asia-northeast1-c
 SERVICE_ACCOUNT_NAME := neco-dev
 
 all: \
@@ -25,7 +25,8 @@ deploy-auto-dctest:
 		--runtime go113 \
 		--trigger-topic autodctest-scheduler-events \
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE) \
-		--timeout 300s
+		--timeout 300s \
+		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 
 create-creating-scheduler:
 	gcloud beta scheduler jobs create pubsub create-dctest \

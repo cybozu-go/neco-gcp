@@ -6,6 +6,7 @@ docs/
 necogcp-app/
 vendor/
 
+.git
 .gitignore
 *_test.go
 *.md

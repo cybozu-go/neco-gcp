@@ -50,7 +50,7 @@ Please DO NOT use this command except for the purpose.
 }
 
 func init() {
-	deleteCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
+	deleteCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
 	deleteCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	rootCmd.AddCommand(deleteCmd)
 }
