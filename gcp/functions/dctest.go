@@ -48,7 +48,13 @@ func (r Runner) CreateInstancesIfNotExist(
 
 		e.Go(func(ctx context.Context) error {
 			log.Printf("info: start creating %s", name)
-			err := r.compute.Create(name, serviceAccountName, machineType, imageURL, startupScript)
+			err := r.compute.Create(
+				name,
+				serviceAccountName,
+				machineType,
+				imageURL,
+				startupScript,
+			)
 			if err != nil {
 				log.Printf("error: failed to create %s instance because %q", name, err)
 				return err
@@ -85,9 +91,4 @@ func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string
 	}
 	e.Stop()
 	return e.Wait()
-}
-
-// MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
-func MakeVMXEnabledImageURL(projectID string) string {
-	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
@@ -18,6 +19,9 @@ var necotestListInstancesCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		well.Go(func(ctx context.Context) error {
+			if len(projectID) == 0 {
+				log.ErrorExit(errors.New("project id is required"))
+			}
 			cc, err := functions.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
 				log.Error("failed to create compute client: %v", map[string]interface{}{
@@ -57,7 +61,7 @@ var necotestListInstancesCmd = &cobra.Command{
 }
 
 func init() {
-	necotestListInstancesCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
+	necotestListInstancesCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
 	necotestListInstancesCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestListInstancesCmd.Flags().StringVarP(&filter, "filter", "f", "", "Filter string")
 	necotestCmd.AddCommand(necotestListInstancesCmd)

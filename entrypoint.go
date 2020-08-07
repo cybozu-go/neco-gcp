@@ -95,7 +95,7 @@ func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			ctx,
 			b.InstanceNamePrefix,
 			b.InstancesNum,
-			e.ServiceAccountName,
+			functions.MakeCustomServiceAccountEmail(e.ServiceAccountName, e.ProjectID)
 			machineType,
 			imageURL,
 			builder.Build(),

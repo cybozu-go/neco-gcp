@@ -7,7 +7,7 @@ all: test
 setup:
 	GO111MODULE=off go get -u github.com/gordonklaus/ineffassign
 	GO111MODULE=off go get -u github.com/gostaticanalysis/nilerr/cmd/nilerr
-	GO111MODULE=off go get -u golang.org/x/lint/golin
+	GO111MODULE=off go get -u golang.org/x/lint/golint
 	go install github.com/rakyll/statik
 	
 test: build

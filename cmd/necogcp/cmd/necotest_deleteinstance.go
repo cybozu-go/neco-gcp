@@ -19,6 +19,9 @@ var necotestDeleteInstanceCmd = &cobra.Command{
 		if len(instanceName) == 0 {
 			log.ErrorExit(errors.New("instance name is required"))
 		}
+		if len(projectID) == 0 {
+			log.ErrorExit(errors.New("project id is required"))
+		}
 		well.Go(func(ctx context.Context) error {
 			cc, err := functions.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
@@ -44,7 +47,7 @@ var necotestDeleteInstanceCmd = &cobra.Command{
 }
 
 func init() {
-	necotestDeleteInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
+	necotestDeleteInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
 	necotestDeleteInstanceCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestDeleteInstanceCmd.Flags().StringVarP(&instanceName, "instance-name", "n", "", "Instance name")
 	necotestCmd.AddCommand(necotestDeleteInstanceCmd)
