@@ -1,6 +1,9 @@
 package gcp
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	// DefaultExpiration is default expiration time
@@ -109,12 +112,12 @@ func NewConfig() (*Config, error) {
 }
 
 // NecoTestConfig returns configuration for neco-test
-func NecoTestConfig() *Config {
+func NecoTestConfig(projectID, zone string) *Config {
 	return &Config{
 		Common: CommonConfig{
-			Project:        "neco-test",
-			ServiceAccount: "neco-test@neco-test.iam.gserviceaccount.com",
-			Zone:           "asia-northeast2-c",
+			Project:        projectID,
+			ServiceAccount: fmt.Sprintf("%s@%s.iam.gserviceaccount.com", projectID, projectID),
+			Zone:           zone,
 		},
 		App: AppConfig{
 			Shutdown: ShutdownConfig{

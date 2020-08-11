@@ -18,7 +18,7 @@ var necotestCreateImageCmd = &cobra.Command{
 	Long:  `Create vmx-enabled image on neco-test.`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		necotestCfg := gcp.NecoTestConfig()
+		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		cc := gcp.NewComputeClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
 			f, err := ioutil.TempFile("", "*.yml")
@@ -55,5 +55,7 @@ var necotestCreateImageCmd = &cobra.Command{
 }
 
 func init() {
+	necotestCreateImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
+	necotestCreateImageCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast2-c", "Zone name for GCP")
 	necotestCmd.AddCommand(necotestCreateImageCmd)
 }

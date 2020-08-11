@@ -15,7 +15,7 @@ var necotestExtendCmd = &cobra.Command{
 	Long:  `Extend 2 hours given instance on neco-test to prevent auto deletion.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		necotestCfg := gcp.NecoTestConfig()
+		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		necotestCfg.Common.ServiceAccount = cfg.Common.ServiceAccount
 		cc := gcp.NewComputeClient(necotestCfg, args[0])
 		well.Go(func(ctx context.Context) error {
@@ -34,5 +34,7 @@ var necotestExtendCmd = &cobra.Command{
 }
 
 func init() {
+	necotestDeleteImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
+	necotestDeleteImageCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast2-c", "Zone name for GCP")
 	necotestCmd.AddCommand(necotestExtendCmd)
 }

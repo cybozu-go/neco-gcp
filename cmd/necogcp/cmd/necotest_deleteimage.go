@@ -15,7 +15,7 @@ var necotestDeleteImageCmd = &cobra.Command{
 	Long:  `Delete vmx-enabled image on neco-test.`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		necotestCfg := gcp.NecoTestConfig()
+		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		necotestCfg.Common.ServiceAccount = cfg.Common.ServiceAccount
 		cc := gcp.NewComputeClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
@@ -34,5 +34,7 @@ var necotestDeleteImageCmd = &cobra.Command{
 }
 
 func init() {
+	necotestDeleteImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
+	necotestDeleteImageCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast2-c", "Zone name for GCP")
 	necotestCmd.AddCommand(necotestDeleteImageCmd)
 }
