@@ -74,6 +74,7 @@ func (r Runner) CreateInstancesIfNotExist(
 			log.Info("instance is created successfully", map[string]interface{}{
 				"name": name,
 			})
+
 			return nil
 		})
 	}

@@ -3,7 +3,9 @@ package functions
 import (
 	"context"
 
+	"github.com/cybozu-go/log"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
 )
 
@@ -98,7 +100,13 @@ func (c *ComputeClient) Create(
 		},
 	}
 
-	_, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
+	op, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
+	etag := op.Header.Get("Etag")
+	_, err = c.service.Instances.Get(c.projectID, c.zone, instance.Name).IfNoneMatch(etag).Do()
+
+	if googleapi.IsNotModified(err) {
+		log.Error("Instance not modified since insert.", map[string]interface{}{})
+	}
 	return err
 }
 
