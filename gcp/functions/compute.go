@@ -3,6 +3,9 @@ package functions
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/cybozu-go/log"
@@ -43,11 +46,29 @@ func NewComputeClient(
 // Create creates a compute instance with running startup script
 func (c *ComputeClient) Create(
 	instanceName string,
-	serviceAccountName string,
+	serviceAccountEmail string,
 	machineType string,
 	imageURL string,
 	startupScript string,
 ) error {
+	iamService, err := iam.NewService(c.ctx)
+	if err != nil {
+		return err
+	}
+	saURI := fmt.Sprintf("projects/%s/serviceAccounts/%s", c.projectID, serviceAccountEmail)
+	_, err = iamService.Projects.ServiceAccounts.Keys.Get(saURI).Do()
+	if err != nil {
+		return err
+	}
+	url, err := url.Parse(imageURL)
+	if err != nil {
+		return err
+	}
+	_, err = c.service.Images.Get(c.projectID, path.Base(url.Path)).Do()
+	if err != nil {
+		return err
+	}
+
 	instance := &compute.Instance{
 		Name:        instanceName,
 		MachineType: c.projectEndpoint + "/zones/" + c.zone + "/machineTypes/" + machineType,
@@ -92,7 +113,7 @@ func (c *ComputeClient) Create(
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email: serviceAccountName,
+				Email: serviceAccountEmail,
 				Scopes: []string{
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
@@ -104,7 +125,7 @@ func (c *ComputeClient) Create(
 		},
 	}
 
-	_, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
+	_, err = c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
 	if err != nil {
 		return err
 	}
