@@ -2,15 +2,18 @@ package functions
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/gcp"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
 )
 
 // ComputeClient is GCP compute client with go client
 type ComputeClient struct {
+	ctx             context.Context
 	service         *compute.Service
 	projectID       string
 	zone            string
@@ -29,6 +32,7 @@ func NewComputeClient(
 	}
 
 	return &ComputeClient{
+		ctx:             ctx,
 		service:         s,
 		projectID:       projectID,
 		zone:            zone,
@@ -100,14 +104,24 @@ func (c *ComputeClient) Create(
 		},
 	}
 
-	op, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
-	etag := op.Header.Get("Etag")
-	_, err = c.service.Instances.Get(c.projectID, c.zone, instance.Name).IfNoneMatch(etag).Do()
-
-	if googleapi.IsNotModified(err) {
-		log.Error("Instance not modified since insert.", map[string]interface{}{})
+	_, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
+	if err != nil {
+		return err
 	}
-	return err
+
+	return gcp.RetryWithSleep(c.ctx, 10, time.Second, func(ctx context.Context) error {
+		ci, err := c.service.Instances.Get(c.projectID, c.zone, instance.Name).Do()
+		if err != nil {
+			return err
+		}
+		if ci.Status != "RUNNING" {
+			return errors.New("instance is not running yet")
+		}
+		return nil
+	}, func(err error) {
+		log.Info("waiting for creating instance...", nil)
+	},
+	)
 }
 
 // GetNameSet gets a list of existing GCP instances with the given filter
