@@ -1,0 +1,10 @@
+rules:
+  - name: 'neco'
+    regex: 'neco.*'
+    webhookURLs:
+      - 'http://example.com/neco'
+  - name: 'maneki'
+    regex: 'maneki.*'
+    webhookURLs:
+      - 'http://example.com/maneki'
+      - 'http://example.com/neco'
