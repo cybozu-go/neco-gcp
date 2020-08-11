@@ -4,6 +4,7 @@ REGION := asia-northeast1
 SERVICE_ACCOUNT_NAME := neco-dev
 INSTANCE_NAME_PREFIX ?=
 INSTANCE_NUM ?=
+LOG_LEVEL ?= info
 
 all: \
 	create-service-account \
@@ -31,7 +32,7 @@ deploy-auto-dctest:
 		--entry-point PubSubEntryPoint \
 		--runtime go113 \
 		--trigger-topic autodctest-scheduler-events \
-		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE) \
+		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--timeout 300s \
 		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 

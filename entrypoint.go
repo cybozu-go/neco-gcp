@@ -30,7 +30,6 @@ type Body struct {
 	InstanceNamePrefix string `json:"namePrefix"`
 	InstancesNum       int    `json:"num"`
 	DoForceDelete      bool   `json:"doForce"`
-	Debug              bool   `json:"debug"`
 }
 
 // Env is cloud function environment variables
