@@ -120,7 +120,7 @@ git clone https://github.com/cybozu-go/neco-apps &&
 cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test &&
 git checkout %s &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
-make setup dctest BOOTSTRAP=1
+make setup dctest BOOTSTRAP=1 OVERLAY=neco-dev
 }
 
 if ! run_necoapps ; then delete_myself; fi
