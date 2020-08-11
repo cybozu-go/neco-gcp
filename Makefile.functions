@@ -13,13 +13,16 @@ all: \
 	create-force-deleting-scheduler
 
 create-service-account:
-	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT)
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT) --display-name $(SERVICE_ACCOUNT_NAME)
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
 		--role=roles/compute.instanceAdmin.v1
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
 		--role=roles/secretmanager.secretAccessor
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+		--role=roles/iam.serviceAccountUser
 
 deploy-auto-dctest:
 	gcloud functions deploy auto-dctest \
