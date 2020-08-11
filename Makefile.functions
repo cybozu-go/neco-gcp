@@ -1,5 +1,6 @@
 GCP_PROJECT ?=
 ZONE := asia-northeast1-c
+REGION := asia-northeast1
 SERVICE_ACCOUNT_NAME := neco-dev
 INSTANCE_NAME_PREFIX ?=
 INSTANCE_NUM ?=
@@ -23,7 +24,7 @@ create-service-account:
 deploy-auto-dctest:
 	gcloud functions deploy auto-dctest \
 		--project $(GCP_PROJECT) \
-		--region asia-northeast1 \
+		--region $(REGION) \
 		--entry-point PubSubEntryPoint \
 		--runtime go113 \
 		--trigger-topic autodctest-scheduler-events \
