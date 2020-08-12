@@ -39,8 +39,8 @@ type Env struct {
 	Zone      string `envconfig:"ZONE" required:"true"`
 }
 
-// PubSubEntryPoint consumes a Pub/Sub message
-func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
+// AutoDCTestEntryPoint consumes a Pub/Sub message
+func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
@@ -145,9 +145,9 @@ type JSONPayload struct {
 	Message string `json:"message"`
 }
 
-// SlackNotifyEntryPoint consumes a Pub/Sub message to send notification via Slack
-func SlackNotifyEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	log.Debug("msg body", map[string]interface{}{
+// SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
+func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
+	log.Info("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
 	var b SlackBody
@@ -159,7 +159,7 @@ func SlackNotifyEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Debug("unmarshalled msg body", map[string]interface{}{
+	log.Info("unmarshalled msg body", map[string]interface{}{
 		"body": b,
 	})
 
