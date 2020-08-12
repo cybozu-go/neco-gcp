@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/cybozu-go/log"
@@ -129,4 +130,38 @@ func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		log.Error(err.Error(), map[string]interface{}{})
 		return err
 	}
+}
+
+// SlackBody is a pubsub message body from GCE's fluentd
+type SlackBody struct {
+	JSONPayload      JSONPayload `json:"jsonPayload"`
+	ReceiveTimestamp time.Time   `json:"receiveTimestamp"`
+}
+
+// JSONPayload is a nested field of SlackBody
+type JSONPayload struct {
+	Host    string `json:"host"`
+	Ident   string `json:"ident"`
+	Message string `json:"message"`
+}
+
+// SlackNotifyEntryPoint consumes a Pub/Sub message to send notification via Slack
+func SlackNotifyEntryPoint(ctx context.Context, m *pubsub.Message) error {
+	log.Debug("msg body", map[string]interface{}{
+		"data": string(m.Data),
+	})
+	var b SlackBody
+	err := json.Unmarshal(m.Data, &b)
+	if err != nil {
+		log.Error("failed to unmarshal json", map[string]interface{}{
+			"data":      string(m.Data),
+			log.FnError: err,
+		})
+		return err
+	}
+	log.Debug("unmarshalled msg body", map[string]interface{}{
+		"body": b,
+	})
+
+	return nil
 }
