@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/gcp"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/iam/v1"
 )
@@ -115,8 +114,6 @@ func (c *ComputeClient) Create(
 			{
 				Email: serviceAccountEmail,
 				Scopes: []string{
-					compute.DevstorageFullControlScope,
-					compute.ComputeScope,
 					// Scopes is legacy method. We should set appropriate permissions with IAM
 					// https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances#best_practices
 					iam.CloudPlatformScope,
@@ -130,19 +127,29 @@ func (c *ComputeClient) Create(
 		return err
 	}
 
-	return gcp.RetryWithSleep(c.ctx, 10, time.Second, func(ctx context.Context) error {
-		ci, err := c.service.Instances.Get(c.projectID, c.zone, instance.Name).Do()
-		if err != nil {
-			return err
+	// Wait for instance creation
+	ticker := time.NewTicker(time.Second * 2)
+	defer ticker.Stop()
+	var status string
+	for i := 0; i < 30; i++ {
+		select {
+		case <-c.ctx.Done():
+			return nil
+		case <-ticker.C:
+			ci, err := c.service.Instances.Get(c.projectID, c.zone, instance.Name).Do()
+			if err != nil {
+				return err
+			}
+			status = ci.Status
+			if ci.Status == "RUNNING" {
+				log.Info("instance is created", nil)
+				return nil
+			}
+			log.Info("waiting for creating instance...", nil)
 		}
-		if ci.Status != "RUNNING" {
-			return errors.New("instance is not running yet")
-		}
-		return nil
-	}, func(err error) {
-		log.Info("waiting for creating instance...", nil)
-	},
-	)
+	}
+
+	return errors.New("instance does not reach RUNNING state. current state is " + status)
 }
 
 // GetNameSet gets a list of existing GCP instances with the given filter

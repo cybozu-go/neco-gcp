@@ -34,7 +34,5 @@ var necotestDeleteImageCmd = &cobra.Command{
 }
 
 func init() {
-	necotestDeleteImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
-	necotestDeleteImageCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast2-c", "Zone name for GCP")
 	necotestCmd.AddCommand(necotestDeleteImageCmd)
 }
