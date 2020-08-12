@@ -43,7 +43,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 			log.Info("run neco-apps", map[string]interface{}{
 				"branch": necoAppsBranch,
 			})
-			_, err := builder.WithNecoApps(necoBranch)
+			_, err := builder.WithNecoApps(necoAppsBranch)
 			if err != nil {
 				log.ErrorExit(fmt.Errorf("failed to create startup script: %v", err))
 			}
