@@ -14,13 +14,12 @@ jobs:
     working_directory: /work
     steps:
       - checkout
-      - run: time make SUDO="" setup
-      - run: time make necogcp
+      - run: make build-necogcp
       - persist_to_workspace:
-          root: /go/bin
+          root: ./build
           paths:
             - necogcp
-  update-vmx-enabled-image:
+  deploy:
     docker:
       - image: google/cloud-sdk
     steps:
@@ -28,12 +27,31 @@ jobs:
       - run:
           name: Store service account
           command: |
-            echo $GCLOUD_SERVICE_ACCOUNT > account.json
-            gcloud auth activate-service-account --key-file=account.json
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+            gcloud auth activate-service-account --key-file=account_dev.json
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: make setup
+      - run: make -f Makefile.functions deploy-auto-dctest GCP_PROJECT=neco-dev
+  update-vmx-enabled-image:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
       - attach_workspace:
           at: /tmp/workspace
       - run:
+          name: Update image on neco-dev
           command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+            gcloud auth activate-service-account --key-file=account_dev.json
+            /tmp/workspace/necogcp neco-test create-image --project neco-dev
+          no_output_timeout: 20m
+      - run:
+          name: Update image on neco-test
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_TEST > account_test.json
+            gcloud auth activate-service-account --key-file=account_test.json
             /tmp/workspace/necogcp neco-test create-image
           no_output_timeout: 20m
 
@@ -42,7 +60,6 @@ workflows:
   main:
     jobs:
       - build
-  # For updating ubuntu image.
   weekly:
     triggers:
       - schedule:
@@ -56,3 +73,11 @@ workflows:
       - update-vmx-enabled-image:
           requires:
             - build_necogcp
+  release:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
