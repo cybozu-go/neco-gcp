@@ -24,6 +24,9 @@ create-service-account:
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
 		--role=roles/iam.serviceAccountUser
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+		--role=roles/logging.logWriter
 
 deploy-auto-dctest:
 	gcloud functions deploy auto-dctest \
