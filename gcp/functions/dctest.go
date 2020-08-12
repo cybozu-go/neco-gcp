@@ -82,8 +82,8 @@ func (r Runner) CreateInstancesIfNotExist(
 	return e.Wait()
 }
 
-// DeleteInstancesMatchingFilter deletes instances which match the given filter
-func (r Runner) DeleteInstancesMatchingFilter(ctx context.Context, filter string) error {
+// DeleteFilteredInstances deletes instances which match the given filter
+func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) error {
 	set, err := r.compute.GetNameSet(filter)
 	if err != nil {
 		log.Error("failed to get instances list", map[string]interface{}{

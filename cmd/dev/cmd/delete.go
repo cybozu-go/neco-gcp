@@ -37,7 +37,7 @@ Please DO NOT use this command except for the purpose.
 				"zone":    zone,
 			})
 			runner := functions.NewRunner(cc)
-			return runner.DeleteInstancesMatchingFilter(ctx, "")
+			return runner.DeleteFilteredInstances(ctx, "")
 		})
 
 		well.Stop()

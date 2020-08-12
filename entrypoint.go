@@ -121,9 +121,9 @@ func PubSubEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			"force": b.DoForceDelete,
 		})
 		if b.DoForceDelete {
-			return runner.DeleteInstancesMatchingFilter(ctx, "")
+			return runner.DeleteFilteredInstances(ctx, "")
 		}
-		return runner.DeleteInstancesMatchingFilter(ctx, excludeSkipAutoDeleteFilter)
+		return runner.DeleteFilteredInstances(ctx, excludeSkipAutoDeleteFilter)
 	default:
 		err := fmt.Errorf("invalid mode was given: %s", b.Mode)
 		log.Error(err.Error(), map[string]interface{}{})
