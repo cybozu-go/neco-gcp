@@ -46,6 +46,8 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
+	fmt.Println(b.necoAppsBranch)
+	fmt.Println(b.necoBranch)
 	s := `#! /bin/sh -x
 
 delete_myself()
@@ -87,7 +89,8 @@ if ! with_fluentd ; then delete_myself; fi
 `
 	}
 
-	s += fmt.Sprintf(`
+	if len(b.necoBranch) > 0 {
+		s += fmt.Sprintf(`
 # Set environment variables
 HOME=/root
 GOPATH=${HOME}/go
@@ -109,6 +112,7 @@ make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 
 if ! run_neco ; then delete_myself; fi
 `, b.necoBranch)
+	}
 
 	if len(b.necoAppsBranch) > 0 {
 		s += fmt.Sprintf(`
@@ -127,6 +131,7 @@ if ! run_necoapps ; then delete_myself; fi
 `, b.necoAppsBranch, accountSecretName)
 	}
 
+	fmt.Println(s)
 	return s
 }
 
