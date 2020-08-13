@@ -30,9 +30,9 @@ type Rule struct {
 }
 
 // NewConfig creates new Notifier from config YAML
-func NewConfig(configYAML string) (*Config, error) {
+func NewConfig(configYAML []byte) (*Config, error) {
 	var n Config
-	err := yaml.Unmarshal([]byte(configYAML), &n)
+	err := yaml.Unmarshal(configYAML, &n)
 	if err != nil {
 		return nil, err
 	}

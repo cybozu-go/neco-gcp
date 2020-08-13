@@ -34,7 +34,7 @@ rules:
       - team2
       - team3
 `
-	n, err := NewConfig(yaml)
+	n, err := NewConfig([]byte(yaml))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -202,7 +202,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	c, err := necogcpslack.NewConfig(result.String())
+	c, err := necogcpslack.NewConfig(result.GetPayload().GetData())
 	if err != nil {
 		log.Error("failed to read config", map[string]interface{}{
 			log.FnError: err,
