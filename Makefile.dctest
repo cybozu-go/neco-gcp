@@ -7,34 +7,31 @@ TEAM_NAME ?=
 INSTANCE_NUM ?=
 LOG_LEVEL ?= info
 
-SERVICE_ACCOUNT_NAME := neco-dev
+SERVICE_ACCOUNT_NAME := auto-dctest
 SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
-AUTO_DCTEST_TOPIC_NAME := auto-dctest-events
-SLACK_NOTIFIER_TOPIC_NAME := gce-slack-notifier-events
-
-setup:
-	sudo apt-get update
-	sudo apt-get install -y --no-install-recommends jq
+TOPIC_NAME := auto-dctest-events
+FUNCTION_NAME := auto-dctest
+CREATING_SCHEDULER_PREFIX := create-dctest
+CREATING_SCHEDULER_NAME := $(CREATING_SCHEDULER_PREFIX)-$(TEAM_NAME)
+DELETING_SCHEDULER_NAME := delete-dctest
+FORCE_DELETING_SCHEDULER_NAME := force-delete-dctest
 
 init: \
-	setup \
 	create-service-account \
-	deploy-auto-dctest \
+	deploy-function \
 	create-deleting-scheduler \
-	create-force-deleting-scheduler \
-	deploy-gce-slack-notifier \
-	create-logging-sink
+	create-force-deleting-scheduler
 
 add-team: create-creating-scheduler
 
 list-teams:
-	$(GCLOUD) scheduler jobs list --project $(GCP_PROJECT) --filter "name:create-dctest-"
+	$(GCLOUD) scheduler jobs list --project $(GCP_PROJECT) --filter "name:$(CREATING_SCHEDULER_PREFIX)"
 
 delete-team: delete-creating-scheduler
 
 clean: \
 	delete-service-account \
-	delete-auto-dctest \
+	delete-function \
 	delete-deleting-scheduler \
 	delete-force-deleting-scheduler \
 	delete-gce-slack-notifier \
@@ -58,31 +55,31 @@ create-service-account:
 delete-service-account:
 	$(GCLOUD) iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
-deploy-auto-dctest:
-	$(GCLOUD) functions deploy auto-dctest \
+deploy-function:
+	$(GCLOUD) functions deploy $(FUNCTION_NAME) \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point AutoDCTestEntryPoint \
 		--runtime go113 \
-		--trigger-topic $(AUTO_DCTEST_TOPIC_NAME) \
+		--trigger-topic $(TOPIC_NAME) \
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
 		--timeout 300s \
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
 
-delete-auto-dctest:
-	$(GCLOUD) functions delete auto-dctest --project $(GCP_PROJECT) --region $(REGION)
-	$(GCLOUD) pubsub topics delete $(AUTO_DCTEST_TOPIC_NAME) --project $(GCP_PROJECT)
+delete-function:
+	$(GCLOUD) functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
+	$(GCLOUD) pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
 
 create-creating-scheduler:
 	if [ $(words $(TEAM_NAME)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
 		echo "TEAM_NAME and/or INSTANCE_NUM are required."; \
 		exit 1; \
 	fi
-	$(GCLOUD) beta scheduler jobs create pubsub create-dctest-$(TEAM_NAME) \
+	$(GCLOUD) beta scheduler jobs create pubsub $(CREATING_SCHEDULER_NAME) \
 		--project $(GCP_PROJECT) \
 		--schedule '0 9 * * 1-5' \
-		--topic $(AUTO_DCTEST_TOPIC_NAME) \
+		--topic $(TOPIC_NAME) \
 		--message-body '{"mode":"create", "namePrefix":"$(TEAM_NAME)", "num":$(INSTANCE_NUM)}' \
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically create dctest instance'
@@ -92,67 +89,38 @@ delete-creating-scheduler:
 		echo "TEAM_NAME is required."; \
 		exit 1; \
 	fi
-	$(GCLOUD) scheduler jobs delete create-dctest-$(TEAM_NAME) --project $(GCP_PROJECT)
+	$(GCLOUD) scheduler jobs delete $(CREATING_SCHEDULER_NAME) --project $(GCP_PROJECT)
 
 create-deleting-scheduler:
-	$(GCLOUD) beta scheduler jobs create pubsub delete-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub $(DELETING_SCHEDULER_NAME) \
 		--project $(GCP_PROJECT) \
 		--schedule '0 20 * * *' \
-		--topic $(AUTO_DCTEST_TOPIC_NAME) \
+		--topic $(TOPIC_NAME) \
 		--message-body '{"mode":"delete", "doForce":false}' \
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest instances except for ones with skip-auto-delete label'
 
 delete-deleting-scheduler:
-	$(GCLOUD) scheduler jobs delete delete-dctest --project $(GCP_PROJECT)
+	$(GCLOUD) scheduler jobs delete $(DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
 
 create-force-deleting-scheduler:
-	$(GCLOUD) beta scheduler jobs create pubsub force-delete-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub $(FORCE_DELETING_SCHEDULER_NAME) \
 		--project $(GCP_PROJECT) \
 		--schedule '0 23 * * *' \
-		--topic $(AUTO_DCTEST_TOPIC_NAME) \
+		--topic $(TOPIC_NAME) \
 		--message-body '{"mode":"delete", "doForce":true}' \
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest all instances'
 
 delete-force-deleting-scheduler:
-	$(GCLOUD) scheduler jobs delete force-delete-dctest --project $(GCP_PROJECT)
-
-deploy-gce-slack-notifier:
-	$(GCLOUD) functions deploy gce-slack-notifier \
-		--project $(GCP_PROJECT) \
-		--region $(REGION) \
-		--entry-point SlackNotifierEntryPoint \
-		--runtime go113 \
-		--trigger-topic $(SLACK_NOTIFIER_TOPIC_NAME) \
-		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
-		--memory 128MB \
-		--service-account=$(SERVICE_ACCOUNT_EMAIL)
-
-delete-gce-slack-notifier:
-	$(GCLOUD) functions delete gce-slack-notifier --project $(GCP_PROJECT) --region $(REGION)
-	$(GCLOUD) pubsub topics delete $(SLACK_NOTIFIER_TOPIC_NAME) --project $(GCP_PROJECT)
-
-create-logging-sink:
-	$(GCLOUD) logging sinks create auto-dctest-alerts \
-		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(SLACK_NOTIFIER_TOPIC_NAME) \
-		--project $(GCP_PROJECT) \
-		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script AND jsonPayload.message:[auto-dctest]'
-	IDENTITY_NAME=$$($(GCLOUD) logging sinks describe auto-dctest-alerts --format json | jq -r .writerIdentity | cut -d: -f 2) && \
-		$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
-
-delete-logging-sink:
-	$(GCLOUD) logging sinks delete auto-dctest-alerts --project $(GCP_PROJECT)
+	$(GCLOUD) scheduler jobs delete $(FORCE_DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
 
 .PHONY: \
-	setup \
 	init \
 	add-team list-teams delete-team \
 	clean \
 	create-service-account delete-service-account \
-	deploy-auto-dctest delete-auto-dctest \
+	deploy-function delete-function \
 	create-creating-scheduler delete-creating-scheduler \
 	create-deleting-scheduler delete-deleting-scheduler \
-	create-force-deleting-scheduler delete-force-deleting-scheduler \
-	deploy-gce-slack-notifier delete-gce-slack-notifier \
-	create-logging-sink delete-logging-sink
+	create-force-deleting-scheduler delete-force-deleting-scheduler

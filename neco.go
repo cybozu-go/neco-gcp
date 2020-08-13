@@ -7,7 +7,7 @@ import (
 
 const (
 	accountSecretName  = "cloud-dns-admin-account"
-	serviceAccountName = "neco-dev"
+	serviceAccountName = "auto-dctest"
 )
 
 // NecoStartupScriptBuilder creates startup-script builder to run dctest

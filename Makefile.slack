@@ -1,0 +1,69 @@
+GCLOUD := gcloud --quiet
+GCP_PROJECT ?=
+REGION := asia-northeast1
+
+LOG_LEVEL ?= info
+
+SERVICE_ACCOUNT_NAME := gce-slack-notifier
+SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+TOPIC_NAME := gce-slack-notifier-events
+FUNCTION_NAME := gce-slack-notifier
+SINK_NAME := auto-dctest-alerts
+
+setup:
+	sudo apt-get update
+	sudo apt-get install -y --no-install-recommends jq
+
+init: \
+	setup \
+	create-service-account \
+	deploy-function \
+	create-logging-sink
+
+clean: \
+	delete-service-account \
+	delete-function \
+	delete-logging-sink
+
+create-service-account:
+	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT) --display-name $(SERVICE_ACCOUNT_NAME)
+	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/secretmanager.secretAccessor
+
+delete-service-account:
+	$(GCLOUD) iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
+deploy-function:
+	$(GCLOUD) functions deploy $(FUNCTION_NAME) \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point SlackNotifierEntryPoint \
+		--runtime go113 \
+		--trigger-topic $(TOPIC_NAME) \
+		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
+		--memory 128MB \
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+
+delete-function:
+	$(GCLOUD) functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
+	$(GCLOUD) pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
+
+create-logging-sink:
+	$(GCLOUD) logging sinks create $(SINK_NAME) \
+		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME) \
+		--project $(GCP_PROJECT) \
+		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script AND jsonPayload.message:[auto-dctest]'
+	IDENTITY_NAME=$$($(GCLOUD) logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
+		$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
+
+delete-logging-sink:
+	$(GCLOUD) logging sinks delete $(SINK_NAME) --project $(GCP_PROJECT)
+
+.PHONY: \
+	setup \
+	init \
+	clean \
+	create-service-account delete-service-account \
+	deploy-function delete-function \
+	create-logging-sink delete-logging-sink

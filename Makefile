@@ -34,7 +34,6 @@ install-necogcp: statik
 
 statik:
 	mkdir -p statik
-	# go generate ./cmd/necogcp/...
 	go generate ./statik/generate_rule.go
 
 mod:
