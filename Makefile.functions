@@ -96,7 +96,7 @@ create-logging-sink:
 	gcloud logging sinks create auto-dctest-alerts \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(SLACK_NOTIFIER_TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
-		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script'
+		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script AND jsonPayload.message:[auto-dctest]'
 	IDENTITY_NAME=$$(gcloud logging sinks describe auto-dctest-alerts --format json | jq -r .writerIdentity | cut -d: -f 2) && \
 		gcloud projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
 

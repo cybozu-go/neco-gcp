@@ -53,6 +53,7 @@ delete_myself()
 export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
 export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
 /snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
+echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
 }
 
 prepare_scratch()
@@ -64,6 +65,7 @@ mount -t ext4 /dev/disk/by-id/google-local-ssd-0 /var/scratch &&
 chmod 1777 /var/scratch
 }
 
+echo "[auto-dctest] Starting dctest setup..."
 if ! prepare_scratch ; then delete_myself; fi
 `
 
@@ -109,6 +111,7 @@ make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 }
 
 if ! run_neco ; then delete_myself; fi
+echo "[auto-dctest] Neco bootstrap was succeeded!"
 `, b.necoBranch)
 	}
 
@@ -126,6 +129,7 @@ make setup dctest BOOTSTRAP=1 OVERLAY=neco-dev
 }
 
 if ! run_necoapps ; then delete_myself; fi
+echo "[auto-dctest] Neco Apps bootstrap was succeeded!"
 `, b.necoAppsBranch, accountSecretName)
 	}
 	return s

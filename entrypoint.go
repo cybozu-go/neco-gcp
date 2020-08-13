@@ -140,9 +140,9 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 
 // SlackBody is a pubsub message body from GCE's fluentd
 type SlackBody struct {
-	JSONPayload      JSONPayload `json:"jsonPayload"`
-	Resource         Resource    `json:"resource"`
-	ReceiveTimestamp time.Time   `json:"receiveTimestamp"`
+	JSONPayload JSONPayload `json:"jsonPayload"`
+	Resource    Resource    `json:"resource"`
+	TimeStamp   time.Time   `json:"timestamp"`
 }
 
 // JSONPayload is a nested field of SlackBody
@@ -201,6 +201,9 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
+	log.Info("notifier config YAML is successfully fetched", map[string]interface{}{
+		"len": len(result.GetPayload().GetData()),
+	})
 
 	c, err := necogcpslack.NewConfig(result.GetPayload().GetData())
 	if err != nil {
@@ -218,7 +221,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Debug("teams", map[string]interface{}{
+	log.Info("target teams", map[string]interface{}{
 		"teams": teams,
 	})
 
@@ -230,9 +233,12 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Debug("URLs", map[string]interface{}{
-		"urls": urls,
-	})
+	if len(urls) == 0 {
+		log.Info("No target URL is selected.", map[string]interface{}{
+			"teams": teams,
+		})
+		return nil
+	}
 
 	color, err := c.GetColorFromMessage(b.JSONPayload.Message)
 	if err != nil {
@@ -251,8 +257,8 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		b.JSONPayload.Message,
 		b.Resource.Labels.ProjectID,
 		b.Resource.Labels.Zone,
-		b.Resource.Labels.InstanceID,
-		b.ReceiveTimestamp,
+		b.JSONPayload.Host,
+		b.TimeStamp,
 	)
 	for url := range urls {
 		err = slack.PostWebhookContext(ctx, url, msg)
