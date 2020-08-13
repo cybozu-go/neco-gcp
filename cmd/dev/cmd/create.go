@@ -6,8 +6,8 @@ import (
 
 	"github.com/cybozu-go/log"
 	necogcp "github.com/cybozu-go/neco-gcp"
+	"github.com/cybozu-go/neco-gcp/functions"
 	"github.com/cybozu-go/neco-gcp/gcp"
-	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
 )

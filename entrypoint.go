@@ -9,9 +9,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/functions"
 	"github.com/cybozu-go/neco-gcp/gcp"
-	"github.com/cybozu-go/neco-gcp/gcp/functions"
-	necogcpslack "github.com/cybozu-go/neco-gcp/slack"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/slack-go/slack"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
@@ -206,7 +205,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"len": len(result.GetPayload().GetData()),
 	})
 
-	c, err := necogcpslack.NewConfig(result.GetPayload().GetData())
+	c, err := functions.NewConfig(result.GetPayload().GetData())
 	if err != nil {
 		log.Error("failed to read config", map[string]interface{}{
 			log.FnError: err,
