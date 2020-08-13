@@ -4,7 +4,6 @@
 build/
 cmd/
 docs/
-gcp/app
 gcp/*.go
 necogcp-app/
 vendor/
