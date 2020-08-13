@@ -3,6 +3,7 @@ module github.com/cybozu-go/neco-gcp
 go 1.13
 
 require (
+	cloud.google.com/go v0.62.0
 	cloud.google.com/go/pubsub v1.6.1
 	github.com/cybozu-go/log v1.6.0
 	github.com/cybozu-go/well v1.10.0
@@ -25,6 +26,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.30.0
 	google.golang.org/appengine v1.6.6
+	google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect

@@ -7,9 +7,13 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
+	necogcpslack "github.com/cybozu-go/neco-gcp/slack"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/slack-go/slack"
+	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
 const (
@@ -23,6 +27,8 @@ const (
 
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
 	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
+
+	slackNotifierConfigName = "gce-slack-notifier-config"
 )
 
 // Body is body of Pub/Sub message.
@@ -135,6 +141,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 // SlackBody is a pubsub message body from GCE's fluentd
 type SlackBody struct {
 	JSONPayload      JSONPayload `json:"jsonPayload"`
+	Resource         Resource    `json:"resource"`
 	ReceiveTimestamp time.Time   `json:"receiveTimestamp"`
 }
 
@@ -145,9 +152,21 @@ type JSONPayload struct {
 	Message string `json:"message"`
 }
 
+// Resource is a nested field of SlackBody
+type Resource struct {
+	Labels Labels `json:"labels"`
+}
+
+// Labels is a nested field of Resource
+type Labels struct {
+	InstanceID string `json:"instance_id"`
+	ProjectID  string `json:"project_id"`
+	Zone       string `json:"zone"`
+}
+
 // SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
 func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	log.Info("msg body", map[string]interface{}{
+	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
 	var b SlackBody
@@ -159,9 +178,116 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Info("unmarshalled msg body", map[string]interface{}{
+	log.Debug("unmarshalled msg body", map[string]interface{}{
 		"body": b,
 	})
 
+	client, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		log.Error("failed to setup client", map[string]interface{}{
+			log.FnError: err,
+		})
+		return err
+	}
+
+	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: "projects/" + b.Resource.Labels.ProjectID + "/secrets/" + slackNotifierConfigName + "/versions/latest",
+	}
+
+	result, err := client.AccessSecretVersion(ctx, accessRequest)
+	if err != nil {
+		log.Error("failed to access secret version", map[string]interface{}{
+			log.FnError: err,
+		})
+		return err
+	}
+
+	c, err := necogcpslack.NewConfig(result.String())
+	if err != nil {
+		log.Error("failed to read config", map[string]interface{}{
+			log.FnError: err,
+		})
+		return err
+	}
+
+	teams, err := c.GetTeamSet(b.JSONPayload.Host)
+	if err != nil {
+		log.Error("failed to get teams", map[string]interface{}{
+			"instancename": b.JSONPayload.Host,
+			log.FnError:    err,
+		})
+		return err
+	}
+	log.Debug("teams", map[string]interface{}{
+		"teams": teams,
+	})
+
+	urls, err := c.ConvertTeamsToURLs(teams)
+	if err != nil {
+		log.Error("failed to convert teams to URLs", map[string]interface{}{
+			"teams":     teams,
+			log.FnError: err,
+		})
+		return err
+	}
+	log.Debug("URLs", map[string]interface{}{
+		"urls": urls,
+	})
+
+	color, err := c.GetColorFromMessage(b.JSONPayload.Message)
+	if err != nil {
+		log.Error("failed to get color from message", map[string]interface{}{
+			"message":   b.JSONPayload.Message,
+			log.FnError: err,
+		})
+		return err
+	}
+	log.Debug("color", map[string]interface{}{
+		"color": color,
+	})
+
+	msg := makeGCEMessage(
+		color,
+		b.JSONPayload.Message,
+		b.Resource.Labels.ProjectID,
+		b.Resource.Labels.Zone,
+		b.Resource.Labels.InstanceID,
+		b.ReceiveTimestamp,
+	)
+	for url := range urls {
+		err = slack.PostWebhookContext(ctx, url, msg)
+		if err != nil {
+			log.Error("failed to post message from message", map[string]interface{}{
+				"message":   msg,
+				log.FnError: err,
+			})
+			return err
+		}
+	}
 	return nil
+}
+
+func makeGCEMessage(
+	color string,
+	text string,
+	projectID string,
+	zone string,
+	instanceID string,
+	timestamp time.Time,
+) *slack.WebhookMessage {
+	attachment := slack.Attachment{
+		Color:      color,
+		AuthorName: "GCE Slack Notifier",
+		Text:       text,
+		Fields: []slack.AttachmentField{
+			{Title: "Project", Value: projectID, Short: true},
+			{Title: "Zone", Value: zone, Short: true},
+			{Title: "Instance", Value: instanceID, Short: true},
+			{Title: "TimeStamp", Value: timestamp.Format(time.RFC3339), Short: true},
+		},
+	}
+
+	return &slack.WebhookMessage{
+		Attachments: []slack.Attachment{attachment},
+	}
 }

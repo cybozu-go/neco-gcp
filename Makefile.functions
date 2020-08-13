@@ -84,6 +84,7 @@ deploy-gce-slack-notifier:
 		--entry-point SlackNotifierEntryPoint \
 		--runtime go113 \
 		--trigger-topic $(SLACK_NOTIFIER_TOPIC_NAME) \
+		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
 		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 
