@@ -2,33 +2,36 @@ GCLOUD := gcloud --quiet
 GCP_PROJECT ?=
 ZONE := asia-northeast1-c
 REGION := asia-northeast1
-INSTANCE_NAME_PREFIX ?=
+
+TEAM_NAME ?=
 INSTANCE_NUM ?=
 LOG_LEVEL ?= info
 
 SERVICE_ACCOUNT_NAME := neco-dev
 SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
-AUTO_DCTEST_TOPIC_NAME := autodctest-scheduler-events
+AUTO_DCTEST_TOPIC_NAME := auto-dctest-events
 SLACK_NOTIFIER_TOPIC_NAME := gce-slack-notifier-events
-
-all: \
-	setup \
-	create-service-account \
-	deploy-auto-dctest \
-	create-creating-scheduler \
-	create-deleting-scheduler \
-	create-force-deleting-scheduler \
-	deploy-gce-slack-notifier \
-	create-logging-sink
 
 setup:
 	sudo apt-get update
 	sudo apt-get install -y --no-install-recommends jq
 
+init: \
+	setup \
+	create-service-account \
+	deploy-auto-dctest \
+	create-deleting-scheduler \
+	create-force-deleting-scheduler \
+	deploy-gce-slack-notifier \
+	create-logging-sink
+
+add-team: create-creating-scheduler
+
+delete-team: delete-creating-scheduler
+
 clean: \
 	delete-service-account \
 	delete-auto-dctest \
-	delete-creating-scheduler \
 	delete-deleting-scheduler \
 	delete-force-deleting-scheduler \
 	delete-gce-slack-notifier \
@@ -69,20 +72,24 @@ delete-auto-dctest:
 	$(GCLOUD) pubsub topics delete $(AUTO_DCTEST_TOPIC_NAME) --project $(GCP_PROJECT)
 
 create-creating-scheduler:
-	if [ $(words $(INSTANCE_NAME_PREFIX)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
-		echo "INSTANCE_NAME_PREFIX and/or INSTANCE_NUM are required."; \
+	if [ $(words $(TEAM_NAME)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
+		echo "TEAM_NAME and/or INSTANCE_NUM are required."; \
 		exit 1; \
 	fi
-	$(GCLOUD) beta scheduler jobs create pubsub create-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub create-dctest-$(TEAM_NAME) \
 		--project $(GCP_PROJECT) \
 		--schedule '0 9 * * 1-5' \
 		--topic $(AUTO_DCTEST_TOPIC_NAME) \
-		--message-body '{"mode":"create", "namePrefix":"$(INSTANCE_NAME_PREFIX)", "num":$(INSTANCE_NUM)}' \
+		--message-body '{"mode":"create", "namePrefix":"$(TEAM_NAME)", "num":$(INSTANCE_NUM)}' \
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically create dctest instance'
 
 delete-creating-scheduler:
-	$(GCLOUD) scheduler jobs delete create-dctest --project $(GCP_PROJECT)
+	if [ $(words $(TEAM_NAME)) -eq 0 ]; then \
+		echo "TEAM_NAME is required."; \
+		exit 1; \
+	fi
+	$(GCLOUD) scheduler jobs delete create-dctest-$(TEAM_NAME) --project $(GCP_PROJECT)
 
 create-deleting-scheduler:
 	$(GCLOUD) beta scheduler jobs create pubsub delete-dctest \
@@ -136,10 +143,13 @@ delete-logging-sink:
 
 .PHONY: \
 	setup \
+	init \
+	add-team delete-team \
+	clean \
 	create-service-account delete-service-account \
 	deploy-auto-dctest delete-auto-dctest \
 	create-creating-scheduler delete-creating-scheduler \
 	create-deleting-scheduler delete-deleting-scheduler \
 	create-force-deleting-scheduler delete-force-deleting-scheduler \
-	create-logging-sink delete-gce-slack-notifier \
-	deploy-gce-slack-notifier delete-logging-sink
+	deploy-gce-slack-notifier delete-gce-slack-notifier \
+	create-logging-sink delete-logging-sink
