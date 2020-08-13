@@ -1,11 +1,13 @@
+GCLOUD := gcloud --quiet
 GCP_PROJECT ?=
 ZONE := asia-northeast1-c
 REGION := asia-northeast1
-SERVICE_ACCOUNT_NAME := neco-dev
 INSTANCE_NAME_PREFIX ?=
 INSTANCE_NUM ?=
 LOG_LEVEL ?= info
 
+SERVICE_ACCOUNT_NAME := neco-dev
+SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 AUTO_DCTEST_TOPIC_NAME := autodctest-scheduler-events
 SLACK_NOTIFIER_TOPIC_NAME := gce-slack-notifier-events
 
@@ -23,23 +25,35 @@ setup:
 	sudo apt-get update
 	sudo apt-get install -y --no-install-recommends jq
 
+clean: \
+	delete-service-account \
+	delete-auto-dctest \
+	delete-creating-scheduler \
+	delete-deleting-scheduler \
+	delete-force-deleting-scheduler \
+	delete-gce-slack-notifier \
+	delete-logging-sink
+
 create-service-account:
-	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT) --display-name $(SERVICE_ACCOUNT_NAME)
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT) --display-name $(SERVICE_ACCOUNT_NAME)
+	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/compute.instanceAdmin.v1
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/secretmanager.secretAccessor
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/iam.serviceAccountUser
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com \
+	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/logging.logWriter
 
+delete-service-account:
+	$(GCLOUD) iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
 deploy-auto-dctest:
-	gcloud functions deploy auto-dctest \
+	$(GCLOUD) functions deploy auto-dctest \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point AutoDCTestEntryPoint \
@@ -48,14 +62,18 @@ deploy-auto-dctest:
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
 		--timeout 300s \
-		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+
+delete-auto-dctest:
+	$(GCLOUD) functions delete auto-dctest --project $(GCP_PROJECT) --region $(REGION)
+	$(GCLOUD) pubsub topics delete $(AUTO_DCTEST_TOPIC_NAME) --project $(GCP_PROJECT)
 
 create-creating-scheduler:
 	if [ $(words $(INSTANCE_NAME_PREFIX)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
 		echo "INSTANCE_NAME_PREFIX and/or INSTANCE_NUM are required."; \
 		exit 1; \
 	fi
-	gcloud beta scheduler jobs create pubsub create-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub create-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 9 * * 1-5' \
 		--topic $(AUTO_DCTEST_TOPIC_NAME) \
@@ -63,8 +81,11 @@ create-creating-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically create dctest instance'
 
+delete-creating-scheduler:
+	$(GCLOUD) scheduler jobs delete create-dctest --project $(GCP_PROJECT)
+
 create-deleting-scheduler:
-	gcloud beta scheduler jobs create pubsub delete-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub delete-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 20 * * *' \
 		--topic $(AUTO_DCTEST_TOPIC_NAME) \
@@ -72,8 +93,11 @@ create-deleting-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest instances except for ones with skip-auto-delete label'
 
+delete-deleting-scheduler:
+	$(GCLOUD) scheduler jobs delete delete-dctest --project $(GCP_PROJECT)
+
 create-force-deleting-scheduler:
-	gcloud beta scheduler jobs create pubsub force-delete-dctest \
+	$(GCLOUD) beta scheduler jobs create pubsub force-delete-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 23 * * *' \
 		--topic $(AUTO_DCTEST_TOPIC_NAME) \
@@ -81,8 +105,11 @@ create-force-deleting-scheduler:
 		--time-zone 'Asia/Tokyo' \
 		--description 'automatically delete dctest all instances'
 
+delete-force-deleting-scheduler:
+	$(GCLOUD) scheduler jobs delete force-delete-dctest --project $(GCP_PROJECT)
+
 deploy-gce-slack-notifier:
-	gcloud functions deploy gce-slack-notifier \
+	$(GCLOUD) functions deploy gce-slack-notifier \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point SlackNotifierEntryPoint \
@@ -90,22 +117,29 @@ deploy-gce-slack-notifier:
 		--trigger-topic $(SLACK_NOTIFIER_TOPIC_NAME) \
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
-		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+
+delete-gce-slack-notifier:
+	$(GCLOUD) functions delete gce-slack-notifier --project $(GCP_PROJECT) --region $(REGION)
+	$(GCLOUD) pubsub topics delete $(SLACK_NOTIFIER_TOPIC_NAME) --project $(GCP_PROJECT)
 
 create-logging-sink:
-	gcloud logging sinks create auto-dctest-alerts \
+	$(GCLOUD) logging sinks create auto-dctest-alerts \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(SLACK_NOTIFIER_TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
 		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script AND jsonPayload.message:[auto-dctest]'
-	IDENTITY_NAME=$$(gcloud logging sinks describe auto-dctest-alerts --format json | jq -r .writerIdentity | cut -d: -f 2) && \
-		gcloud projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
+	IDENTITY_NAME=$$($(GCLOUD) logging sinks describe auto-dctest-alerts --format json | jq -r .writerIdentity | cut -d: -f 2) && \
+		$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
+
+delete-logging-sink:
+	$(GCLOUD) logging sinks delete auto-dctest-alerts --project $(GCP_PROJECT)
 
 .PHONY: \
 	setup \
-	create-service-account \
-	deploy-auto-dctest \
-	create-creating-scheduler \
-	create-deleting-scheduler \
-	create-force-deleting-scheduler \
-	deploy-gce-slack-notifier \
-	create-logging-sink
+	create-service-account delete-service-account \
+	deploy-auto-dctest delete-auto-dctest \
+	create-creating-scheduler delete-creating-scheduler \
+	create-deleting-scheduler delete-deleting-scheduler \
+	create-force-deleting-scheduler delete-force-deleting-scheduler \
+	create-logging-sink delete-gce-slack-notifier \
+	deploy-gce-slack-notifier delete-logging-sink

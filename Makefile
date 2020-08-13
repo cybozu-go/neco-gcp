@@ -45,7 +45,7 @@ mod:
 
 clean:
 	rm -rf ./build
-	rm -rf ./gcp/statik
+	rm -rf ./statik/statik.go
 
 .PHONY: \
 	setup \
