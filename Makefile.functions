@@ -27,6 +27,9 @@ init: \
 
 add-team: create-creating-scheduler
 
+list-teams:
+	$(GCLOUD) scheduler jobs list --project $(GCP_PROJECT) --filter "name:create-dctest-"
+
 delete-team: delete-creating-scheduler
 
 clean: \
@@ -144,7 +147,7 @@ delete-logging-sink:
 .PHONY: \
 	setup \
 	init \
-	add-team delete-team \
+	add-team list-teams delete-team \
 	clean \
 	create-service-account delete-service-account \
 	deploy-auto-dctest delete-auto-dctest \

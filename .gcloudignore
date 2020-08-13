@@ -4,8 +4,6 @@
 build/
 cmd/
 docs/
-gcp/*.go
-necogcp-app/
 vendor/
 
 .gitignore
