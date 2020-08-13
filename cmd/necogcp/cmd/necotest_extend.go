@@ -17,7 +17,7 @@ var necotestExtendCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		necotestCfg.Common.ServiceAccount = cfg.Common.ServiceAccount
-		cc := gcp.NewComputeClient(necotestCfg, args[0])
+		cc := gcp.NewComputeCLIClient(necotestCfg, args[0])
 		well.Go(func(ctx context.Context) error {
 			err := cc.ExtendInstance(ctx)
 			if err != nil {

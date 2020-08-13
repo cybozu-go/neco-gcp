@@ -19,7 +19,7 @@ var createInstanceCmd = &cobra.Command{
 If host-vm instance already exists in the project, it is re-created.`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		cc := gcp.NewComputeClient(cfg, "host-vm")
+		cc := gcp.NewComputeCLIClient(cfg, "host-vm")
 		well.Go(func(ctx context.Context) error {
 			cc.DeleteInstance(ctx)
 

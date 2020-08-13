@@ -5,16 +5,17 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/well"
 )
 
 // Runner runs dctest environments on GCP instances
 type Runner struct {
-	compute *ComputeClient
+	compute *gcp.ComputeClient
 }
 
 // NewRunner creates Runner
-func NewRunner(computeClient *ComputeClient) *Runner {
+func NewRunner(computeClient *gcp.ComputeClient) *Runner {
 	return &Runner{compute: computeClient}
 }
 

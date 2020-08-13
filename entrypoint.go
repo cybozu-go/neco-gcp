@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	necogcpslack "github.com/cybozu-go/neco-gcp/slack"
 	"github.com/kelseyhightower/envconfig"
@@ -75,7 +76,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"env": e,
 	})
 
-	client, err := functions.NewComputeClient(ctx, e.ProjectID, e.Zone)
+	client, err := gcp.NewComputeClient(ctx, e.ProjectID, e.Zone)
 	if err != nil {
 		log.Error("failed to create client", map[string]interface{}{
 			log.FnError: err,

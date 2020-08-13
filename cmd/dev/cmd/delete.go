@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -25,7 +26,7 @@ Please DO NOT use this command except for the purpose.
 				return nil
 			}
 
-			cc, err := functions.NewComputeClient(ctx, projectID, zone)
+			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
 				log.Error("failed to create compute client", map[string]interface{}{
 					log.FnError: err,

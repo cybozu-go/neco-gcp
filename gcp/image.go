@@ -6,7 +6,7 @@ import (
 )
 
 // CreateVMXEnabledImage creates vmx-enabled image
-func CreateVMXEnabledImage(ctx context.Context, cc *ComputeClient, cfgFile string) error {
+func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, cfgFile string) error {
 	cc.DeleteInstance(ctx)
 
 	err := cc.CreateVMXEnabledInstance(ctx)

@@ -15,7 +15,7 @@ var deleteImageCmd = &cobra.Command{
 	Long:  `Delete vmx-enabled image.`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		cc := gcp.NewComputeClient(cfg, "vmx-enabled")
+		cc := gcp.NewComputeCLIClient(cfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
 			err := cc.DeleteVMXEnabledImage(ctx)
 			if err != nil {

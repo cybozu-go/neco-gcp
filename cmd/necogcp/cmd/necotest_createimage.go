@@ -19,7 +19,7 @@ var necotestCreateImageCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		necotestCfg := gcp.NecoTestConfig(projectID, zone)
-		cc := gcp.NewComputeClient(necotestCfg, "vmx-enabled")
+		cc := gcp.NewComputeCLIClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
 			f, err := ioutil.TempFile("", "*.yml")
 			if err != nil {

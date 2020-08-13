@@ -1,383 +1,173 @@
 package gcp
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"text/template"
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/well"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/iam/v1"
 )
 
-var startUpScriptTmpl = template.Must(template.New("").Parse(`#!/bin/sh
-
-STARTUP_PATH=/tmp/startup.sh
-cat << 'EOF' > $STARTUP_PATH
-export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
-export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
-EOF
-chmod 755 $STARTUP_PATH
-
-at {{ .ShutdownAt }} -f $STARTUP_PATH
-`))
-
-const (
-	retryCount   = 300
-	imageLicense = "https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
-	// MetadataKeyShutdownAt is the instance key to represents the time that this instance should be deleted.
-	MetadataKeyShutdownAt = "shutdown-at"
-	timeFormat            = "2006-01-02 15:04:05"
-)
-
-// ComputeClient is GCP compute client using "gcloud compute"
+// ComputeClient is GCP compute client with go client
 type ComputeClient struct {
-	cfg      *Config
-	instance string
-	user     string
-	image    string
+	ctx             context.Context
+	service         *compute.Service
+	projectID       string
+	zone            string
+	projectEndpoint string
 }
 
 // NewComputeClient returns ComputeClient
-func NewComputeClient(cfg *Config, instance string) *ComputeClient {
-	user := os.Getenv("USER")
-	if cfg.Common.Project == "neco-test" {
-		user = "cybozu"
+func NewComputeClient(
+	ctx context.Context,
+	projectID string,
+	zone string,
+) (*ComputeClient, error) {
+	s, err := compute.NewService(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ComputeClient{
-		cfg:      cfg,
-		instance: instance,
-		user:     user,
-		image:    "vmx-enabled",
-	}
+		ctx:             ctx,
+		service:         s,
+		projectID:       projectID,
+		zone:            zone,
+		projectEndpoint: "https://www.googleapis.com/compute/v1/projects/" + projectID,
+	}, nil
 }
 
-func (cc *ComputeClient) gCloudCompute() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute"}
-}
-
-func (cc *ComputeClient) gCloudComputeInstances() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "instances"}
-}
-
-func (cc *ComputeClient) gCloudComputeImages() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "images"}
-}
-
-func (cc *ComputeClient) gCloudComputeDisks() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "disks"}
-}
-
-func (cc *ComputeClient) gCloudComputeSSH(command []string) []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "ssh",
-		"--zone", cc.cfg.Common.Zone,
-		fmt.Sprintf("%s@%s", cc.user, cc.instance),
-		fmt.Sprintf("--command=%s", strings.Join(command, " "))}
-}
-
-// CreateVMXEnabledInstance creates vmx-enabled instance
-func (cc *ComputeClient) CreateVMXEnabledInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeInstances()
-	bootDiskSize := strconv.Itoa(cc.cfg.Compute.BootDiskSizeGB) + "GB"
-	gcmd = append(gcmd, "create", cc.instance,
-		"--zone", cc.cfg.Common.Zone,
-		"--image", artifacts.baseImage,
-		"--image-project", artifacts.baseImageProject,
-		"--boot-disk-type", "pd-ssd",
-		"--boot-disk-size", bootDiskSize,
-		"--machine-type", cc.cfg.Compute.MachineType)
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// ConvertLocalTimeToUTC converts local time to UTC
-func ConvertLocalTimeToUTC(timezone, shutdownAt string) (time.Time, error) {
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		return time.Time{}, err
-	}
-	now := time.Now().In(loc)
-	localTime := fmt.Sprintf("%d-%02d-%02d "+shutdownAt+":00",
-		now.Year(), now.Month(), now.Day())
-	t, err := time.ParseInLocation(timeFormat, localTime, loc)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return t.UTC(), nil
-}
-
-// CreateHostVMInstance creates host-vm instance
-func (cc *ComputeClient) CreateHostVMInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeInstances()
-	bootDiskSize := strconv.Itoa(cc.cfg.Compute.BootDiskSizeGB) + "GB"
-	shutdownTime, err := ConvertLocalTimeToUTC(cc.cfg.Compute.AutoShutdown.Timezone, cc.cfg.Compute.AutoShutdown.ShutdownAt)
+// Create creates a compute instance with running startup script
+func (c *ComputeClient) Create(
+	instanceName string,
+	serviceAccountEmail string,
+	machineType string,
+	imageURL string,
+	startupScript string,
+) error {
+	iamService, err := iam.NewService(c.ctx)
 	if err != nil {
 		return err
 	}
-	shutdownAt := shutdownTime.Format("15:04")
-	log.Info("the instance will shutdown at UTC "+shutdownAt, map[string]interface{}{})
-	buf := new(bytes.Buffer)
-	err = startUpScriptTmpl.Execute(buf, struct {
-		ShutdownAt string
-	}{
-		ShutdownAt: shutdownAt,
-	})
+	saURI := fmt.Sprintf("projects/%s/serviceAccounts/%s", c.projectID, serviceAccountEmail)
+	_, err = iamService.Projects.ServiceAccounts.Keys.Get(saURI).Do()
 	if err != nil {
 		return err
 	}
-	tmpfile, err := ioutil.TempFile("/tmp", "gcp-start-up-script-*.sh")
+	url, err := url.Parse(imageURL)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		tmpfile.Close()
-		os.Remove(tmpfile.Name())
-	}()
-	log.Info("start up script for "+tmpfile.Name(), map[string]interface{}{})
-	_, err = tmpfile.Write(buf.Bytes())
-	if err != nil {
-		return err
-	}
-	gcmd = append(gcmd, "create", cc.instance,
-		"--zone", cc.cfg.Common.Zone,
-		"--image", cc.image,
-		"--boot-disk-type", "pd-ssd",
-		"--boot-disk-size", bootDiskSize,
-		"--local-ssd", "interface=scsi",
-		"--machine-type", cc.cfg.Compute.MachineType,
-		"--metadata-from-file", "startup-script="+tmpfile.Name(),
-		"--scopes", "compute-rw,storage-rw",
-	)
-	if cc.cfg.Compute.HostVM.Preemptible {
-		gcmd = append(gcmd, "--preemptible")
-	}
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// CreateHomeDisk creates home disk image
-func (cc *ComputeClient) CreateHomeDisk(ctx context.Context) error {
-	if !cc.cfg.Compute.HostVM.HomeDisk {
-		return nil
-	}
-	gcmdInfo := cc.gCloudComputeDisks()
-	gcmdInfo = append(gcmdInfo, "describe", "home",
-		"--zone", cc.cfg.Common.Zone,
-		"--format", "json")
-	outBuf := new(bytes.Buffer)
-	c := well.CommandContext(ctx, gcmdInfo[0], gcmdInfo[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = outBuf
-	c.Stderr = os.Stderr
-	err := c.Run()
-	if err == nil {
-		log.Info("home disk already exists", nil)
-		return nil
-	}
-
-	configSize := strconv.Itoa(cc.cfg.Compute.HostVM.HomeDiskSizeGB) + "GB"
-	gcmdCreate := cc.gCloudComputeDisks()
-	gcmdCreate = append(gcmdCreate, "create", "home", "--size", configSize, "--type", "pd-ssd", "--zone", cc.cfg.Common.Zone)
-	c = well.CommandContext(ctx, gcmdCreate[0], gcmdCreate[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// AttachHomeDisk attaches home disk image to host-vm instance
-func (cc *ComputeClient) AttachHomeDisk(ctx context.Context) error {
-	if !cc.cfg.Compute.HostVM.HomeDisk {
-		return nil
-	}
-	gcmd := cc.gCloudComputeInstances()
-	gcmd = append(gcmd, "attach-disk", cc.instance,
-		"--zone", cc.cfg.Common.Zone,
-		"--disk", "home",
-		"--device-name", "home")
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// ResizeHomeDisk resizes home disk image
-func (cc *ComputeClient) ResizeHomeDisk(ctx context.Context) error {
-	if !cc.cfg.Compute.HostVM.HomeDisk {
-		return nil
-	}
-	gcmdInfo := cc.gCloudComputeDisks()
-	gcmdInfo = append(gcmdInfo, "describe", "home",
-		"--zone", cc.cfg.Common.Zone,
-		"--format", "json")
-	outBuf := new(bytes.Buffer)
-	c := well.CommandContext(ctx, gcmdInfo[0], gcmdInfo[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = outBuf
-	c.Stderr = os.Stderr
-	err := c.Run()
+	_, err = c.service.Images.Get(c.projectID, path.Base(url.Path)).Do()
 	if err != nil {
 		return err
 	}
 
-	var info map[string]interface{}
-	err = json.Unmarshal(outBuf.Bytes(), &info)
-	if err != nil {
-		return err
-	}
-
-	currentSize, ok := info["sizeGb"].(string)
-	if !ok {
-		return errors.New("failed to convert sizeGb")
-	}
-	currentSizeInt, err := strconv.Atoi(currentSize)
-	if err != nil {
-		return err
-	}
-	configSize := strconv.Itoa(cc.cfg.Compute.HostVM.HomeDiskSizeGB) + "GB"
-	configSizeInt := cc.cfg.Compute.HostVM.HomeDiskSizeGB
-	if currentSizeInt >= configSizeInt {
-		log.Info("current home disk size is smaller or equal to the size in configuration file", map[string]interface{}{
-			"currentSize": currentSizeInt,
-			"configSize":  configSizeInt,
-		})
-		return nil
-	}
-
-	gcmdResize := cc.gCloudComputeDisks()
-	gcmdResize = append(gcmdResize, "resize", "home", "--size", configSize)
-	c = well.CommandContext(ctx, gcmdResize[0], gcmdResize[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// DeleteInstance deletes given instance
-func (cc *ComputeClient) DeleteInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeInstances()
-	gcmd = append(gcmd, "delete", cc.instance, "--zone", cc.cfg.Common.Zone)
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// WaitInstance waits given instance until online
-func (cc *ComputeClient) WaitInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeSSH([]string{"date"})
-	return RetryWithSleep(ctx, retryCount, time.Second,
-		func(ctx context.Context) error {
-			c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-			c.Stdin = os.Stdin
-			c.Stdout = os.Stdout
-			c.Stderr = os.Stderr
-			return c.Run()
+	instance := &compute.Instance{
+		Name:        instanceName,
+		MachineType: c.projectEndpoint + "/zones/" + c.zone + "/machineTypes/" + machineType,
+		Metadata: &compute.Metadata{
+			Items: []*compute.MetadataItems{
+				{
+					Key:   "startup-script",
+					Value: &startupScript,
+				},
+			},
 		},
-		func(err error) {
-			log.Error("failed to check online of the instance", map[string]interface{}{
-				log.FnError: err,
-				"instance":  cc.instance,
-			})
+		Disks: []*compute.AttachedDisk{
+			{
+				AutoDelete: true,
+				Boot:       true,
+				Type:       "PERSISTENT",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					// DiskName must be unique to create multiple instances simultaneously
+					DiskName:    instanceName,
+					SourceImage: imageURL,
+				},
+			},
+			{
+				Type: "SCRATCH",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
+				},
+				AutoDelete: true,
+				Interface:  "SCSI",
+			},
 		},
-	)
-}
+		NetworkInterfaces: []*compute.NetworkInterface{
+			{
+				AccessConfigs: []*compute.AccessConfig{
+					{
+						Type: "ONE_TO_ONE_NAT",
+						Name: "External NAT",
+					},
+				},
+				Network: c.projectEndpoint + "/global/networks/default",
+			},
+		},
+		ServiceAccounts: []*compute.ServiceAccount{
+			{
+				Email: serviceAccountEmail,
+				Scopes: []string{
+					// Scopes is legacy method. We should set appropriate permissions with IAM
+					// https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances#best_practices
+					iam.CloudPlatformScope,
+				},
+			},
+		},
+	}
 
-// StopInstance stops given instance
-func (cc *ComputeClient) StopInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeInstances()
-	gcmd = append(gcmd, "stop", cc.instance,
-		"--zone", cc.cfg.Common.Zone)
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// CreateVMXEnabledImage create GCE vmx-enabled image
-func (cc *ComputeClient) CreateVMXEnabledImage(ctx context.Context) error {
-	gcmd := cc.gCloudComputeImages()
-	gcmd = append(gcmd, "create", cc.image,
-		"--source-disk", cc.instance,
-		"--source-disk-zone", cc.cfg.Common.Zone,
-		"--licenses", imageLicense)
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// DeleteVMXEnabledImage create GCE vmx-enabled image
-func (cc *ComputeClient) DeleteVMXEnabledImage(ctx context.Context) error {
-	gcmd := cc.gCloudComputeImages()
-	gcmd = append(gcmd, "delete", cc.image)
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// Upload uploads a file to the instance through ssh
-func (cc *ComputeClient) Upload(ctx context.Context, file string) error {
-	gcmd := cc.gCloudCompute()
-	gcmd = append(gcmd, "scp", "--zone", cc.cfg.Common.Zone, file, fmt.Sprintf("%s@%s:/tmp", cc.user, cc.instance))
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
-// RunSetup executes "necogcp setup" on the instance through ssh
-func (cc *ComputeClient) RunSetup(ctx context.Context, progFile, cfgFile string) error {
-	err := cc.Upload(ctx, progFile)
+	_, err = c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
 	if err != nil {
 		return err
 	}
 
-	err = cc.Upload(ctx, cfgFile)
-	if err != nil {
-		return err
+	// Wait for instance creation
+	ticker := time.NewTicker(time.Second * 2)
+	defer ticker.Stop()
+	var status string
+	for i := 0; i < 30; i++ {
+		select {
+		case <-c.ctx.Done():
+			return nil
+		case <-ticker.C:
+			ci, err := c.service.Instances.Get(c.projectID, c.zone, instance.Name).Do()
+			if err != nil {
+				return err
+			}
+			status = ci.Status
+			if ci.Status == "RUNNING" {
+				log.Info("instance is created", nil)
+				return nil
+			}
+			log.Info("waiting for creating instance...", nil)
+		}
 	}
 
-	gcmd := cc.gCloudComputeSSH([]string{"sudo", "/tmp/" + filepath.Base(progFile), "--config", "/tmp/" + filepath.Base(cfgFile), "setup-instance"})
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
+	return errors.New("instance does not reach RUNNING state. current state is " + status)
 }
 
-// ExtendInstance extends 2 hours from now for given instance to prevent auto deletion
-func (cc *ComputeClient) ExtendInstance(ctx context.Context) error {
-	gcmd := cc.gCloudComputeInstances()
-	gcmd = append(gcmd, "add-metadata", cc.instance,
-		"--zone", cc.cfg.Common.Zone,
-		"--metadata", MetadataKeyShutdownAt+"="+time.Now().UTC().Add(2*time.Hour).Format(time.RFC3339))
-	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
+// GetNameSet gets a list of existing GCP instances with the given filter
+func (c *ComputeClient) GetNameSet(filter string) (map[string]struct{}, error) {
+	list, err := c.service.Instances.List(c.projectID, c.zone).Filter(filter).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	res := map[string]struct{}{}
+	for _, n := range list.Items {
+		res[n.Name] = struct{}{}
+	}
+	return res, nil
+}
+
+// Delete deletes a GCP instance
+func (c *ComputeClient) Delete(name string) error {
+	_, err := c.service.Instances.Delete(c.projectID, c.zone, name).Do()
+	return err
 }

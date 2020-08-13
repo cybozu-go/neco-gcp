@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
+	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -50,7 +51,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 		}
 
 		well.Go(func(ctx context.Context) error {
-			cc, err := functions.NewComputeClient(ctx, projectID, zone)
+			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
 				log.Error("failed to create compute client", map[string]interface{}{
 					log.FnError: err,
