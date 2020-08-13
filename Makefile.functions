@@ -51,6 +51,10 @@ deploy-auto-dctest:
 		--service-account=$(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 
 create-creating-scheduler:
+	if [ $(words $(INSTANCE_NAME_PREFIX)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
+		echo "INSTANCE_NAME_PREFIX and/or INSTANCE_NUM are required."; \
+		exit 1; \
+	fi
 	gcloud beta scheduler jobs create pubsub create-dctest \
 		--project $(GCP_PROJECT) \
 		--schedule '0 9 * * 1-5' \
