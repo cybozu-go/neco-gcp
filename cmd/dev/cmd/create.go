@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/cybozu-go/log"
+	necogcp "github.com/cybozu-go/neco-gcp"
 	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	"github.com/cybozu-go/well"
@@ -60,7 +61,7 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 				instancesNum,
 				serviceAccountName,
 				machineType,
-				functions.MakeVMXEnabledImageURL(projectID),
+				necogcp.MakeVMXEnabledImageURL(projectID),
 				"",
 			)
 		})

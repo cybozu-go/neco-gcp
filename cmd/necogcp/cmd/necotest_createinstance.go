@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
+	necogcp "github.com/cybozu-go/neco-gcp"
 	"github.com/cybozu-go/neco-gcp/gcp"
-	"github.com/cybozu-go/neco-gcp/gcp/functions"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 		if len(projectID) == 0 {
 			log.ErrorExit(errors.New("project id is required"))
 		}
-		builder := functions.NewNecoStartupScriptBuilder().WithFluentd()
+		builder := necogcp.NewNecoStartupScriptBuilder().WithFluentd()
 		if len(necoBranch) > 0 {
 			log.Info("run neco", map[string]interface{}{
 				"branch": necoBranch,
@@ -59,7 +59,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				return err
 			}
 
-			sa := functions.MakeNecoDevServiceAccountEmail(projectID)
+			sa := necogcp.MakeNecoDevServiceAccountEmail(projectID)
 			log.Info("start creating instance", map[string]interface{}{
 				"project":        projectID,
 				"zone":           zone,
@@ -73,7 +73,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				instanceName,
 				sa,
 				machineType,
-				functions.MakeVMXEnabledImageURL(projectID),
+				necogcp.MakeVMXEnabledImageURL(projectID),
 				builder.Build(),
 			)
 		})

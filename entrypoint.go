@@ -1,4 +1,4 @@
-package necogcpfunctions
+package necogcp
 
 import (
 	"context"
@@ -105,7 +105,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			return nil
 		}
 
-		builder, err := functions.NewNecoStartupScriptBuilder().
+		builder, err := NewNecoStartupScriptBuilder().
 			WithFluentd().
 			WithNeco(necoBranch).
 			WithNecoApps(necoAppsBranch)
@@ -119,9 +119,9 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			ctx,
 			b.InstanceNamePrefix,
 			b.InstancesNum,
-			functions.MakeNecoDevServiceAccountEmail(e.ProjectID),
+			MakeNecoDevServiceAccountEmail(e.ProjectID),
 			machineType,
-			functions.MakeVMXEnabledImageURL(e.ProjectID),
+			MakeVMXEnabledImageURL(e.ProjectID),
 			builder.Build(),
 		)
 	case deleteInstancesMode:

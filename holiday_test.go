@@ -1,4 +1,4 @@
-package necogcpfunctions
+package necogcp
 
 import "testing"
 
