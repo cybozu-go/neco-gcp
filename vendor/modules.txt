@@ -4,6 +4,7 @@ cloud.google.com/go/compute/metadata
 cloud.google.com/go/iam
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/version
+cloud.google.com/go/secretmanager/apiv1
 # cloud.google.com/go/pubsub v1.6.1
 cloud.google.com/go/pubsub
 cloud.google.com/go/pubsub/apiv1
@@ -64,11 +65,6 @@ github.com/magiconair/properties
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.3.3
 github.com/mitchellh/mapstructure
-# github.com/nlopes/slack v0.6.0
-github.com/nlopes/slack
-github.com/nlopes/slack/internal/errorsx
-github.com/nlopes/slack/internal/timex
-github.com/nlopes/slack/slackutilsx
 # github.com/pelletier/go-toml v1.3.0
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
@@ -193,6 +189,7 @@ google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c
 google.golang.org/genproto/googleapis/api/annotations
+google.golang.org/genproto/googleapis/cloud/secretmanager/v1
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/pubsub/v1
 google.golang.org/genproto/googleapis/rpc/status
