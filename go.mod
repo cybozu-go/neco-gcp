@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.6.1
 	github.com/cybozu-go/log v1.6.0
 	github.com/cybozu-go/well v1.10.0
+	github.com/google/go-cmp v0.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -15,6 +16,7 @@ require (
 	github.com/pelletier/go-toml v1.3.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rakyll/statik v0.1.7
+	github.com/slack-go/slack v0.6.5
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

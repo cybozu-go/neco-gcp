@@ -75,6 +75,11 @@ github.com/pelletier/go-toml
 github.com/pkg/errors
 # github.com/rakyll/statik v0.1.7
 github.com/rakyll/statik/fs
+# github.com/slack-go/slack v0.6.5
+github.com/slack-go/slack
+github.com/slack-go/slack/internal/errorsx
+github.com/slack-go/slack/internal/timex
+github.com/slack-go/slack/slackutilsx
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
