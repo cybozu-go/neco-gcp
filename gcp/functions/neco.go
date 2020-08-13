@@ -46,8 +46,6 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
-	fmt.Println(b.necoAppsBranch)
-	fmt.Println(b.necoBranch)
 	s := `#! /bin/sh -x
 
 delete_myself()
@@ -130,8 +128,6 @@ make setup dctest BOOTSTRAP=1 OVERLAY=neco-dev
 if ! run_necoapps ; then delete_myself; fi
 `, b.necoAppsBranch, accountSecretName)
 	}
-
-	fmt.Println(s)
 	return s
 }
 

@@ -1,18 +1,16 @@
 package slack
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 
-	"github.com/slack-go/slack"
 	"sigs.k8s.io/yaml"
 )
 
 const defaultColor = "good"
 
-// Notifier is a Slack notifier
-type Notifier struct {
+// Config is a Slack notifier
+type Config struct {
 	Teams    map[string]string `yaml:"teams"`
 	Severity []Severity        `yaml:"severity"`
 	Rules    []Rule            `yaml:"rules"`
@@ -31,9 +29,9 @@ type Rule struct {
 	TargetTeams []string `yaml:"targetTeams"`
 }
 
-// NewNotifier creates new Notifier from config YAML
-func NewNotifier(configYAML string) (*Notifier, error) {
-	var n Notifier
+// NewConfig creates new Notifier from config YAML
+func NewConfig(configYAML string) (*Config, error) {
+	var n Config
 	err := yaml.Unmarshal([]byte(configYAML), &n)
 	if err != nil {
 		return nil, err
@@ -42,27 +40,10 @@ func NewNotifier(configYAML string) (*Notifier, error) {
 	return &n, nil
 }
 
-// Notify notifies message via Slack webhook
-func (n Notifier) Notify(ctx context.Context, webhookURL, color, message string) error {
-	attachment := slack.Attachment{
-		Color: color,
-		Text:  message,
-	}
-	msg := slack.WebhookMessage{
-		Attachments: []slack.Attachment{attachment},
-	}
-
-	return slack.PostWebhookContext(
-		ctx,
-		webhookURL,
-		&msg,
-	)
-}
-
-// GetURLSetOfMatchedTeams returns matched URLs of target teams
-func (n Notifier) GetURLSetOfMatchedTeams(target string) (map[string]struct{}, error) {
-	urls := make(map[string]struct{})
-	for _, r := range n.Rules {
+// GetTeamSet returns matched URLs of target teams
+func (c Config) GetTeamSet(target string) (map[string]struct{}, error) {
+	teams := make(map[string]struct{})
+	for _, r := range c.Rules {
 		matched, err := regexp.Match(r.Regex, []byte(target))
 		if err != nil {
 			return nil, err
@@ -71,19 +52,29 @@ func (n Notifier) GetURLSetOfMatchedTeams(target string) (map[string]struct{}, e
 			continue
 		}
 		for _, t := range r.TargetTeams {
-			v, ok := n.Teams[t]
-			if !ok {
-				return nil, fmt.Errorf("cannot find %s in teams field", t)
-			}
-			urls[v] = struct{}{}
+			teams[t] = struct{}{}
 		}
 	}
+	return teams, nil
+}
+
+// ConvertTeamsToURLs converts teams set to URLs set
+func (c Config) ConvertTeamsToURLs(teams map[string]struct{}) (map[string]struct{}, error) {
+	urls := make(map[string]struct{})
+	for t := range teams {
+		v, ok := c.Teams[t]
+		if !ok {
+			return nil, fmt.Errorf("cannot find %s in teams field", t)
+		}
+		urls[v] = struct{}{}
+	}
+
 	return urls, nil
 }
 
 // GetColorFromMessage returns color by maching regex with message
-func (n Notifier) GetColorFromMessage(message string) (string, error) {
-	for _, s := range n.Severity {
+func (c Config) GetColorFromMessage(message string) (string, error) {
+	for _, s := range c.Severity {
 		matched, err := regexp.Match(s.Regex, []byte(message))
 		if err != nil {
 			return "", err

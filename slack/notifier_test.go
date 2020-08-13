@@ -34,12 +34,12 @@ rules:
       - team2
       - team3
 `
-	n, err := NewNotifier(yaml)
+	n, err := NewConfig(yaml)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expect := Notifier{
+	expect := Config{
 		Teams: map[string]string{
 			"team1": "https://webhook/team1",
 			"team2": "https://webhook/team2",
@@ -99,7 +99,11 @@ rules:
 	}
 
 	for _, tt := range testCases {
-		targetURLs, err := n.GetURLSetOfMatchedTeams(tt.input.target)
+		teams, err := n.GetTeamSet(tt.input.target)
+		if err != nil {
+			t.Errorf("test case: %#v, err: %#v", tt, err)
+		}
+		targetURLs, err := n.ConvertTeamsToURLs(teams)
 		if err != nil {
 			t.Errorf("test case: %#v, err: %#v", tt, err)
 		}
