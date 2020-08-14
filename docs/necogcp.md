@@ -45,6 +45,8 @@ Synopsis
 
     Extend 2 hours given instance on the neco-test project to prevent deleted by GAE app.
 
+The subcommands `necogcp neco-test create-instance | delete-instance | list-instance` are used for `auto-dctest` feature. See [auto-dctest.md](auto-dctest.md)
+
 ### Miscellaneous
 
 * `necogcp completion`
