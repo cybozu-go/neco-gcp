@@ -2,8 +2,6 @@ package necogcp
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -16,9 +14,6 @@ import (
 
 const (
 	slackNotifierConfigName = "gce-slack-notifier-config"
-
-	computeEngineType = "gce_instance"
-	cloudFunctionType = "cloud_function"
 )
 
 // SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
@@ -26,8 +21,8 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
-	var b necogcpslack.MessageBody
-	err := json.Unmarshal(m.Data, &b)
+
+	b, err := necogcpslack.NewCloudLoggingMessage(m.Data)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
 			"data":      string(m.Data),
@@ -39,17 +34,27 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"body": b,
 	})
 
-	var name, text string
-	switch b.Resource.Type {
-	case computeEngineType:
-		name = b.JSONPayload.Host
-		text = b.JSONPayload.Message
-	case cloudFunctionType:
-		name = b.Resource.Labels.FunctionName
-		text = b.TextPayload
-	default:
-		return fmt.Errorf("undefined resource type: %s", b.Resource.Type)
+	name, err := b.GetName()
+	if err != nil {
+		log.Error("failed to get name", map[string]interface{}{
+			log.FnError: err,
+		})
+		return err
 	}
+	log.Debug("name", map[string]interface{}{
+		"name": name,
+	})
+
+	text, err := b.GetText()
+	if err != nil {
+		log.Error("failed to get text", map[string]interface{}{
+			log.FnError: err,
+		})
+		return err
+	}
+	log.Debug("text", map[string]interface{}{
+		"text": text,
+	})
 
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -121,29 +126,18 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	var msg *slack.WebhookMessage
-	switch b.Resource.Type {
-	case computeEngineType:
-		msg = necogcpslack.MakeMessageForComputeEngine(
-			color,
-			b.JSONPayload.Message,
-			b.Resource.Labels.ProjectID,
-			b.Resource.Labels.Zone,
-			b.JSONPayload.Host,
-			b.TimeStamp,
-		)
-	case cloudFunctionType:
-		msg = necogcpslack.MakeMessageForCloudFunctions(
-			color,
-			b.TextPayload,
-			b.Resource.Labels.ProjectID,
-			b.Resource.Labels.Region,
-			b.Resource.Labels.FunctionName,
-			b.TimeStamp,
-		)
-	default:
-		return fmt.Errorf("undefined resource type: %s", b.Resource.Type)
+	msg, err := b.MakeSlackMessage(color)
+	if err != nil {
+		log.Error("failed to get slack message", map[string]interface{}{
+			"message":   text,
+			log.FnError: err,
+		})
+		return err
 	}
+	log.Debug("msg", map[string]interface{}{
+		"msg": msg,
+	})
+
 	for url := range urls {
 		err = slack.PostWebhookContext(ctx, url, msg)
 		if err != nil {

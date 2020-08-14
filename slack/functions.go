@@ -6,8 +6,8 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// MakeMessageForCloudFunctions makes slak message for Cloud Functions
-func MakeMessageForCloudFunctions(
+// MakeSlackMessageForCloudFunctions makes slack message for cloud functions
+func MakeSlackMessageForCloudFunctions(
 	color string,
 	text string,
 	projectID string,

@@ -6,8 +6,8 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// MakeMessageForComputeEngine makes slak message for GCE's fluentd
-func MakeMessageForComputeEngine(
+// MakeSlackMessageForComputeEngine makes slack message for compute engine
+func MakeSlackMessageForComputeEngine(
 	color string,
 	text string,
 	projectID string,
