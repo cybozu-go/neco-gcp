@@ -7,6 +7,7 @@ jobs:
     working_directory: /work
     steps:
     - checkout
+    - run: make setup
     - run: make test
   build_necogcp:
     docker:
@@ -31,8 +32,8 @@ jobs:
             gcloud auth activate-service-account --key-file=account_dev.json
       - attach_workspace:
           at: /tmp/workspace
-      - run: make setup
-      - run: make -f Makefile.functions deploy-auto-dctest GCP_PROJECT=neco-dev
+      - run: make -f Makefile.dctest deploy-function GCP_PROJECT=neco-dev
+      - run: make -f Makefile.slack deploy-function GCP_PROJECT=neco-dev
   update-vmx-enabled-image:
     docker:
       - image: google/cloud-sdk
