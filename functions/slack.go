@@ -9,8 +9,8 @@ import (
 
 const defaultColor = "good"
 
-// Config is a Slack notifier
-type Config struct {
+// SlackNotifierConfig is a Slack notifier
+type SlackNotifierConfig struct {
 	Teams    map[string]string `yaml:"teams"`
 	Severity []Severity        `yaml:"severity"`
 	Rules    []Rule            `yaml:"rules"`
@@ -29,9 +29,9 @@ type Rule struct {
 	TargetTeams []string `yaml:"targetTeams"`
 }
 
-// NewConfig creates new Notifier from config YAML
-func NewConfig(configYAML []byte) (*Config, error) {
-	var n Config
+// NewSlackNotifierConfig creates new Notifier from config YAML
+func NewSlackNotifierConfig(configYAML []byte) (*SlackNotifierConfig, error) {
+	var n SlackNotifierConfig
 	err := yaml.Unmarshal(configYAML, &n)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func NewConfig(configYAML []byte) (*Config, error) {
 }
 
 // GetTeamSet returns matched URLs of target teams
-func (c Config) GetTeamSet(target string) (map[string]struct{}, error) {
+func (c SlackNotifierConfig) GetTeamSet(target string) (map[string]struct{}, error) {
 	teams := make(map[string]struct{})
 	for _, r := range c.Rules {
 		matched, err := regexp.Match(r.Regex, []byte(target))
@@ -59,7 +59,7 @@ func (c Config) GetTeamSet(target string) (map[string]struct{}, error) {
 }
 
 // ConvertTeamsToURLs converts teams set to URLs set
-func (c Config) ConvertTeamsToURLs(teams map[string]struct{}) (map[string]struct{}, error) {
+func (c SlackNotifierConfig) ConvertTeamsToURLs(teams map[string]struct{}) (map[string]struct{}, error) {
 	urls := make(map[string]struct{})
 	for t := range teams {
 		v, ok := c.Teams[t]
@@ -73,7 +73,7 @@ func (c Config) ConvertTeamsToURLs(teams map[string]struct{}) (map[string]struct
 }
 
 // GetColorFromMessage returns color by maching regex with message
-func (c Config) GetColorFromMessage(message string) (string, error) {
+func (c SlackNotifierConfig) GetColorFromMessage(message string) (string, error) {
 	for _, s := range c.Severity {
 		matched, err := regexp.Match(s.Regex, []byte(message))
 		if err != nil {

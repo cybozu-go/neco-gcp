@@ -9,22 +9,22 @@ import (
 	"github.com/cybozu-go/well"
 )
 
-// Runner runs dctest environments on GCP instances
-type Runner struct {
+// AutoDCTestRunner runs dctest environments on GCP instances
+type AutoDCTestRunner struct {
 	compute *gcp.ComputeClient
 }
 
-// NewRunner creates Runner
-func NewRunner(computeClient *gcp.ComputeClient) *Runner {
-	return &Runner{compute: computeClient}
+// NewAutoDCTestRunner creates Runner
+func NewAutoDCTestRunner(computeClient *gcp.ComputeClient) *AutoDCTestRunner {
+	return &AutoDCTestRunner{compute: computeClient}
 }
 
-func (r Runner) makeInstanceName(prefix string, index int) string {
+func (r AutoDCTestRunner) makeInstanceName(prefix string, index int) string {
 	return fmt.Sprintf("%s-%d", prefix, index)
 }
 
 // CreateInstancesIfNotExist lists instances not existing and create them
-func (r Runner) CreateInstancesIfNotExist(
+func (r AutoDCTestRunner) CreateInstancesIfNotExist(
 	ctx context.Context,
 	instanceNamePrefix string,
 	instancesNum int,
@@ -84,7 +84,7 @@ func (r Runner) CreateInstancesIfNotExist(
 }
 
 // DeleteFilteredInstances deletes instances which match the given filter
-func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) error {
+func (r AutoDCTestRunner) DeleteFilteredInstances(ctx context.Context, filter string) error {
 	set, err := r.compute.GetNameSet(filter)
 	if err != nil {
 		log.Error("failed to get instances list", map[string]interface{}{

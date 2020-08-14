@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestNotifier(t *testing.T) {
+func TestSlackNotifier(t *testing.T) {
 	yaml := `
 teams:
   team1: https://webhook/team1
@@ -34,12 +34,12 @@ rules:
       - team2
       - team3
 `
-	n, err := NewConfig([]byte(yaml))
+	n, err := NewSlackNotifierConfig([]byte(yaml))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expect := Config{
+	expect := SlackNotifierConfig{
 		Teams: map[string]string{
 			"team1": "https://webhook/team1",
 			"team2": "https://webhook/team2",

@@ -37,7 +37,7 @@ Please DO NOT use this command except for the purpose.
 				"project": projectID,
 				"zone":    zone,
 			})
-			runner := functions.NewRunner(cc)
+			runner := functions.NewAutoDCTestRunner(cc)
 			return runner.DeleteFilteredInstances(ctx, "")
 		})
 

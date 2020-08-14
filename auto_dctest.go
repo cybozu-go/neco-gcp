@@ -72,7 +72,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	runner := functions.NewRunner(client)
+	runner := functions.NewAutoDCTestRunner(client)
 
 	switch b.Mode {
 	case createInstancesMode:
