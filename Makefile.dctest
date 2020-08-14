@@ -32,9 +32,7 @@ clean: \
 	delete-service-account \
 	delete-function \
 	delete-deleting-scheduler \
-	delete-force-deleting-scheduler \
-	delete-gce-slack-notifier \
-	delete-logging-sink
+	delete-force-deleting-scheduler
 
 create-service-account:
 	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
@@ -54,6 +52,18 @@ create-service-account:
 		--role=roles/logging.logWriter
 
 delete-service-account:
+	$(GCLOUD) projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	$(GCLOUD) projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/secretmanager.secretAccessor
+	$(GCLOUD) projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	$(GCLOUD) projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/logging.logWriter
 	$(GCLOUD) iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
 deploy-function:
