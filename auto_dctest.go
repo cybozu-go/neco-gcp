@@ -104,15 +104,38 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			})
 			return err
 		}
-		return runner.CreateInstancesIfNotExist(
+
+		sa := MakeNecoDevServiceAccountEmail(projectID)
+		imageURL := MakeVMXEnabledImageURL(projectID)
+		err = runner.CreateInstancesIfNotExist(
 			ctx,
 			b.InstanceNamePrefix,
 			b.InstancesNum,
-			MakeNecoDevServiceAccountEmail(projectID),
+			sa,
 			machineType,
-			MakeVMXEnabledImageURL(projectID),
+			imageURL,
 			builder.Build(),
 		)
+		if err != nil {
+			log.Error("[auto-dctest] failed to create instance(s)", map[string]interface{}{
+				"prefix":         b.InstanceNamePrefix,
+				"num":            b.InstancesNum,
+				"serviceaccount": sa,
+				"machinetype":    machineType,
+				"imageurl":       imageURL,
+				log.FnError:      err,
+			})
+			return err
+		}
+		log.Info("[auto-dctest] created instance(s) successfully", map[string]interface{}{
+			"prefix":         b.InstanceNamePrefix,
+			"num":            b.InstancesNum,
+			"serviceaccount": sa,
+			"machinetype":    machineType,
+			"imageurl":       imageURL,
+		})
+
+		return nil
 	case deleteInstancesMode:
 		log.Info("delete all instance(s)", map[string]interface{}{
 			"force": b.DoForceDelete,

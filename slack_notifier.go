@@ -37,7 +37,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Debug("name", map[string]interface{}{
+	log.Info("got name successfully", map[string]interface{}{
 		"name": name,
 	})
 
@@ -48,7 +48,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	log.Debug("text", map[string]interface{}{
+	log.Info("Got text successfully", map[string]interface{}{
 		"text": text,
 	})
 

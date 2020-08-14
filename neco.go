@@ -88,23 +88,22 @@ if ! with_fluentd ; then delete_myself; fi
 	s += `
 delete_myself()
 {
-export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
-export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
 echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
+/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
 }
 
-prepare_scratch()
+prepare()
 {
-# mkfs and mount local SSD on /var/scratch
+# fetch NAME and ZONE for automatic deletion and mkfs and mount local SSD on /var/scratch
+export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google') &&
+export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google') &&
 mkfs -t ext4 -F /dev/disk/by-id/google-local-ssd-0 &&
 mkdir -p /var/scratch &&
 mount -t ext4 /dev/disk/by-id/google-local-ssd-0 /var/scratch &&
 chmod 1777 /var/scratch
 }
 
-echo "[auto-dctest] Starting dctest setup..."
-if ! prepare_scratch ; then delete_myself; fi
+if ! prepare ; then delete_myself; fi
 `
 
 	if len(b.necoBranch) > 0 {
