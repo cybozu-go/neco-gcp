@@ -4,10 +4,10 @@ REGION := asia-northeast1
 
 LOG_LEVEL ?= info
 
-SERVICE_ACCOUNT_NAME := gce-slack-notifier
+SERVICE_ACCOUNT_NAME := slack-notifier
 SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
-TOPIC_NAME := gce-slack-notifier-events
-FUNCTION_NAME := gce-slack-notifier
+TOPIC_NAME := slack-notifier-events
+FUNCTION_NAME := slack-notifier
 SINK_NAME := auto-dctest-alerts
 
 setup:
@@ -53,7 +53,7 @@ create-logging-sink:
 	$(GCLOUD) logging sinks create $(SINK_NAME) \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
-		--log-filter 'resource.type=gce_instance AND jsonPayload.ident=startup-script AND jsonPayload.message:[auto-dctest]'
+		--log-filter '(resource.type=gce_instance AND jsonPayload.message:[auto-dctest]) OR (resource.type=cloud_function AND textPayload:[auto-dctest])'
 	IDENTITY_NAME=$$($(GCLOUD) logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
 		$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
 

@@ -3,48 +3,30 @@ package necogcp
 import (
 	"context"
 	"encoding/json"
-	"time"
+	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/functions"
+	necogcpslack "github.com/cybozu-go/neco-gcp/slack"
 	"github.com/slack-go/slack"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
-// SlackNotifierMessageBody is a pubsub message body from GCE's fluentd
-type SlackNotifierMessageBody struct {
-	JSONPayload JSONPayload `json:"jsonPayload"`
-	Resource    Resource    `json:"resource"`
-	TimeStamp   time.Time   `json:"timestamp"`
-}
+const (
+	slackNotifierConfigName = "gce-slack-notifier-config"
 
-// JSONPayload is a nested field of SlackBody
-type JSONPayload struct {
-	Host    string `json:"host"`
-	Ident   string `json:"ident"`
-	Message string `json:"message"`
-}
-
-// Resource is a nested field of SlackBody
-type Resource struct {
-	Labels Labels `json:"labels"`
-}
-
-// Labels is a nested field of Resource
-type Labels struct {
-	InstanceID string `json:"instance_id"`
-	ProjectID  string `json:"project_id"`
-	Zone       string `json:"zone"`
-}
+	computeEngineType = "gce_instance"
+	cloudFunctionType = "cloud_function"
+)
 
 // SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
 func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
-	var b SlackNotifierMessageBody
+	var b necogcpslack.MessageBody
 	err := json.Unmarshal(m.Data, &b)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
@@ -56,6 +38,18 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("unmarshalled msg body", map[string]interface{}{
 		"body": b,
 	})
+
+	var name, text string
+	switch b.Resource.Type {
+	case computeEngineType:
+		name = b.JSONPayload.Host
+		text = b.JSONPayload.Message
+	case cloudFunctionType:
+		name = b.Resource.Labels.FunctionName
+		text = b.TextPayload
+	default:
+		return fmt.Errorf("undefined resource type: %s", b.Resource.Type)
+	}
 
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -88,10 +82,10 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	teams, err := c.GetTeamSet(b.JSONPayload.Host)
+	teams, err := c.GetTeamSet(name)
 	if err != nil {
 		log.Error("failed to get teams", map[string]interface{}{
-			"instancename": b.JSONPayload.Host,
+			"instancename": name,
 			log.FnError:    err,
 		})
 		return err
@@ -115,10 +109,10 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return nil
 	}
 
-	color, err := c.GetColorFromMessage(b.JSONPayload.Message)
+	color, err := c.GetColorFromMessage(text)
 	if err != nil {
 		log.Error("failed to get color from message", map[string]interface{}{
-			"message":   b.JSONPayload.Message,
+			"message":   text,
 			log.FnError: err,
 		})
 		return err
@@ -127,14 +121,29 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	msg := makeSlackMessageForGCE(
-		color,
-		b.JSONPayload.Message,
-		b.Resource.Labels.ProjectID,
-		b.Resource.Labels.Zone,
-		b.JSONPayload.Host,
-		b.TimeStamp,
-	)
+	var msg *slack.WebhookMessage
+	switch b.Resource.Type {
+	case computeEngineType:
+		msg = necogcpslack.MakeMessageForComputeEngine(
+			color,
+			b.JSONPayload.Message,
+			b.Resource.Labels.ProjectID,
+			b.Resource.Labels.Zone,
+			b.JSONPayload.Host,
+			b.TimeStamp,
+		)
+	case cloudFunctionType:
+		msg = necogcpslack.MakeMessageForCloudFunctions(
+			color,
+			b.TextPayload,
+			b.Resource.Labels.ProjectID,
+			b.Resource.Labels.Region,
+			b.Resource.Labels.FunctionName,
+			b.TimeStamp,
+		)
+	default:
+		return fmt.Errorf("undefined resource type: %s", b.Resource.Type)
+	}
 	for url := range urls {
 		err = slack.PostWebhookContext(ctx, url, msg)
 		if err != nil {
@@ -146,29 +155,4 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		}
 	}
 	return nil
-}
-
-func makeSlackMessageForGCE(
-	color string,
-	text string,
-	projectID string,
-	zone string,
-	instanceID string,
-	timestamp time.Time,
-) *slack.WebhookMessage {
-	attachment := slack.Attachment{
-		Color:      color,
-		AuthorName: "GCE Slack Notifier",
-		Text:       text,
-		Fields: []slack.AttachmentField{
-			{Title: "Project", Value: projectID, Short: true},
-			{Title: "Zone", Value: zone, Short: true},
-			{Title: "Instance", Value: instanceID, Short: true},
-			{Title: "TimeStamp", Value: timestamp.Format(time.RFC3339), Short: true},
-		},
-	}
-
-	return &slack.WebhookMessage{
-		Attachments: []slack.Attachment{attachment},
-	}
 }

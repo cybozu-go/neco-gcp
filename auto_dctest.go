@@ -26,7 +26,7 @@ const (
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
 	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
 
-	slackNotifierConfigName = "gce-slack-notifier-config"
+	projectIDEnvName = "GCP_PROJECT"
 )
 
 // AutoDCTestMessageBody is body of Pub/Sub message.
@@ -55,9 +55,9 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"body": b,
 	})
 
-	projectID := os.Getenv("GCP_PROJECT")
+	projectID := os.Getenv(projectIDEnvName)
 	if len(projectID) == 0 {
-		err := errors.New("GCP_PROJECT env should not be empty")
+		err := errors.New(projectIDEnvName + " env should not be empty")
 		log.Error(err.Error(), map[string]interface{}{})
 		return err
 	}
@@ -117,10 +117,22 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		log.Info("delete all instance(s)", map[string]interface{}{
 			"force": b.DoForceDelete,
 		})
-		if b.DoForceDelete {
-			return runner.DeleteFilteredInstances(ctx, "")
+		var filter string
+		if !b.DoForceDelete {
+			filter = excludeSkipAutoDeleteFilter
 		}
-		return runner.DeleteFilteredInstances(ctx, excludeSkipAutoDeleteFilter)
+		err := runner.DeleteFilteredInstances(ctx, filter)
+		if err != nil {
+			log.Error("[auto-dctest] failed to delete instance(s)", map[string]interface{}{
+				"force":     b.DoForceDelete,
+				log.FnError: err,
+			})
+			return err
+		}
+		log.Info("[auto-dctest] deleted all instance(s) successfully", map[string]interface{}{
+			"force": b.DoForceDelete,
+		})
+		return nil
 	default:
 		err := fmt.Errorf("invalid mode was given: %s", b.Mode)
 		log.Error(err.Error(), map[string]interface{}{})
