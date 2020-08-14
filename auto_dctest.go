@@ -3,13 +3,14 @@ package necogcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/functions"
 	"github.com/cybozu-go/neco-gcp/gcp"
-	"github.com/kelseyhightower/envconfig"
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 	necoAppsBranch = "release"
 
 	machineType = "n1-standard-32"
+	zone        = "asia-northeast1-c"
 
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
 	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
@@ -33,12 +35,6 @@ type AutoDCTestMessageBody struct {
 	InstanceNamePrefix string `json:"namePrefix"`
 	InstancesNum       int    `json:"num"`
 	DoForceDelete      bool   `json:"doForce"`
-}
-
-// AutoDCTestEnv is cloud function environment variables
-type AutoDCTestEnv struct {
-	ProjectID string `envconfig:"GCP_PROJECT" required:"true"`
-	Zone      string `envconfig:"ZONE" required:"true"`
 }
 
 // AutoDCTestEntryPoint consumes a Pub/Sub message
@@ -59,19 +55,17 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"body": b,
 	})
 
-	var e AutoDCTestEnv
-	err = envconfig.Process("", &e)
-	if err != nil {
-		log.Error("failed to parse env vars", map[string]interface{}{
-			log.FnError: err,
-		})
+	projectID := os.Getenv("GCP_PROJECT")
+	if len(projectID) == 0 {
+		err := errors.New("GCP_PROJECT env should not be empty")
+		log.Error(err.Error(), map[string]interface{}{})
 		return err
 	}
-	log.Debug("cloud functions env", map[string]interface{}{
-		"env": e,
+	log.Debug("project id", map[string]interface{}{
+		"projectid": projectID,
 	})
 
-	client, err := gcp.NewComputeClient(ctx, e.ProjectID, e.Zone)
+	client, err := gcp.NewComputeClient(ctx, projectID, zone)
 	if err != nil {
 		log.Error("failed to create client", map[string]interface{}{
 			log.FnError: err,
@@ -114,9 +108,9 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			ctx,
 			b.InstanceNamePrefix,
 			b.InstancesNum,
-			MakeNecoDevServiceAccountEmail(e.ProjectID),
+			MakeNecoDevServiceAccountEmail(projectID),
 			machineType,
-			MakeVMXEnabledImageURL(e.ProjectID),
+			MakeVMXEnabledImageURL(projectID),
 			builder.Build(),
 		)
 	case deleteInstancesMode:

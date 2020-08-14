@@ -46,7 +46,7 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
-	s := `#! /bin/sh -x
+	s := `#! /bin/sh
 
 delete_myself()
 {

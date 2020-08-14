@@ -1,6 +1,5 @@
 GCLOUD := gcloud --quiet
 GCP_PROJECT ?=
-ZONE := asia-northeast1-c
 REGION := asia-northeast1
 
 TEAM_NAME ?=
@@ -62,7 +61,7 @@ deploy-function:
 		--entry-point AutoDCTestEntryPoint \
 		--runtime go113 \
 		--trigger-topic $(TOPIC_NAME) \
-		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),ZONE=$(ZONE),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
+		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
 		--timeout 300s \
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
