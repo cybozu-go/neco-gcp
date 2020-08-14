@@ -4,6 +4,8 @@
 build/
 cmd/
 docs/
+slack/log/
+statik/
 vendor/
 
 .gitignore

@@ -37,7 +37,9 @@ clean: \
 	delete-logging-sink
 
 create-service-account:
-	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) --project $(GCP_PROJECT) --display-name $(SERVICE_ACCOUNT_NAME)
+	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
+		--project $(GCP_PROJECT) \
+		--display-name $(SERVICE_ACCOUNT_NAME)
 	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/compute.instanceAdmin.v1

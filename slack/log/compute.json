@@ -1,0 +1,22 @@
+{
+    "insertId": "auiczkzsdgf1nax99",
+    "jsonPayload": {
+        "host": "sample-0",
+        "message": "startup",
+        "ident": "startup-script"
+    },
+    "resource": {
+        "type": "gce_instance",
+        "labels": {
+            "project_id": "neco-dev",
+            "zone": "asia-northeast1-c",
+            "instance_id": "5857545132820687594"
+        }
+    },
+    "timestamp": "2020-08-14T00:21:34Z",
+    "labels": {
+        "compute.googleapis.com/resource_name": "sample-0"
+    },
+    "logName": "projects/neco-dev/logs/syslog",
+    "receiveTimestamp": "2020-08-14T00:21:39.101052907Z"
+}

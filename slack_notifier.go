@@ -12,10 +12,6 @@ import (
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
-const (
-	slackNotifierConfigName = "gce-slack-notifier-config"
-)
-
 // SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
 func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
@@ -141,7 +137,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	for url := range urls {
 		err = slack.PostWebhookContext(ctx, url, msg)
 		if err != nil {
-			log.Error("failed to post message from message", map[string]interface{}{
+			log.Error("failed to post slack message", map[string]interface{}{
 				"message":   msg,
 				log.FnError: err,
 			})

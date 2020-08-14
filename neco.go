@@ -6,9 +6,25 @@ import (
 )
 
 const (
-	accountSecretName  = "cloud-dns-admin-account"
-	serviceAccountName = "auto-dctest"
+	necoAppsAccountSecretName    = "cloud-dns-admin-account"
+	autoDCTestServiceAccountName = "auto-dctest"
+	slackNotifierConfigName      = "gce-slack-notifier-config"
 )
+
+// MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
+func MakeVMXEnabledImageURL(projectID string) string {
+	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
+}
+
+// MakeNecoDevServiceAccountEmail returns custom service account name in the project
+func MakeNecoDevServiceAccountEmail(projectID string) string {
+	return fmt.Sprintf("%s@%s.iam.gserviceaccount.com", autoDCTestServiceAccountName, projectID)
+}
+
+// MakeSlackNotifierConfigURL retruns config url for slack notifier
+func MakeSlackNotifierConfigURL(projectID string) string {
+	return "projects/" + projectID + "/secrets/" + slackNotifierConfigName + "/versions/latest"
+}
 
 // NecoStartupScriptBuilder creates startup-script builder to run dctest
 type NecoStartupScriptBuilder struct {
@@ -130,17 +146,7 @@ make setup dctest BOOTSTRAP=1 OVERLAY=neco-dev
 
 if ! run_necoapps ; then delete_myself; fi
 echo "[auto-dctest] Neco Apps bootstrap was succeeded!"
-`, b.necoAppsBranch, accountSecretName)
+`, b.necoAppsBranch, necoAppsAccountSecretName)
 	}
 	return s
-}
-
-// MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
-func MakeVMXEnabledImageURL(projectID string) string {
-	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
-}
-
-// MakeNecoDevServiceAccountEmail returns custom service account name in the project
-func MakeNecoDevServiceAccountEmail(projectID string) string {
-	return fmt.Sprintf("%s@%s.iam.gserviceaccount.com", serviceAccountName, projectID)
 }
