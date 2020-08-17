@@ -104,7 +104,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 	if len(urls) == 0 {
-		log.Info("[auto-dctest] No target URL is selected.", map[string]interface{}{
+		log.Info("No target URL is selected.", map[string]interface{}{
 			"teams": teams,
 		})
 		return nil
