@@ -8,7 +8,7 @@ import (
 const (
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
 	autoDCTestServiceAccountName = "auto-dctest"
-	slackNotifierConfigName      = "gce-slack-notifier-config"
+	slackNotifierConfigName      = "slack-notifier-config"
 )
 
 // MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
