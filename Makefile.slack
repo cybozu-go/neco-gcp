@@ -15,6 +15,7 @@ setup:
 	sudo apt-get install -y --no-install-recommends jq
 
 init: \
+	enable-api \
 	setup \
 	create-service-account \
 	deploy-function \
@@ -25,22 +26,29 @@ clean: \
 	delete-function \
 	delete-logging-sink
 
+enable-api:
+	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudfunctions.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) secretmanager.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudscheduler.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudbuild.googleapis.com
+
 create-service-account:
-	$(GCLOUD) iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
 		--project $(GCP_PROJECT) \
 		--display-name $(SERVICE_ACCOUNT_NAME)
-	$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) \
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/secretmanager.secretAccessor
 
 delete-service-account:
-	$(GCLOUD) projects remove-iam-policy-binding $(GCP_PROJECT) \
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/secretmanager.secretAccessor
-	$(GCLOUD) iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
 deploy-function:
-	$(GCLOUD) functions deploy $(FUNCTION_NAME) \
+	gcloud --quiet functions deploy $(FUNCTION_NAME) \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point SlackNotifierEntryPoint \
@@ -51,24 +59,25 @@ deploy-function:
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
 
 delete-function:
-	$(GCLOUD) functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
-	$(GCLOUD) pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
+	gcloud --quiet functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
+	gcloud --quiet pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
 
 create-logging-sink:
-	$(GCLOUD) logging sinks create $(SINK_NAME) \
+	gcloud logging sinks create $(SINK_NAME) \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
 		--log-filter 'jsonPayload.message:[auto-dctest] OR textPayload:[auto-dctest]'
-	IDENTITY_NAME=$$($(GCLOUD) logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
-		$(GCLOUD) projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
+	IDENTITY_NAME=$$(gcloud logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
+		gcloud projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
 
 delete-logging-sink:
-	$(GCLOUD) logging sinks delete $(SINK_NAME) --project $(GCP_PROJECT)
+	gcloud --quiet logging sinks delete $(SINK_NAME) --project $(GCP_PROJECT)
 
 .PHONY: \
 	setup \
 	init \
 	clean \
+	enable-api \
 	create-service-account delete-service-account \
 	deploy-function delete-function \
 	create-logging-sink delete-logging-sink
