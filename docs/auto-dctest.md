@@ -4,17 +4,44 @@ Automatic Neco Environment Construction with GCP (auto-dctest)
 Overview
 --------
 
-diagram
-
-`auto-dctest` provides automatic Neco environment construction with GCP services.
+This document describes the system which constructs [Neco](https://github.com/cybozu-go/neco) environment automatically on Google Cloud Platform(GCP).
 
 ### Features
 
-1. Automatic Neco environment construction at the fixed time every day (at 8:00 AM)
-2. Automatic deletion of the environment (at 8:00 PM or 12:00 AM)
+1. Automatic Neco environment construction at the fixed time every buisiness day
+2. Automatic deletion of the environment
 3. Manual management of the environment with `necogcp` command
 4. Slack notification when the environment is created/deleted
 5. Multi-team support
+
+### Architecture
+
+![diagram](./images/auto-dctest.png)
+
+This system consists of the following two types of components:
+
+- `auto-dctest`: create/delete VM instances
+  - Cloud Scheduler(to create VM): triggered at 9:00AM
+  - Cloud Scheduler(to delete VM): triggered at 8:00PM
+  - Cloud Scheduler(to force-delete VM): triggered at 11:00PM
+  - Cloud Pub/Sub: messaging queue to accept messages from Cloud Scheduler
+  - Cloud Function: workload to create/delete VM instances
+    - This will create the specified number of instances for each team.  
+    - Instances are named with the format `<team_name>-<index>`.  
+      For example, `sample-0` and `sample-1` are created if team_name = sample and
+      instance num = 2.  
+      If `sample-0` already exists before creating, this function does nothing for it.
+    - Neco/[neco-apps](https://github.com/cybozu-go/neco-apps) are started using (startup-script)[https://cloud.google.com/compute/docs/startupscript]
+- `slack-notifier`: notify messages via Slack
+  - Cloud Logging Sink: filters the string `[auto-dctest]` and push events to Cloud Pub/Sub
+  - Cloud Pub/Sub: messaging queue to accept messages from Cloud Logging Sink
+  - Cloud Function: workload to notify messages via Slack
+
+`slack-notifier` notifies messages based on the texts in the logs pushed by `auto-dctest`.
+If the text has the `[auto-dctest]` string in the text, Cloud Logging Sink will filter it and
+push events to Cloud Pub/Sub.
+
+`auto-dctest` and `slack-notifier` can be used independently, which means that `auto-dctest` can be used without `slack-notifier` and `slack-notifier` can be used without `auto-dctest`.
 
 Usage
 -----
@@ -30,23 +57,21 @@ TODO: Quota limitation settings for your safety
 Create `auto-dctest` function and schedulers for deletion:
 ```
 export GCP_PROJECT=<project>
-export ZONE=<zone> # If needed
 make -f Makefile.dctest init`
 ```
 
 Create a scheduler for creation per each team:
 ```
-export TEAM_NAME=<team>
-export INSTANCE_NUM=<num>
-make -f Makefile.dctest add-team
+export GCP_PROJECT=<project>
+make -f Makefile.dctest add-team TEAM_NAME=<team_name> INSTANCE_NUM=<num>
+make -f Makefile.dctest list-teams
 ```
 
 When you want to destroy:
 ```
 export GCP_PROJECT=<project>
-export ZONE=<zone> # If needed
-export TEAM_NAME=<team>
-make -f Makefile.dctest delete-team
+make -f Makefile.dctest list-teams
+make -f Makefile.dctest delete-team TEAM_NAME=<team_name>
 make -f Makefile.dctest clean
 ```
 
@@ -55,15 +80,13 @@ make -f Makefile.dctest clean
 Create `slack-notifier` function and logging sink:
 ```
 export GCP_PROJECT=<project>
-export REGION=<region> # If needed
-make init
+make -f Makefile.slack init`
 ```
 
 When you want to destroy:
 ```
 export GCP_PROJECT=<project>
-export REGION=<region> # If needed
-make clean
+make -f Makefile.slack clean`
 ```
 
 ### Slack notifications

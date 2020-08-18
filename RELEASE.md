@@ -1,7 +1,7 @@
 Release procedure
 =================
 
-This document describes how to release a new version of neco-template.
+This document describes how to release a new version.
 
 Versioning
 ----------
