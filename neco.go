@@ -63,6 +63,8 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 // Build  builds startup script
 func (b *NecoStartupScriptBuilder) Build() string {
 	s := `#! /bin/sh
+
+echo "[auto-dctest] starting auto dctest..."
 `
 
 	if b.withFluentd {

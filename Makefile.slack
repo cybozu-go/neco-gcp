@@ -66,7 +66,7 @@ create-logging-sink:
 	gcloud logging sinks create $(SINK_NAME) \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
-		--log-filter 'jsonPayload.message:[auto-dctest] OR textPayload:[auto-dctest]'
+		--log-filter 'resource.type=gce_instance AND jsonPayload.message:[auto-dctest]'
 	IDENTITY_NAME=$$(gcloud logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
 		gcloud projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
 

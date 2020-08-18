@@ -131,7 +131,7 @@ create-force-deleting-scheduler:
 		--description 'automatically delete dctest all instances'
 
 delete-force-deleting-scheduler:
-	gcloud scheduler jobs delete $(FORCE_DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
+	gcloud --quiet scheduler jobs delete $(FORCE_DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
 
 .PHONY: \
 	init \

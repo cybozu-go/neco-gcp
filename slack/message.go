@@ -7,10 +7,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-const (
-	computeEngineType = "gce_instance"
-	cloudFunctionType = "cloud_function"
-)
+const computeEngineType = "gce_instance"
 
 // CloudLoggingMessage is a JSON-style message from Cloud Logging
 type CloudLoggingMessage struct {
@@ -52,52 +49,14 @@ func NewCloudLoggingMessage(jsonPayload []byte) (*CloudLoggingMessage, error) {
 	return &m, nil
 }
 
-// GetName gets name by resource type
-func (m CloudLoggingMessage) GetName() (string, error) {
-	switch m.Resource.Type {
-	case computeEngineType:
-		return m.JSONPayload.Host, nil
-	case cloudFunctionType:
-		return m.Resource.Labels.FunctionName, nil
-	default:
-		return "", UndefinedResourceTypeError{m.Resource.Type}
-	}
-}
-
-// GetText gets text by resource type
-func (m CloudLoggingMessage) GetText() (string, error) {
-	switch m.Resource.Type {
-	case computeEngineType:
-		return m.JSONPayload.Message, nil
-	case cloudFunctionType:
-		return m.TextPayload, nil
-	default:
-		return "", UndefinedResourceTypeError{m.Resource.Type}
-	}
-}
-
 // MakeSlackMessage gets message by resource type
-func (m CloudLoggingMessage) MakeSlackMessage(color string) (*slack.WebhookMessage, error) {
-	switch m.Resource.Type {
-	case computeEngineType:
-		return MakeSlackMessageForComputeEngine(
-			color,
-			m.JSONPayload.Message,
-			m.Resource.Labels.ProjectID,
-			m.Resource.Labels.Zone,
-			m.JSONPayload.Host,
-			m.TimeStamp,
-		), nil
-	case cloudFunctionType:
-		return MakeSlackMessageForCloudFunctions(
-			color,
-			m.TextPayload,
-			m.Resource.Labels.ProjectID,
-			m.Resource.Labels.Region,
-			m.Resource.Labels.FunctionName,
-			m.TimeStamp,
-		), nil
-	default:
-		return nil, UndefinedResourceTypeError{m.Resource.Type}
-	}
+func (m CloudLoggingMessage) MakeSlackMessage(color string) *slack.WebhookMessage {
+	return MakeSlackMessageForComputeEngine(
+		color,
+		m.JSONPayload.Message,
+		m.Resource.Labels.ProjectID,
+		m.Resource.Labels.Zone,
+		m.JSONPayload.Host,
+		m.TimeStamp,
+	)
 }

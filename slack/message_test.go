@@ -44,28 +44,6 @@ func TestCloudLoggingMessage(t *testing.T) {
 				},
 			},
 		},
-		{
-			"./log/functions.json",
-			"blue",
-			"auto-dctest",
-			"textPayload",
-			&slack.WebhookMessage{
-				Attachments: []slack.Attachment{
-					{
-						Color:      "blue",
-						AuthorName: "GCP Slack Notifier",
-						Title:      "Cloud Functions",
-						Text:       "textPayload",
-						Fields: []slack.AttachmentField{
-							{Title: "Project", Value: projectID, Short: true},
-							{Title: "Region", Value: region, Short: true},
-							{Title: "Function", Value: "auto-dctest", Short: true},
-							{Title: "TimeStamp", Value: "2020-08-14T04:12:47Z", Short: true},
-						},
-					},
-				},
-			},
-		},
 	}
 
 	for _, tt := range testCases {
@@ -79,26 +57,15 @@ func TestCloudLoggingMessage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		n, err := m.GetName()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if n != tt.name {
-			t.Errorf("expect: %s, actual: %s", tt.name, n)
+		if m.JSONPayload.Host != tt.name {
+			t.Errorf("expect: %s, actual: %s", tt.name, m.JSONPayload.Host)
 		}
 
-		x, err := m.GetText()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if x != tt.text {
-			t.Errorf("expect: %s, actual: %s", tt.text, x)
+		if m.JSONPayload.Message != tt.text {
+			t.Errorf("expect: %s, actual: %s", tt.text, m.JSONPayload.Message)
 		}
 
-		g, err := m.MakeSlackMessage(tt.color)
-		if err != nil {
-			t.Fatal(err)
-		}
+		g := m.MakeSlackMessage(tt.color)
 		if diff := cmp.Diff(g, tt.msg); diff != "" {
 			t.Errorf("diff: %s", diff)
 		}

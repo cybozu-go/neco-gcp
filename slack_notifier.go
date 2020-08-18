@@ -30,24 +30,12 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"body": b,
 	})
 
-	name, err := b.GetName()
-	if err != nil {
-		log.Error("failed to get name", map[string]interface{}{
-			log.FnError: err,
-		})
-		return err
-	}
+	name := b.JSONPayload.Host
 	log.Info("got name successfully", map[string]interface{}{
 		"name": name,
 	})
 
-	text, err := b.GetText()
-	if err != nil {
-		log.Error("failed to get text", map[string]interface{}{
-			log.FnError: err,
-		})
-		return err
-	}
+	text := b.JSONPayload.Message
 	log.Info("Got text successfully", map[string]interface{}{
 		"text": text,
 	})
@@ -122,14 +110,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	msg, err := b.MakeSlackMessage(color)
-	if err != nil {
-		log.Error("failed to get slack message", map[string]interface{}{
-			"message":   text,
-			log.FnError: err,
-		})
-		return err
-	}
+	msg := b.MakeSlackMessage(color)
 	log.Debug("msg", map[string]interface{}{
 		"msg": msg,
 	})
