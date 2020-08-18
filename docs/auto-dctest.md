@@ -19,6 +19,12 @@ diagram
 Usage
 -----
 
+Note that the word instance means VM instance on Google Compute Engine.
+
+### Before deployment
+
+TODO: Quota limitation settings for your safety
+
 ### Deploy `auto-dctest` Function
 
 Create `auto-dctest` function and schedulers for deletion:
@@ -60,6 +66,36 @@ export REGION=<region> # If needed
 make clean
 ```
 
+### Slack notifications
+
+`auto-dctest` can notify the following events via Slack:
+1. Starting instance creation
+2. Finished `cybozu-go/neco` DC test bootstrap
+3. Finished `cybozu-go/neco-apps` DC test bootstrap
+4. Deleting the instance
+
+To enable Slack notification, you need to prepare a YAML setting file:
+```yaml
+teams:
+  team1: https://<your>/<slack>/<webhook>/<url>
+severity: # See https://api.slack.com/reference/messaging/attachments#fields
+  - color: good
+    regex: ^INFO
+  - color: warning
+    regex: ^WARN
+  - color: danger
+    regex: ^ERROR
+rules:
+  - name: team1-rule
+    regex: team1-+[0-9]
+    targetTeams:
+      - team1
+```
+With the above setting, the notifications for `team1`'s instance with postfix `-+[0-9]` will be sent to `team1`'s Slack webhook.
+
+This YAML file must be uploaded to Secret Manager with the specific name `slack-notifier-config`.
+
+
 ### Manual management with `necogcp` command
 
 Neco environment can be created with `necogcp neco-test` commands.
@@ -90,3 +126,19 @@ Neco environment can be created with `necogcp neco-test` commands.
 | project-id (p) | -                 | Project ID for GCP (required) |
 | zone (z)       | asia-northeast1-c | Zone name for GCP             |
 | filter (f)     | -                 | Filter string                 |
+
+
+### Administration
+
+#### Holiday list
+
+The scheduler for `auto-dctest` skips weekend (Saturday and Sunday) and holidays.  The holiday list is hard-coded in [`holiday.go`](../holiday.go), so an administrator should modify it periodically.
+
+#### Team management
+
+To add a team, an administrator should run `make -f Makefile.dctest add team` and modify Slack settings and upload it to Secret Manager.
+
+
+### For developer
+
+[`cmd/dev`](../cmd/dev) includes commands, which are equivalent to the Cloud Functions executed by `auto-dctest`. These are useful if you want to debug the Cloud Function without deploying.
