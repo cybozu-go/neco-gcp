@@ -23,7 +23,7 @@ func TestCloudLoggingMessage(t *testing.T) {
 		msg           *slack.WebhookMessage
 	}{
 		{
-			"./log/compute.json",
+			"./log/startup.json",
 			"red",
 			"sample-0",
 			"startup",
@@ -44,6 +44,28 @@ func TestCloudLoggingMessage(t *testing.T) {
 				},
 			},
 		},
+		{
+			"./log/compute.json",
+			"green",
+			"sample-1",
+			"",
+			&slack.WebhookMessage{
+				Attachments: []slack.Attachment{
+					{
+						Color:      "green",
+						AuthorName: "GCP Slack Notifier",
+						Title:      "Compute Engine",
+						Text:       "Instance Deleted",
+						Fields: []slack.AttachmentField{
+							{Title: "Project", Value: projectID, Short: true},
+							{Title: "Zone", Value: zone, Short: true},
+							{Title: "Instance", Value: "sample-1", Short: true},
+							{Title: "TimeStamp", Value: "2020-08-24T04:29:30Z", Short: true},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
@@ -57,8 +79,12 @@ func TestCloudLoggingMessage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if m.JSONPayload.Host != tt.name {
-			t.Errorf("expect: %s, actual: %s", tt.name, m.JSONPayload.Host)
+		if m.JSONPayload.Host != tt.name && m.JSONPayload.PayloadResource.Name != tt.name {
+			name := m.JSONPayload.Host
+			if len(name) == 0 {
+				name = m.JSONPayload.PayloadResource.Name
+			}
+			t.Errorf("expect: %s, actual: %s", tt.name, name)
 		}
 
 		if m.JSONPayload.Message != tt.text {

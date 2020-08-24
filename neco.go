@@ -98,7 +98,7 @@ if ! with_fluentd ; then delete_myself; fi
 	s += `
 delete_myself()
 {
-echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
+echo "ERROR [auto-dctest] Auto dctest was failed. Deleting the instance..."
 /snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
 }
 

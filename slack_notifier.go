@@ -30,6 +30,12 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"body": b,
 	})
 
+	if len(b.JSONPayload.Message) == 0 ||
+	(b.JSONPayload.EventType != "GCE_OPERATION_DONE" || b.JSONPayload.EventSubType != "compute.instances.delete" {
+		log.Info("not include target log")
+		return nil
+	}
+
 	name := b.JSONPayload.Host
 	log.Info("got name successfully", map[string]interface{}{
 		"name": name,

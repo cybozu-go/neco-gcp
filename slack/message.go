@@ -7,7 +7,10 @@ import (
 	"github.com/slack-go/slack"
 )
 
-const computeEngineType = "gce_instance"
+const (
+	computeEngineType    = "gce_instance"
+	computeDeleteMessage = "Instance Deleted"
+)
 
 // CloudLoggingMessage is a JSON-style message from Cloud Logging
 type CloudLoggingMessage struct {
@@ -19,9 +22,17 @@ type CloudLoggingMessage struct {
 
 // JSONPayload is a nested field of MessageBody
 type JSONPayload struct {
-	Host    string `json:"host"`
-	Ident   string `json:"ident"`
-	Message string `json:"message"`
+	Host            string          `json:"host"`
+	Ident           string          `json:"ident"`
+	Message         string          `json:"message"`
+	EventType       string          `json:"event_type"`
+	EventSubType    string          `json:"event_subtype"`
+	PayloadResource PayloadResource `json:"resource"`
+}
+
+// PayloadResource is a nested field of JSONPayload
+type PayloadResource struct {
+	Name string `json:"name"`
 }
 
 // Resource is a nested field of MessageBody
@@ -32,11 +43,10 @@ type Resource struct {
 
 // Labels is a nested field of Resource
 type Labels struct {
-	InstanceID   string `json:"instance_id"`
-	FunctionName string `json:"function_name"`
-	ProjectID    string `json:"project_id"`
-	Zone         string `json:"zone"`
-	Region       string `json:"region"`
+	InstanceID string `json:"instance_id"`
+	ProjectID  string `json:"project_id"`
+	Zone       string `json:"zone"`
+	Region     string `json:"region"`
 }
 
 // NewCloudLoggingMessage creates CloudLoggingMessage from JSON
@@ -51,12 +61,23 @@ func NewCloudLoggingMessage(jsonPayload []byte) (*CloudLoggingMessage, error) {
 
 // MakeSlackMessage gets message by resource type
 func (m CloudLoggingMessage) MakeSlackMessage(color string) *slack.WebhookMessage {
+	if len(m.JSONPayload.Message) != 0 {
+		return MakeSlackMessageForComputeEngine(
+			color,
+			m.JSONPayload.Message,
+			m.Resource.Labels.ProjectID,
+			m.Resource.Labels.Zone,
+			m.JSONPayload.Host,
+			m.TimeStamp,
+		)
+	}
+
 	return MakeSlackMessageForComputeEngine(
 		color,
-		m.JSONPayload.Message,
+		computeDeleteMessage,
 		m.Resource.Labels.ProjectID,
 		m.Resource.Labels.Zone,
-		m.JSONPayload.Host,
+		m.JSONPayload.PayloadResource.Name,
 		m.TimeStamp,
 	)
 }
