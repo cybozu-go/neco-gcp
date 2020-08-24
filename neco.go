@@ -71,13 +71,21 @@ echo "[auto-dctest] starting auto dctest..."
 		s += `
 with_fluentd()
 {
-# Run fluentd to export syslog to Cloud Logging
 curl -sSO https://dl.google.com/cloudagents/add-logging-agent-repo.sh &&
 bash add-logging-agent-repo.sh &&
 apt-get update &&
 apt-cache madison google-fluentd &&
 apt-get install -y google-fluentd &&
 apt-get install -y google-fluentd-catch-all-config-structured &&
+rm -f /etc/google-fluentd/config.d/*.conf &&
+echo '<source>
+  @type systemd
+  tag systemd
+  path /var/run/log/journal
+  read_from_head true
+  matches [{ "_SYSTEMD_UNIT": "google-startup-scripts.service" }]
+  pos_file /var/lib/google-fluentd/pos/systemd.pos
+</source>' > /etc/google-fluentd/config.d/systemd.conf &&
 service google-fluentd start &&
 # This line is needed to ensure that fluentd is running
 service google-fluentd restart
