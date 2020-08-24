@@ -9,6 +9,7 @@ import (
 
 const (
 	computeEngineType    = "gce_instance"
+	computeCreateMessage = "Instance Created"
 	computeDeleteMessage = "Instance Deleted"
 )
 
@@ -59,25 +60,46 @@ func NewCloudLoggingMessage(jsonPayload []byte) (*CloudLoggingMessage, error) {
 	return &m, nil
 }
 
+// GetName returns instance name
+func (m CloudLoggingMessage) GetName() string {
+	switch m.JSONPayload.EventSubType {
+	case "compute.instances.insert":
+		return m.JSONPayload.PayloadResource.Name
+	case "compute.instances.delete":
+		return m.JSONPayload.PayloadResource.Name
+	default:
+		return m.JSONPayload.Host
+	}
+}
+
+// GetText returns payload text to notify
+func (m CloudLoggingMessage) GetText() string {
+	switch m.JSONPayload.EventSubType {
+	case "compute.instances.insert":
+		return computeCreateMessage
+	case "compute.instances.delete":
+		return computeDeleteMessage
+	default:
+		return m.JSONPayload.Message
+	}
+}
+
 // MakeSlackMessage gets message by resource type
 func (m CloudLoggingMessage) MakeSlackMessage(color string) *slack.WebhookMessage {
-	if len(m.JSONPayload.Message) != 0 {
-		return MakeSlackMessageForComputeEngine(
-			color,
-			m.JSONPayload.Message,
-			m.Resource.Labels.ProjectID,
-			m.Resource.Labels.Zone,
-			m.JSONPayload.Host,
-			m.TimeStamp,
-		)
+	attachment := slack.Attachment{
+		Color:      color,
+		AuthorName: "GCP Slack Notifier",
+		Title:      "Compute Engine",
+		Text:       m.GetText(),
+		Fields: []slack.AttachmentField{
+			{Title: "Project", Value: m.Resource.Labels.ProjectID, Short: true},
+			{Title: "Zone", Value: m.Resource.Labels.Zone, Short: true},
+			{Title: "Instance", Value: m.GetName(), Short: true},
+			{Title: "TimeStamp", Value: m.TimeStamp.Format(time.RFC3339), Short: true},
+		},
 	}
 
-	return MakeSlackMessageForComputeEngine(
-		color,
-		computeDeleteMessage,
-		m.Resource.Labels.ProjectID,
-		m.Resource.Labels.Zone,
-		m.JSONPayload.PayloadResource.Name,
-		m.TimeStamp,
-	)
+	return &slack.WebhookMessage{
+		Attachments: []slack.Attachment{attachment},
+	}
 }

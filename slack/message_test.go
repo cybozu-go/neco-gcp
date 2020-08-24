@@ -45,7 +45,7 @@ func TestCloudLoggingMessage(t *testing.T) {
 			},
 		},
 		{
-			"./log/compute.json",
+			"./log/delete.json",
 			"green",
 			"sample-1",
 			"",
@@ -61,6 +61,28 @@ func TestCloudLoggingMessage(t *testing.T) {
 							{Title: "Zone", Value: zone, Short: true},
 							{Title: "Instance", Value: "sample-1", Short: true},
 							{Title: "TimeStamp", Value: "2020-08-24T04:29:30Z", Short: true},
+						},
+					},
+				},
+			},
+		},
+		{
+			"./log/insert.json",
+			"green",
+			"sample-2",
+			"",
+			&slack.WebhookMessage{
+				Attachments: []slack.Attachment{
+					{
+						Color:      "green",
+						AuthorName: "GCP Slack Notifier",
+						Title:      "Compute Engine",
+						Text:       "Instance Created",
+						Fields: []slack.AttachmentField{
+							{Title: "Project", Value: projectID, Short: true},
+							{Title: "Zone", Value: zone, Short: true},
+							{Title: "Instance", Value: "sample-2", Short: true},
+							{Title: "TimeStamp", Value: "2020-08-24T06:23:07Z", Short: true},
 						},
 					},
 				},

@@ -31,19 +31,20 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	})
 
 	if len(b.JSONPayload.Message) == 0 ||
-	(b.JSONPayload.EventType != "GCE_OPERATION_DONE" || b.JSONPayload.EventSubType != "compute.instances.delete" {
-		log.Info("not include target log")
+		b.JSONPayload.EventType != "GCE_OPERATION_DONE" ||
+		(b.JSONPayload.EventSubType != "compute.instances.delete" && b.JSONPayload.EventSubType != "compute.instances.insert") {
+		log.Info("not include target log", nil)
 		return nil
 	}
 
-	name := b.JSONPayload.Host
+	name := b.GetName()
 	log.Info("got name successfully", map[string]interface{}{
 		"name": name,
 	})
 
-	text := b.JSONPayload.Message
+	text := b.GetText()
 	log.Info("Got text successfully", map[string]interface{}{
-		"text": text,
+		"message": text,
 	})
 
 	client, err := secretmanager.NewClient(ctx)

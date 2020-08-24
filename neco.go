@@ -64,7 +64,7 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 func (b *NecoStartupScriptBuilder) Build() string {
 	s := `#! /bin/sh
 
-echo "[auto-dctest] starting auto dctest..."
+echo "starting auto dctest..."
 `
 
 	if b.withFluentd {
@@ -81,11 +81,12 @@ rm -f /etc/google-fluentd/config.d/*.conf &&
 echo '<source>
   @type systemd
   tag systemd
-  path /var/run/log/journal
+  path /var/log/journal
   read_from_head true
   matches [{ "_SYSTEMD_UNIT": "google-startup-scripts.service" }]
   pos_file /var/lib/google-fluentd/pos/systemd.pos
 </source>' > /etc/google-fluentd/config.d/systemd.conf &&
+sudo /opt/google-fluentd/embedded/bin/fluent-gem install fluent-plugin-systemd &&
 service google-fluentd start &&
 # This line is needed to ensure that fluentd is running
 service google-fluentd restart
