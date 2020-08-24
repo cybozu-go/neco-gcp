@@ -1,0 +1,43 @@
+{
+    "insertId": "adl5lfh7wi3h",
+    "jsonPayload": {
+      "event_subtype": "compute.instances.insert",
+      "event_timestamp_us": "1598250187973513",
+      "actor": {
+        "user": "auto-dctest@neco-dev.iam.gserviceaccount.com"
+      },
+      "event_type": "GCE_OPERATION_RUNNING",
+      "operation": {
+        "name": "operation-1598250173749-5ad999dde5895-2792ae27-d8c69bf7",
+        "zone": "asia-northeast1-c",
+        "type": "operation",
+        "id": "4101648999120822865"
+      },
+      "trace_id": "operation-1598250173749-5ad999dde5895-2792ae27-d8c69bf7",
+      "version": "1.2",
+      "resource": {
+        "name": "sample-2",
+        "id": "7687772581896577617",
+        "zone": "asia-northeast1-c",
+        "type": "instance"
+      }
+    },
+    "resource": {
+      "type": "gce_instance",
+      "labels": {
+        "zone": "asia-northeast1-c",
+        "project_id": "neco-dev",
+        "instance_id": "7687772581896577617"
+      }
+    },
+    "timestamp": "2020-08-24T06:23:07.973513Z",
+    "severity": "INFO",
+    "labels": {
+      "compute.googleapis.com/resource_name": "sample-2",
+      "compute.googleapis.com/resource_zone": "asia-northeast1-c",
+      "compute.googleapis.com/resource_type": "instance",
+      "compute.googleapis.com/resource_id": "7687772581896577617"
+    },
+    "logName": "projects/neco-dev/logs/compute.googleapis.com%2Factivity_log",
+    "receiveTimestamp": "2020-08-24T06:23:08.022947182Z"
+  }

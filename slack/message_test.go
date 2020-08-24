@@ -11,10 +11,27 @@ import (
 const (
 	projectID = "neco-dev"
 	zone      = "asia-northeast1-c"
-	region    = "asia-northeast1"
 )
 
-func TestCloudLoggingMessage(t *testing.T) {
+func TestComputeEngineLogValidation(t *testing.T) {
+	for _, n := range []string{
+		"./log/invalid_event.json",
+		"./log/invalid_resource_type.json",
+		"./log/invalid_subevent.json",
+	} {
+		json, err := ioutil.ReadFile(n)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		m, err := NewComputeEngineLog(json)
+		if err == nil {
+			t.Errorf("filename: %s log: %#v", n, m)
+		}
+	}
+}
+
+func TestComputeEngineLog(t *testing.T) {
 	testCases := []struct {
 		inputFileName string
 		color         string
@@ -48,7 +65,7 @@ func TestCloudLoggingMessage(t *testing.T) {
 			"./log/delete.json",
 			"green",
 			"sample-1",
-			"",
+			"Instance Deleted",
 			&slack.WebhookMessage{
 				Attachments: []slack.Attachment{
 					{
@@ -70,14 +87,14 @@ func TestCloudLoggingMessage(t *testing.T) {
 			"./log/insert.json",
 			"green",
 			"sample-2",
-			"",
+			"Instance Inserted",
 			&slack.WebhookMessage{
 				Attachments: []slack.Attachment{
 					{
 						Color:      "green",
 						AuthorName: "GCP Slack Notifier",
 						Title:      "Compute Engine",
-						Text:       "Instance Created",
+						Text:       "Instance Inserted",
 						Fields: []slack.AttachmentField{
 							{Title: "Project", Value: projectID, Short: true},
 							{Title: "Zone", Value: zone, Short: true},
@@ -96,24 +113,22 @@ func TestCloudLoggingMessage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		m, err := NewCloudLoggingMessage(json)
+		m, err := NewComputeEngineLog(json)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if m.JSONPayload.Host != tt.name && m.JSONPayload.PayloadResource.Name != tt.name {
-			name := m.JSONPayload.Host
-			if len(name) == 0 {
-				name = m.JSONPayload.PayloadResource.Name
-			}
+		name := m.GetName()
+		if name != tt.name {
 			t.Errorf("expect: %s, actual: %s", tt.name, name)
 		}
 
-		if m.JSONPayload.Message != tt.text {
-			t.Errorf("expect: %s, actual: %s", tt.text, m.JSONPayload.Message)
+		text := m.GetText()
+		if text != tt.text {
+			t.Errorf("expect: %s, actual: %s", tt.text, text)
 		}
 
-		g := m.MakeSlackMessage(tt.color)
+		g := m.GetSlackMessage(tt.color)
 		if diff := cmp.Diff(g, tt.msg); diff != "" {
 			t.Errorf("diff: %s", diff)
 		}

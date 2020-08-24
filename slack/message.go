@@ -2,19 +2,20 @@ package slack
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/slack-go/slack"
 )
 
 const (
-	computeEngineType    = "gce_instance"
-	computeCreateMessage = "Instance Created"
-	computeDeleteMessage = "Instance Deleted"
+	computeResourceType    = "gce_instance"
+	computeInsertEventName = "compute.instances.insert"
+	computeDeleteEventName = "compute.instances.delete"
 )
 
-// CloudLoggingMessage is a JSON-style message from Cloud Logging
-type CloudLoggingMessage struct {
+// ComputeEngineLog is a JSON-style message of Compute Engine on Cloud Logging
+type ComputeEngineLog struct {
 	TextPayload string      `json:"textPayload"`
 	JSONPayload JSONPayload `json:"jsonPayload"`
 	Resource    Resource    `json:"resource"`
@@ -23,16 +24,16 @@ type CloudLoggingMessage struct {
 
 // JSONPayload is a nested field of MessageBody
 type JSONPayload struct {
-	Host            string          `json:"host"`
-	Ident           string          `json:"ident"`
-	Message         string          `json:"message"`
-	EventType       string          `json:"event_type"`
-	EventSubType    string          `json:"event_subtype"`
-	PayloadResource PayloadResource `json:"resource"`
+	Host            string              `json:"host"`
+	Ident           string              `json:"ident"`
+	Message         string              `json:"message"`
+	EventType       string              `json:"event_type"`
+	EventSubType    string              `json:"event_subtype"`
+	PayloadResource JSONPayloadResource `json:"resource"`
 }
 
-// PayloadResource is a nested field of JSONPayload
-type PayloadResource struct {
+// JSONPayloadResource is a nested field of JSONPayload
+type JSONPayloadResource struct {
 	Name string `json:"name"`
 }
 
@@ -50,22 +51,45 @@ type Labels struct {
 	Region     string `json:"region"`
 }
 
-// NewCloudLoggingMessage creates CloudLoggingMessage from JSON
-func NewCloudLoggingMessage(jsonPayload []byte) (*CloudLoggingMessage, error) {
-	var m CloudLoggingMessage
+// NewComputeEngineLog parses JSON log from Compute Engine API or startup-script, and creates ComputeEngineLog
+func NewComputeEngineLog(jsonPayload []byte) (*ComputeEngineLog, error) {
+	var m ComputeEngineLog
 	err := json.Unmarshal(jsonPayload, &m)
 	if err != nil {
 		return nil, err
+	}
+
+	// NOTE: This JSON-styled log is parsed and may invoke slack notification.
+	// If the message includes an invalid JSON value, the cloud function might fall into an infinite loop,
+	// like Cloud Functions -> Cloud Logging Sink -> Cloud Functions -> ... .
+	// This block is intended to prevent the infinite loop from being invoked.
+	if m.Resource.Type != computeResourceType {
+		return nil, fmt.Errorf("invalid resource type: %s", m.Resource.Type)
+	}
+
+	// This means the log is from startup-script.
+	if len(m.JSONPayload.Message) > 0 {
+		return &m, nil
+	}
+
+	// This means the log is from Compute Engine API but operation has not completed yet.
+	if m.JSONPayload.EventType != "GCE_OPERATION_DONE" {
+		return nil, fmt.Errorf("invalid event type: %s", m.JSONPayload.EventType)
+	}
+
+	// This means the log is from Compute Engine API but the event subtype is neither `create` nor `delete`.
+	if m.JSONPayload.EventSubType != computeInsertEventName && m.JSONPayload.EventSubType != computeDeleteEventName {
+		return nil, fmt.Errorf("invalid event subtype: %s", m.JSONPayload.EventType)
 	}
 	return &m, nil
 }
 
 // GetName returns instance name
-func (m CloudLoggingMessage) GetName() string {
+func (m ComputeEngineLog) GetName() string {
 	switch m.JSONPayload.EventSubType {
-	case "compute.instances.insert":
+	case computeInsertEventName:
 		return m.JSONPayload.PayloadResource.Name
-	case "compute.instances.delete":
+	case computeDeleteEventName:
 		return m.JSONPayload.PayloadResource.Name
 	default:
 		return m.JSONPayload.Host
@@ -73,19 +97,19 @@ func (m CloudLoggingMessage) GetName() string {
 }
 
 // GetText returns payload text to notify
-func (m CloudLoggingMessage) GetText() string {
+func (m ComputeEngineLog) GetText() string {
 	switch m.JSONPayload.EventSubType {
-	case "compute.instances.insert":
-		return computeCreateMessage
-	case "compute.instances.delete":
-		return computeDeleteMessage
+	case computeInsertEventName:
+		return "Instance Inserted"
+	case computeDeleteEventName:
+		return "Instance Deleted"
 	default:
 		return m.JSONPayload.Message
 	}
 }
 
-// MakeSlackMessage gets message by resource type
-func (m CloudLoggingMessage) MakeSlackMessage(color string) *slack.WebhookMessage {
+// GetSlackMessage gets message for Slack WebHook
+func (m ComputeEngineLog) GetSlackMessage(color string) *slack.WebhookMessage {
 	attachment := slack.Attachment{
 		Color:      color,
 		AuthorName: "GCP Slack Notifier",

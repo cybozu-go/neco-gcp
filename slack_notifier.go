@@ -18,7 +18,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"data": string(m.Data),
 	})
 
-	b, err := necogcpslack.NewCloudLoggingMessage(m.Data)
+	b, err := necogcpslack.NewComputeEngineLog(m.Data)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
 			"data":      string(m.Data),
@@ -28,23 +28,6 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	}
 	log.Debug("unmarshalled msg body", map[string]interface{}{
 		"body": b,
-	})
-
-	if len(b.JSONPayload.Message) == 0 ||
-		b.JSONPayload.EventType != "GCE_OPERATION_DONE" ||
-		(b.JSONPayload.EventSubType != "compute.instances.delete" && b.JSONPayload.EventSubType != "compute.instances.insert") {
-		log.Info("not include target log", nil)
-		return nil
-	}
-
-	name := b.GetName()
-	log.Info("got name successfully", map[string]interface{}{
-		"name": name,
-	})
-
-	text := b.GetText()
-	log.Info("Got text successfully", map[string]interface{}{
-		"message": text,
 	})
 
 	client, err := secretmanager.NewClient(ctx)
@@ -78,6 +61,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
+	name := b.GetName()
 	teams, err := c.GetTeamSet(name)
 	if err != nil {
 		log.Error("failed to get teams", map[string]interface{}{
@@ -105,10 +89,11 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return nil
 	}
 
+	text := b.GetText()
 	color, err := c.GetColorFromMessage(text)
 	if err != nil {
 		log.Error("failed to get color from message", map[string]interface{}{
-			"message":   text,
+			"text":      text,
 			log.FnError: err,
 		})
 		return err
@@ -117,7 +102,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	msg := b.MakeSlackMessage(color)
+	msg := b.GetSlackMessage(color)
 	log.Debug("msg", map[string]interface{}{
 		"msg": msg,
 	})
