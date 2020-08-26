@@ -65,6 +65,12 @@ func (b *NecoStartupScriptBuilder) Build() string {
 	s := `#! /bin/sh
 
 echo "starting auto dctest..."
+
+delete_myself()
+{
+echo "ERROR Auto dctest was failed. Deleting the instance..."
+/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
+}
 `
 
 	if b.withFluentd {
@@ -86,7 +92,7 @@ echo '<source>
   matches [{ "_SYSTEMD_UNIT": "google-startup-scripts.service" }]
   pos_file /var/lib/google-fluentd/pos/systemd.pos
 </source>' > /etc/google-fluentd/config.d/systemd.conf &&
-sudo /opt/google-fluentd/embedded/bin/fluent-gem install fluent-plugin-systemd &&
+/opt/google-fluentd/embedded/bin/fluent-gem install fluent-plugin-systemd &&
 service google-fluentd start &&
 # This line is needed to ensure that fluentd is running
 service google-fluentd restart
@@ -97,11 +103,6 @@ if ! with_fluentd ; then delete_myself; fi
 	}
 
 	s += `
-delete_myself()
-{
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
-}
-
 prepare()
 {
 # fetch NAME and ZONE for automatic deletion and mkfs and mount local SSD on /var/scratch

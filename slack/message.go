@@ -24,9 +24,8 @@ type ComputeEngineLog struct {
 
 // JSONPayload is a nested field of MessageBody
 type JSONPayload struct {
-	Host            string              `json:"host"`
-	Ident           string              `json:"ident"`
-	Message         string              `json:"message"`
+	Host            string              `json:"_HOSTNAME"`
+	Message         string              `json:"MESSAGE"`
 	EventType       string              `json:"event_type"`
 	EventSubType    string              `json:"event_subtype"`
 	PayloadResource JSONPayloadResource `json:"resource"`

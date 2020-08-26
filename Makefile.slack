@@ -66,7 +66,7 @@ create-logging-sink:
 	gcloud logging sinks create $(SINK_NAME) \
 		pubsub.googleapis.com/projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME) \
 		--project $(GCP_PROJECT) \
-		--log-filter 'resource.type=gce_instance AND (jsonPayload.message:[auto-dctest] OR ((jsonPayload.event_subtype=compute.instances.insert OR jsonPayload.event_subtype=compute.instances.delete) AND jsonPayload.event_type=GCE_OPERATION_DONE))'
+		--log-filter 'resource.type=gce_instance AND (jsonPayload.MESSAGE:[auto-dctest] OR ((jsonPayload.event_subtype=compute.instances.insert OR jsonPayload.event_subtype=compute.instances.delete) AND jsonPayload.event_type=GCE_OPERATION_DONE))'
 	IDENTITY_NAME=$$(gcloud logging sinks describe $(SINK_NAME) --format json | jq -r .writerIdentity | cut -d: -f 2) && \
 		gcloud projects add-iam-policy-binding $(GCP_PROJECT) --member=serviceAccount:$${IDENTITY_NAME} --role=roles/pubsub.publisher
 
