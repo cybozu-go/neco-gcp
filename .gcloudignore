@@ -1,0 +1,15 @@
+.circleci/
+.git/
+.github/
+build/
+cmd/
+docs/
+slack/log/
+statik/
+vendor/
+
+.gitignore
+*_test.go
+*.md
+LICENSE
+Makefile*

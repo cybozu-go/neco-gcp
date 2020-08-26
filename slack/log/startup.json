@@ -1,0 +1,40 @@
+{
+    "insertId": "napy1duk1kiga1m8h",
+    "jsonPayload": {
+      "_SYSTEMD_UNIT": "google-startup-scripts.service",
+      "MESSAGE": "startup",
+      "_SYSTEMD_SLICE": "system.slice",
+      "_CAP_EFFECTIVE": "3fffffffff",
+      "PRIORITY": "6",
+      "_GID": "0",
+      "_EXE": "/usr/bin/python3.6",
+      "_SYSTEMD_CGROUP": "/system.slice/google-startup-scripts.service",
+      "_SOURCE_REALTIME_TIMESTAMP": "1598411264128203",
+      "_PID": "2572",
+      "_COMM": "google_metadata",
+      "_BOOT_ID": "44dccfdbc3bb4c7f8d05bcaa54ecf0d9",
+      "SYSLOG_IDENTIFIER": "startup-script",
+      "_CMDLINE": "/usr/bin/python3 /usr/bin/google_metadata_script_runner --script-type startup",
+      "_TRANSPORT": "syslog",
+      "SYSLOG_FACILITY": "3",
+      "_SYSTEMD_INVOCATION_ID": "dca5d78ca5f940b3a5a370a101526311",
+      "_HOSTNAME": "sample-0",
+      "_UID": "0",
+      "_SELINUX_CONTEXT": "unconfined\n",
+      "_MACHINE_ID": "b17ee3bc40dbff565172562dee4b7b39"
+    },
+    "resource": {
+        "type": "gce_instance",
+        "labels": {
+            "project_id": "neco-dev",
+            "zone": "asia-northeast1-c",
+            "instance_id": "5857545132820687594"
+        }
+    },
+    "timestamp": "2020-08-14T00:21:34Z",
+    "labels": {
+        "compute.googleapis.com/resource_name": "sample-0"
+    },
+    "logName": "projects/neco-dev/logs/systemd",
+    "receiveTimestamp": "2020-08-26T03:07:50.621652837Z"
+}

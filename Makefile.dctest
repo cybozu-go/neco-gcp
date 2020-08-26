@@ -1,0 +1,145 @@
+GCP_PROJECT ?=
+REGION := asia-northeast1
+
+TEAM_NAME ?=
+INSTANCE_NUM ?=
+LOG_LEVEL ?= info
+
+SERVICE_ACCOUNT_NAME := auto-dctest
+SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+TOPIC_NAME := auto-dctest-events
+FUNCTION_NAME := auto-dctest
+CREATING_SCHEDULER_PREFIX := create-dctest
+CREATING_SCHEDULER_NAME := $(CREATING_SCHEDULER_PREFIX)-$(TEAM_NAME)
+DELETING_SCHEDULER_NAME := delete-dctest
+FORCE_DELETING_SCHEDULER_NAME := force-delete-dctest
+
+init: \
+	enable-api \
+	create-service-account \
+	deploy-function \
+	create-deleting-scheduler \
+	create-force-deleting-scheduler
+
+add-team: create-creating-scheduler
+
+list-teams:
+	gcloud scheduler jobs list --project $(GCP_PROJECT) --filter "name:$(CREATING_SCHEDULER_PREFIX)"
+
+delete-team: delete-creating-scheduler
+
+clean: \
+	delete-service-account \
+	delete-function \
+	delete-deleting-scheduler \
+	delete-force-deleting-scheduler
+
+enable-api:
+	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudfunctions.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) secretmanager.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudscheduler.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudbuild.googleapis.com
+
+create-service-account:
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
+		--project $(GCP_PROJECT) \
+		--display-name $(SERVICE_ACCOUNT_NAME)
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/secretmanager.secretAccessor
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/logging.logWriter
+
+delete-service-account:
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/secretmanager.secretAccessor
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/logging.logWriter
+	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
+deploy-function:
+	gcloud --quiet functions deploy $(FUNCTION_NAME) \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point AutoDCTestEntryPoint \
+		--runtime go113 \
+		--trigger-topic $(TOPIC_NAME) \
+		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
+		--memory 128MB \
+		--timeout 300s \
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+
+delete-function:
+	gcloud --quiet functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
+	gcloud --quiet pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
+
+create-creating-scheduler:
+	if [ $(words $(TEAM_NAME)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
+		echo "TEAM_NAME and/or INSTANCE_NUM are required."; \
+		exit 1; \
+	fi
+	gcloud scheduler jobs create pubsub $(CREATING_SCHEDULER_NAME) \
+		--project $(GCP_PROJECT) \
+		--schedule '0 9 * * 1-5' \
+		--topic $(TOPIC_NAME) \
+		--message-body '{"mode":"create", "namePrefix":"$(TEAM_NAME)", "num":$(INSTANCE_NUM)}' \
+		--time-zone 'Asia/Tokyo' \
+		--description 'automatically create dctest instance'
+
+delete-creating-scheduler:
+	if [ $(words $(TEAM_NAME)) -eq 0 ]; then \
+		echo "TEAM_NAME is required."; \
+		exit 1; \
+	fi
+	gcloud --quiet scheduler jobs delete $(CREATING_SCHEDULER_NAME) --project $(GCP_PROJECT)
+
+create-deleting-scheduler:
+	gcloud scheduler jobs create pubsub $(DELETING_SCHEDULER_NAME) \
+		--project $(GCP_PROJECT) \
+		--schedule '0 20 * * *' \
+		--topic $(TOPIC_NAME) \
+		--message-body '{"mode":"delete", "doForce":false}' \
+		--time-zone 'Asia/Tokyo' \
+		--description 'automatically delete dctest instances except for ones with skip-auto-delete label'
+
+delete-deleting-scheduler:
+	gcloud --quiet scheduler jobs delete $(DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
+
+create-force-deleting-scheduler:
+	gcloud scheduler jobs create pubsub $(FORCE_DELETING_SCHEDULER_NAME) \
+		--project $(GCP_PROJECT) \
+		--schedule '0 23 * * *' \
+		--topic $(TOPIC_NAME) \
+		--message-body '{"mode":"delete", "doForce":true}' \
+		--time-zone 'Asia/Tokyo' \
+		--description 'automatically delete dctest all instances'
+
+delete-force-deleting-scheduler:
+	gcloud --quiet scheduler jobs delete $(FORCE_DELETING_SCHEDULER_NAME) --project $(GCP_PROJECT)
+
+.PHONY: \
+	init \
+	add-team list-teams delete-team \
+	clean \
+	enable-api \
+	create-service-account delete-service-account \
+	deploy-function delete-function \
+	create-creating-scheduler delete-creating-scheduler \
+	create-deleting-scheduler delete-deleting-scheduler \
+	create-force-deleting-scheduler delete-force-deleting-scheduler

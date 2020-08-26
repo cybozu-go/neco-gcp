@@ -7,9 +7,78 @@ jobs:
     working_directory: /work
     steps:
     - checkout
+    - run: make setup
+    - run: make test
+  build_necogcp:
+    docker:
+      - image: quay.io/cybozu/golang:1.13-bionic
+    working_directory: /work
+    steps:
+      - checkout
+      - run: make build-necogcp
+      - persist_to_workspace:
+          root: ./build
+          paths:
+            - necogcp
+  deploy:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - run:
+          name: Store service account
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+            gcloud auth activate-service-account --key-file=account_dev.json
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: make -f Makefile.dctest deploy-function GCP_PROJECT=neco-dev
+      - run: make -f Makefile.slack deploy-function GCP_PROJECT=neco-dev
+  update-vmx-enabled-image:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Update image on neco-dev
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+            gcloud auth activate-service-account --key-file=account_dev.json
+            /tmp/workspace/necogcp neco-test create-image --project neco-dev
+          no_output_timeout: 20m
+      - run:
+          name: Update image on neco-test
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_TEST > account_test.json
+            gcloud auth activate-service-account --key-file=account_test.json
+            /tmp/workspace/necogcp neco-test create-image
+          no_output_timeout: 20m
 
 workflows:
   version: 2
   main:
     jobs:
       - build
+  weekly:
+    triggers:
+      - schedule:
+          cron: "0 15 * * 0"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build_necogcp
+      - update-vmx-enabled-image:
+          requires:
+            - build_necogcp
+  release:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
