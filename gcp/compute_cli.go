@@ -50,7 +50,7 @@ type ComputeCLIClient struct {
 // NewComputeCLIClient returns ComputeClient
 func NewComputeCLIClient(cfg *Config, instance string) *ComputeCLIClient {
 	user := os.Getenv("USER")
-	if cfg.Common.Project == "neco-test" {
+	if cfg.Common.Project == "neco-test" || cfg.Common.Project == "neco-dev" {
 		user = "cybozu"
 	}
 
