@@ -7,11 +7,11 @@ LOG_LEVEL ?= info
 
 SERVICE_FUNC_ACCOUNT_NAME := auto-dctest-function
 SERVICE_FUNC_ACCOUNT_EMAIL := $(SERVICE_FUNC_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
-SERVICE_FUNC_ACCOUNT_DISPNAME := "VM instance create/delete function"
+SERVICE_FUNC_ACCOUNT_DISPNAME := "For function to create/delete VM instance"
 
 SERVICE_VM_ACCOUNT_NAME := auto-dctest-vminstance
 SERVICE_VM_ACCOUNT_EMAIL := $(SERVICE_VM_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
-SERVICE_VM_ACCOUNT_DISPNAME := "VM instance itself to bootstrap neco/neco-apps"
+SERVICE_VM_ACCOUNT_DISPNAME := "For VM instance to bootstrap neco/neco-apps"
 
 TOPIC_NAME := auto-dctest-events
 FUNCTION_NAME := auto-dctest
@@ -22,7 +22,8 @@ FORCE_DELETING_SCHEDULER_NAME := force-delete-dctest
 
 init: \
 	enable-api \
-	create-service-account \
+	create-function-service-account \
+	create-compute-service-account \
 	deploy-function \
 	create-deleting-scheduler \
 	create-force-deleting-scheduler
@@ -35,7 +36,8 @@ list-teams:
 delete-team: delete-creating-scheduler
 
 clean: \
-	delete-service-account \
+	delete-function-service-account \
+	delete-compute-service-account \
 	delete-function \
 	delete-deleting-scheduler \
 	delete-force-deleting-scheduler
@@ -47,7 +49,7 @@ enable-api:
 	gcloud services enable --project $(GCP_PROJECT) cloudscheduler.googleapis.com
 	gcloud services enable --project $(GCP_PROJECT) cloudbuild.googleapis.com
 
-create-service-account:
+create-function-service-account:
 	gcloud iam service-accounts create $(SERVICE_FUNC_ACCOUNT_NAME) \
 		--project $(GCP_PROJECT) \
 		--display-name $(SERVICE_FUNC_ACCOUNT_DISPNAME)
@@ -56,14 +58,18 @@ create-service-account:
 		--role=roles/compute.instanceAdmin.v1
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/secretmanager.secretAccessor
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--role=roles/iam.serviceAccountUser
+
+delete-function-service-account:
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
 		--role=roles/iam.serviceAccountUser
-	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/logging.logWriter
+	gcloud --quiet iam service-accounts delete $(SERVICE_FUNC_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
+create-compute-service-account:
 	gcloud iam service-accounts create $(SERVICE_VM_ACCOUNT_NAME) \
 		--project $(GCP_PROJECT) \
 		--display-name $(SERVICE_VM_ACCOUNT_DISPNAME)
@@ -77,21 +83,7 @@ create-service-account:
 		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
 		--role=roles/logging.logWriter
 
-delete-service-account:
-	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/compute.instanceAdmin.v1
-	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/secretmanager.secretAccessor
-	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/iam.serviceAccountUser
-	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
-		--member=serviceAccount:$(SERVICE_FUNC_ACCOUNT_EMAIL) \
-		--role=roles/logging.logWriter
-	gcloud --quiet iam service-accounts delete $(SERVICE_FUNC_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
-
+delete-compute-service-account:
 	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
 		--role=roles/compute.instanceAdmin.v1
@@ -168,7 +160,8 @@ delete-force-deleting-scheduler:
 	add-team list-teams delete-team \
 	clean \
 	enable-api \
-	create-service-account delete-service-account \
+	create-function-service-account delete-function-service-account \
+	create-compute-service-account delete-compute-service-account \
 	deploy-function delete-function \
 	create-creating-scheduler delete-creating-scheduler \
 	create-deleting-scheduler delete-deleting-scheduler \
