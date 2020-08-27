@@ -15,6 +15,7 @@ jobs:
     working_directory: /work
     steps:
       - checkout
+      - run: make setup
       - run: make build-necogcp
       - persist_to_workspace:
           root: ./build
