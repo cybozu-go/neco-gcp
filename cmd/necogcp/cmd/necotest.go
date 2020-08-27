@@ -4,6 +4,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	projectID string
+	zone      string
+)
+
 // necotestCmd is the root subcommand of "necogcp neco-test".
 var necotestCmd = &cobra.Command{
 	Use:   "neco-test",
@@ -12,5 +17,7 @@ var necotestCmd = &cobra.Command{
 }
 
 func init() {
+	necotestCmd.PersistentFlags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
+	necotestCmd.PersistentFlags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	rootCmd.AddCommand(necotestCmd)
 }

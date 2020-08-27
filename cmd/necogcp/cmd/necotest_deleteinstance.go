@@ -10,13 +10,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var deleteInstanceName string
+
 var necotestDeleteInstanceCmd = &cobra.Command{
 	Use:   "delete-instance",
 	Short: "Delete instance",
 	Long:  `Delete instance.`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(instanceName) == 0 {
+		if len(deleteInstanceName) == 0 {
 			log.ErrorExit(errors.New("instance name is required"))
 		}
 		if len(projectID) == 0 {
@@ -33,9 +35,9 @@ var necotestDeleteInstanceCmd = &cobra.Command{
 			log.Info("start deleting instance", map[string]interface{}{
 				"project": projectID,
 				"zone":    zone,
-				"name":    instanceName,
+				"name":    deleteInstanceName,
 			})
-			return cc.Delete(instanceName)
+			return cc.Delete(deleteInstanceName)
 		})
 
 		well.Stop()
@@ -47,8 +49,6 @@ var necotestDeleteInstanceCmd = &cobra.Command{
 }
 
 func init() {
-	necotestDeleteInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
-	necotestDeleteInstanceCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
-	necotestDeleteInstanceCmd.Flags().StringVarP(&instanceName, "instance-name", "n", "", "Instance name")
+	necotestDeleteInstanceCmd.Flags().StringVarP(&deleteInstanceName, "instance-name", "n", "", "Instance name")
 	necotestCmd.AddCommand(necotestDeleteInstanceCmd)
 }

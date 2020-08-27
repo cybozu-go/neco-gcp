@@ -13,12 +13,10 @@ import (
 )
 
 var (
-	projectID      string
-	zone           string
-	machineType    string
-	instanceName   string
-	necoBranch     string
-	necoAppsBranch string
+	machineType        string
+	createInstanceName string
+	necoBranch         string
+	necoAppsBranch     string
 )
 
 var necotestCreateInstanceCmd = &cobra.Command{
@@ -27,7 +25,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 	Long:  `Create dctest env for neco (and neco-apps).`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(instanceName) == 0 {
+		if len(createInstanceName) == 0 {
 			log.ErrorExit(errors.New("instance name is required"))
 		}
 		if len(projectID) == 0 {
@@ -63,14 +61,14 @@ var necotestCreateInstanceCmd = &cobra.Command{
 			log.Info("start creating instance", map[string]interface{}{
 				"project":        projectID,
 				"zone":           zone,
-				"name":           instanceName,
+				"name":           createInstanceName,
 				"serviceaccount": sa,
 				"machinetype":    machineType,
 				"necobranch":     necoBranch,
 				"necoappsbranch": necoAppsBranch,
 			})
 			return cc.Create(
-				instanceName,
+				createInstanceName,
 				sa,
 				machineType,
 				necogcp.MakeVMXEnabledImageURL(projectID),
@@ -87,10 +85,8 @@ var necotestCreateInstanceCmd = &cobra.Command{
 }
 
 func init() {
-	necotestCreateInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
-	necotestCreateInstanceCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestCreateInstanceCmd.Flags().StringVarP(&machineType, "machine-type", "t", "n1-standard-32", "Machine type")
-	necotestCreateInstanceCmd.Flags().StringVarP(&instanceName, "instance-name", "n", "", "Instance name")
+	necotestCreateInstanceCmd.Flags().StringVarP(&createInstanceName, "instance-name", "n", "", "Instance name")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoAppsBranch, "neco-apps-branch", "release", "Branch of cybozu-go/neco-apps to run")
 	necotestCmd.AddCommand(necotestCreateInstanceCmd)
