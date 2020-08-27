@@ -55,7 +55,7 @@ var necotestCreateImageCmd = &cobra.Command{
 }
 
 func init() {
-	necotestCreateImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
+	necotestCreateImageCmd.Flags().StringVarP(&projectID, "project-id", "p", "neco-test", "Project ID for GCP")
 	necotestCreateImageCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast2-c", "Zone name for GCP")
 	necotestCmd.AddCommand(necotestCreateImageCmd)
 }
