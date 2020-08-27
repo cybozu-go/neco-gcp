@@ -43,18 +43,18 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
-          name: Update image on neco-test
-          command: |
-            echo $GCLOUD_SERVICE_ACCOUNT_NECO_TEST > account_test.json
-            gcloud auth activate-service-account --key-file=account_test.json
-            /tmp/workspace/necogcp neco-test create-image
-          no_output_timeout: 20m
-      - run:
           name: Update image on neco-dev
           command: |
             echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
             gcloud auth activate-service-account --key-file=account_dev.json
             /tmp/workspace/necogcp neco-test create-image --project-id neco-dev
+          no_output_timeout: 20m
+      - run:
+          name: Update image on neco-test
+          command: |
+            echo $GCLOUD_SERVICE_ACCOUNT_NECO_TEST > account_test.json
+            gcloud auth activate-service-account --key-file=account_test.json
+            /tmp/workspace/necogcp neco-test create-image
           no_output_timeout: 20m
 
 workflows:
