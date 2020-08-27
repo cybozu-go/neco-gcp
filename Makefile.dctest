@@ -69,6 +69,9 @@ create-service-account:
 		--display-name $(SERVICE_VM_ACCOUNT_DISPNAME)
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
 		--role=roles/secretmanager.secretAccessor
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
@@ -89,6 +92,9 @@ delete-service-account:
 		--role=roles/logging.logWriter
 	gcloud --quiet iam service-accounts delete $(SERVICE_FUNC_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
 	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_VM_ACCOUNT_EMAIL) \
 		--role=roles/secretmanager.secretAccessor
