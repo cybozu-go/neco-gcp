@@ -122,7 +122,7 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 		return err
 	}
 
-	if project == "neco-test" {
+	if project == "neco-test" || project == "neco-dev" {
 		err = downloadAssets(client)
 		if err != nil {
 			return err

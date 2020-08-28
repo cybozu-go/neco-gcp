@@ -13,12 +13,11 @@ import (
 )
 
 var (
-	projectID      string
-	zone           string
-	machineType    string
-	instanceName   string
-	necoBranch     string
-	necoAppsBranch string
+	machineType         string
+	createInstanceName  string
+	serviceAccountEmail string
+	necoBranch          string
+	necoAppsBranch      string
 )
 
 var necotestCreateInstanceCmd = &cobra.Command{
@@ -27,11 +26,17 @@ var necotestCreateInstanceCmd = &cobra.Command{
 	Long:  `Create dctest env for neco (and neco-apps).`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(instanceName) == 0 {
+		if len(createInstanceName) == 0 {
 			log.ErrorExit(errors.New("instance name is required"))
 		}
 		if len(projectID) == 0 {
 			log.ErrorExit(errors.New("project id is required"))
+		}
+		if len(serviceAccountEmail) == 0 {
+			serviceAccountEmail = necogcp.MakeNecoDevServiceAccountEmail(projectID)
+			log.Info("Use default service account", map[string]interface{}{
+				"serviceaccount": serviceAccountEmail,
+			})
 		}
 		builder := necogcp.NewNecoStartupScriptBuilder().WithFluentd()
 		if len(necoBranch) > 0 {
@@ -59,19 +64,18 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				return err
 			}
 
-			sa := necogcp.MakeNecoDevServiceAccountEmail(projectID)
 			log.Info("start creating instance", map[string]interface{}{
 				"project":        projectID,
 				"zone":           zone,
-				"name":           instanceName,
-				"serviceaccount": sa,
+				"name":           createInstanceName,
+				"serviceaccount": serviceAccountEmail,
 				"machinetype":    machineType,
 				"necobranch":     necoBranch,
 				"necoappsbranch": necoAppsBranch,
 			})
 			return cc.Create(
-				instanceName,
-				sa,
+				createInstanceName,
+				serviceAccountEmail,
 				machineType,
 				necogcp.MakeVMXEnabledImageURL(projectID),
 				builder.Build(),
@@ -87,10 +91,9 @@ var necotestCreateInstanceCmd = &cobra.Command{
 }
 
 func init() {
-	necotestCreateInstanceCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
-	necotestCreateInstanceCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestCreateInstanceCmd.Flags().StringVarP(&machineType, "machine-type", "t", "n1-standard-32", "Machine type")
-	necotestCreateInstanceCmd.Flags().StringVarP(&instanceName, "instance-name", "n", "", "Instance name")
+	necotestCreateInstanceCmd.Flags().StringVarP(&createInstanceName, "instance-name", "n", "", "Instance name")
+	necotestCreateInstanceCmd.Flags().StringVarP(&serviceAccountEmail, "service-account", "a", "", "Service account email address")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoAppsBranch, "neco-apps-branch", "release", "Branch of cybozu-go/neco-apps to run")
 	necotestCmd.AddCommand(necotestCreateInstanceCmd)

@@ -57,22 +57,23 @@ The functions are assumed to be deployed in the asia-northeast1 region.
 
 - Incoming socket traffic for asia-northeast1 (deprecated) per 100 seconds
   - This depends on how many teams you want manage.
-  - If you manage 10 teams, 10 is minimal.
+  - One traffic from Pub/Sub is expected to be within 100kB.
+  - If you manage 10 teams, 100kB * 10 = 1MB is minimal.
 - CPU allocation in function invocations for asia-northeast1 (deprecated) per 100 seconds
-  - `auto-dctest` and `slack-notifier` can run only with 200MHz(=0.2GHz) CPU.
+  - `auto-dctest` and `slack-notifier` run with 200MHz(=0.2GHz) CPU.
   - This depends on how many teams you want manage.
   - Both `auto-dctest` and `slack-notifier` are expected to finish within 30s.
   - 0.2GHz * 30s * (N of teams) or more is required to be set.
-  - If you manage 10 teams, 60 is minimal.
+  - If you manage 10 teams, 60 GHz * s is minimal.
 
 #### Cloud Pub/Sub
 
 - Regional push subscriber throughput, kB per minute
-  - One log is expected to be under 3kB.
+  - One log is expected to be within 5kB.
   - 5 ~ 10 logs are filtered by a single run of `auto-dctest`.
   - This depends on how many teams you want manage.
-  - 3kB * 10 logs * (N of teams) or more is required to be set.
-  - If you manage 10 teams, 300kB is minimal.
+  - 5kB * 10 logs * (N of teams) or more is required to be set.
+  - If you manage 10 teams, 500kB is minimal.
 
 #### Cloud Scheduler
 
@@ -83,10 +84,11 @@ The functions are assumed to be deployed in the asia-northeast1 region.
 #### Secret Manager API
 
 - Access requests per minute
-  - 5 ~ 10 logs are filtered by a single run of `auto-dctest`.
-  - This depends on how many teams you want manage.
-  - 10 logs * (N of teams) or more is required to be set.
-  - If you manage 10 teams, 100 is minimal.
+  - This depends on how many instances you want to create/delete.
+    The total number of instances is calculated by the sum of the instances of each team.
+  - At most, 2 logs by the `auto-dctest` Cloud Function invokes this API in a minute.
+  - 2 logs * total instances or more is required to be set.
+  - If you manage 10 teams and each team has 3 instances, 60 is minimal.
 
 ### Deploy `auto-dctest` function
 
@@ -110,6 +112,12 @@ make -f Makefile.dctest list-teams
 make -f Makefile.dctest delete-team TEAM_NAME=<team_name>
 make -f Makefile.dctest clean
 ```
+
+If you want to use Contour or ExternalDNS by manually creating `HTTPProxy` or `DNSEndpoint`,
+you should deploy the JSON key file of the Service Account which has an editor access to CloudDNS of neco-dev.
+The file is deployed onto Secret Manager with the name `cloud-dns-admin-account`.
+
+Currently, `neco-apps@neco-dev.iam.gserviceaccount.com` exists in the neco-dev project, and it has the editor access to CloudDNS.
 
 ### Deploy `slack-notifier` function
 
@@ -148,12 +156,12 @@ severity: # See https://api.slack.com/reference/messaging/attachments#fields
     regex: ^ERROR
 rules:
   - name: team1-rule
-    regex: team1-+[0-9]
+    regex: team1-[0-9]+
     targetTeams:
       - team1
 ```
 
-With the above setting, the notifications for `team1`'s instance with postfix `-+[0-9]` will be sent to `team1`'s Slack webhook.
+With the above setting, the notifications for `team1`'s instance with postfix `-[0-9]+` will be sent to `team1`'s Slack webhook.
 
 This YAML file must be uploaded to Secret Manager with the specific name `slack-notifier-config`.
 

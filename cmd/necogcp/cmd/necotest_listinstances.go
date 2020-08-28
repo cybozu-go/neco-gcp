@@ -61,8 +61,6 @@ var necotestListInstancesCmd = &cobra.Command{
 }
 
 func init() {
-	necotestListInstancesCmd.Flags().StringVarP(&projectID, "project-id", "p", "", "Project ID for GCP")
-	necotestListInstancesCmd.Flags().StringVarP(&zone, "zone", "z", "asia-northeast1-c", "Zone name for GCP")
 	necotestListInstancesCmd.Flags().StringVarP(&filter, "filter", "f", "", "Filter string")
 	necotestCmd.AddCommand(necotestListInstancesCmd)
 }

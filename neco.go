@@ -7,7 +7,7 @@ import (
 
 const (
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
-	autoDCTestServiceAccountName = "auto-dctest"
+	autoDCTestServiceAccountName = "auto-dctest-vminstance"
 	slackNotifierConfigName      = "slack-notifier-config"
 )
 
