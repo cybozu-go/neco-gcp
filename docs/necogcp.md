@@ -32,11 +32,11 @@ Synopsis
 
 * `necogcp create-snapshot`
 
-    Create `home` volume snapshot.
+    Create `home` volume snapshot. This subcommand is mainly for backup purpose.
 
 * `necogcp restore-snapshot`
 
-    Restore `home` volume from the latest snapshot in the zone specified by the flag `--dest-zone`.
+    Restore `home` volume from the latest snapshot in the zone specified by the flag `--dest-zone`. You have to delete the `home` persistent disk manually before restoration.
 
 ### GCE instance management on neco-test project
 
