@@ -30,6 +30,14 @@ Synopsis
 
     Setup `host-vm` or `vmx-enabled` instance. It can run on only them.
 
+* `necogcp create-snapshot`
+
+    Create `home` volume snapshot. This subcommand is mainly for backup purpose.
+
+* `necogcp restore-snapshot`
+
+    Restore `home` volume from the latest snapshot in the zone specified by the flag `--dest-zone`. You have to delete the `home` persistent disk manually before restoration.
+
 ### GCE instance management on neco-test project
 
 * `necogcp neco-test create-image`
@@ -56,9 +64,10 @@ The subcommands `necogcp neco-test create-instance | delete-instance | list-inst
 Flags
 -----
 
-| Flag       | Default value        | Description                                                                      |
-| ---------- | -------------------- | -------------------------------------------------------------------------------- |
-| `--config` | `$HOME/.necogcp.yml` | [Viper configuration file](https://github.com/spf13/viper#reading-config-files). |
+| Flag          | Default value        | Description                                                                      |
+| ------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `--config`    | `$HOME/.necogcp.yml` | [Viper configuration file](https://github.com/spf13/viper#reading-config-files). |
+| `--dest-zone` | `an empty string`    | zone to restore `home` volume                                                    |
 
 Configuration file
 ------------------
