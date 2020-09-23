@@ -14,6 +14,8 @@ func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, cfgFile st
 		return err
 	}
 
+	defer cc.DeleteInstance(ctx)
+
 	err = cc.WaitInstance(ctx)
 	if err != nil {
 		return err
@@ -37,11 +39,6 @@ func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, cfgFile st
 	cc.DeleteVMXEnabledImage(ctx)
 
 	err = cc.CreateVMXEnabledImage(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = cc.DeleteInstance(ctx)
 	if err != nil {
 		return err
 	}
