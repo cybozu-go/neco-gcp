@@ -38,6 +38,7 @@ func (a artifactSet) placematURL() string {
 }
 
 func (a artifactSet) ctURL() string {
+	// Download ct from coreos repository because github.com/flatcar-linux/container-linux-config-transpiler does not provide binary assets.
 	return fmt.Sprintf("https://github.com/coreos/container-linux-config-transpiler/releases/download/v%s/ct-v%s-x86_64-unknown-linux-gnu", a.ctVersion, a.ctVersion)
 }
 
@@ -45,15 +46,15 @@ func (a artifactSet) assetURLs() []string {
 	return []string{
 		fmt.Sprintf("https://github.com/coreos/etcd/releases/download/v%s/etcd-v%s-linux-amd64.tar.gz", a.etcdVersion, a.etcdVersion),
 		"https://cloud-images.ubuntu.com/releases/18.04/release/ubuntu-18.04-server-cloudimg-amd64.img",
-		"https://stable.release.core-os.net/amd64-usr/current/coreos_production_qemu_image.img.bz2",
-		fmt.Sprintf("https://stable.release.core-os.net/amd64-usr/%s/coreos_production_pxe.vmlinuz", a.coreOSVersion),
-		fmt.Sprintf("https://stable.release.core-os.net/amd64-usr/%s/coreos_production_pxe_image.cpio.gz", a.coreOSVersion),
+		"https://stable.release.flatcar-linux.net/amd64-usr/current/flatcar_production_qemu_image.img.bz2",
+		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe.vmlinuz", a.coreOSVersion),
+		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe_image.cpio.gz", a.coreOSVersion),
 		fmt.Sprintf("https://github.com/cybozu/neco-ubuntu/releases/download/%s/cybozu-ubuntu-18.04-server-cloudimg-amd64.img", a.customUbuntuVersion),
 	}
 }
 
 func (a artifactSet) bz2Files() []string {
 	return []string{
-		"coreos_production_qemu_image.img.bz2",
+		"flatcar_production_qemu_image.img.bz2",
 	}
 }
