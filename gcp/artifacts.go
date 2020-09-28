@@ -6,8 +6,8 @@ var artifacts = artifactSet{
 	etcdVersion:         "3.3.19",
 	placematVersion:     "1.5.1",
 	customUbuntuVersion: "20190829",
-	coreOSVersion:       "2191.5.0",
-	ctVersion:           "0.9.0",
+	coreOSVersion:       "2605.5.0",
+	ctVersion:           "0.6.1",
 	baseImage:           "ubuntu-1804-bionic-v20190628",
 	baseImageProject:    "ubuntu-os-cloud",
 	debPackages: []string{
