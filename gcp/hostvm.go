@@ -20,7 +20,7 @@ const (
 	homeDisk           = "/dev/disk/by-id/google-home"
 	homeFSType         = "ext4"
 	homeMountPoint     = "/home"
-	localSSDDisk       = "/dev/disk/by-id/google-local-ssd-0"
+	localSSDDisk       = "/dev/nvme0n1"
 	localSSDFSType     = "ext4"
 	localSSDMountPoint = "/var/scratch"
 )
