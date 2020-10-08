@@ -21,7 +21,6 @@ func TestNecoStartupScriptBuilder(t *testing.T) {
 
 	s := builder.Build()
 	shouldContain := []string{
-		"mkfs -t ext4 -F /dev/disk/by-id/google-local-ssd-0",
 		"service google-fluentd restart", // check for .WithFluentd
 		"git checkout this-is-neco",      // check for .WithNeco
 		"git checkout this-is-neco-apps", // check for .WithNecoApps

@@ -108,9 +108,9 @@ prepare()
 # fetch NAME and ZONE for automatic deletion and mkfs and mount local SSD on /var/scratch
 export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google') &&
 export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google') &&
-mkfs -t ext4 -F /dev/disk/by-id/google-local-ssd-0 &&
+mkfs -t ext4 -F /dev/nvme0n1 &&
 mkdir -p /var/scratch &&
-mount -t ext4 /dev/disk/by-id/google-local-ssd-0 /var/scratch &&
+mount -t ext4 /dev/nvme0n1 /var/scratch &&
 chmod 1777 /var/scratch
 }
 
