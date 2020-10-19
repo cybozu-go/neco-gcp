@@ -96,7 +96,7 @@ func (c *ComputeClient) Create(
 					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
 				},
 				AutoDelete: true,
-				Interface:  "SCSI",
+				Interface:  "NVME",
 			},
 		},
 		NetworkInterfaces: []*compute.NetworkInterface{
