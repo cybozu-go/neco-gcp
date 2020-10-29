@@ -33,6 +33,7 @@ var (
 		"/etc/containers/registries.conf",
 		"/etc/docker/daemon.json",
 		"/etc/profile.d/go.sh",
+		"/etc/systemd/system/disable-transparent-hugepage.service",
 		"/usr/local/bin/podenter",
 	}
 )
@@ -118,6 +119,11 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 	}
 
 	err = dumpStaticFiles()
+	if err != nil {
+		return err
+	}
+
+	err = StartService(ctx, "disable-transparent-hugepage")
 	if err != nil {
 		return err
 	}
