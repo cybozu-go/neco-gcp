@@ -3,10 +3,12 @@
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/cybozu-go/neco-gcp?tab=overview)](https://pkg.go.dev/github.com/cybozu-go/neco-gcp?tab=overview)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cybozu-go/neco-gcp)](https://goreportcard.com/report/github.com/cybozu-go/neco-gcp)
 
-Template repository for Neco
+neco-gcp
 ============================
 
 **Project Status**: Initial development
+
+`necogcp` is a command-line tool for GCP provisioning.
 
 Documentation
 -------------
