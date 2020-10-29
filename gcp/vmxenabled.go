@@ -33,6 +33,7 @@ var (
 		"/etc/containers/registries.conf",
 		"/etc/docker/daemon.json",
 		"/etc/profile.d/go.sh",
+		"/etc/systemd/system/disable-transparent-hugepage.service",
 		"/usr/local/bin/podenter",
 	}
 )
@@ -118,6 +119,11 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 	}
 
 	err = dumpStaticFiles()
+	if err != nil {
+		return err
+	}
+
+	err = startDisableTransparentHugepageService(ctx)
 	if err != nil {
 		return err
 	}
@@ -432,6 +438,14 @@ func copyStatic(fs http.FileSystem, fileName string) error {
 
 	_, err = io.Copy(dst, src)
 	return err
+}
+
+func startDisableTransparentHugepageService(ctx context.Context) error {
+	err := StartService(ctx, "disable-transparent-hugepage")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func downloadAssets(client *http.Client) error {
