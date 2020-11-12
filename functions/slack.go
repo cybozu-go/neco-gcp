@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// "good" is recognized as red by slack API
 const defaultColor = "good"
 
 // SlackNotifierConfig is a Slack notifier
@@ -40,8 +41,8 @@ func NewSlackNotifierConfig(configYAML []byte) (*SlackNotifierConfig, error) {
 	return &n, nil
 }
 
-// GetTeamSet returns matched URLs of target teams
-func (c SlackNotifierConfig) GetTeamSet(target string) (map[string]struct{}, error) {
+// FindTeamsByInstanceName returns matched URLs of target teams
+func (c SlackNotifierConfig) FindTeamsByInstanceName(target string) (map[string]struct{}, error) {
 	teams := make(map[string]struct{})
 	for _, r := range c.Rules {
 		matched, err := regexp.Match(r.Regex, []byte(target))
@@ -58,8 +59,8 @@ func (c SlackNotifierConfig) GetTeamSet(target string) (map[string]struct{}, err
 	return teams, nil
 }
 
-// ConvertTeamsToURLs converts teams set to URLs set
-func (c SlackNotifierConfig) ConvertTeamsToURLs(teams map[string]struct{}) (map[string]struct{}, error) {
+// GetWebHookURLsFromTeams returns webhook URLs set from the given teams
+func (c SlackNotifierConfig) GetWebHookURLsFromTeams(teams map[string]struct{}) (map[string]struct{}, error) {
 	urls := make(map[string]struct{})
 	for t := range teams {
 		v, ok := c.Teams[t]
@@ -72,8 +73,8 @@ func (c SlackNotifierConfig) ConvertTeamsToURLs(teams map[string]struct{}) (map[
 	return urls, nil
 }
 
-// GetColorFromMessage returns color by maching regex with message
-func (c SlackNotifierConfig) GetColorFromMessage(message string) (string, error) {
+// FindColorByMessage returns color by maching regex with message
+func (c SlackNotifierConfig) FindColorByMessage(message string) (string, error) {
 	for _, s := range c.Severity {
 		matched, err := regexp.Match(s.Regex, []byte(message))
 		if err != nil {

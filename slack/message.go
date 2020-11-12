@@ -14,8 +14,8 @@ const (
 	computeDeleteEventName = "compute.instances.delete"
 )
 
-// ComputeEngineLog is a JSON-style message of Compute Engine on Cloud Logging
-type ComputeEngineLog struct {
+// ComputeLog is a JSON-style message of Compute Engine on Cloud Logging
+type ComputeLog struct {
 	TextPayload string      `json:"textPayload"`
 	JSONPayload JSONPayload `json:"jsonPayload"`
 	Resource    Resource    `json:"resource"`
@@ -50,9 +50,9 @@ type Labels struct {
 	Region     string `json:"region"`
 }
 
-// NewComputeEngineLog parses JSON log from Compute Engine API or startup-script, and creates ComputeEngineLog
-func NewComputeEngineLog(jsonPayload []byte) (*ComputeEngineLog, error) {
-	var m ComputeEngineLog
+// NewComputeLogFromJSON parses JSON log from Compute Engine API or startup-script, and creates ComputeEngineLog
+func NewComputeLogFromJSON(jsonPayload []byte) (*ComputeLog, error) {
+	var m ComputeLog
 	err := json.Unmarshal(jsonPayload, &m)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func NewComputeEngineLog(jsonPayload []byte) (*ComputeEngineLog, error) {
 	// NOTE: This JSON-styled log is parsed and may invoke slack notification.
 	// If the message includes an invalid JSON value, the cloud function might fall into an infinite loop,
 	// like Cloud Functions -> Cloud Logging Sink -> Cloud Functions -> ... .
-	// This block is intended to prevent the infinite loop from being invoked.
+	// We block the infinite loop as possible by checking resource type.
 	if m.Resource.Type != computeResourceType {
 		return nil, fmt.Errorf("invalid resource type: %s", m.Resource.Type)
 	}
@@ -83,8 +83,8 @@ func NewComputeEngineLog(jsonPayload []byte) (*ComputeEngineLog, error) {
 	return &m, nil
 }
 
-// GetName returns instance name
-func (m ComputeEngineLog) GetName() string {
+// GetInstanceName returns instance name
+func (m ComputeLog) GetInstanceName() string {
 	switch m.JSONPayload.EventSubType {
 	case computeInsertEventName:
 		return m.JSONPayload.PayloadResource.Name
@@ -95,8 +95,8 @@ func (m ComputeEngineLog) GetName() string {
 	}
 }
 
-// GetText returns payload text to notify
-func (m ComputeEngineLog) GetText() string {
+// GetPayloadMessage returns payload message to notify
+func (m ComputeLog) GetPayloadMessage() string {
 	switch m.JSONPayload.EventSubType {
 	case computeInsertEventName:
 		return "Instance Inserted"
@@ -107,17 +107,17 @@ func (m ComputeEngineLog) GetText() string {
 	}
 }
 
-// GetSlackMessage gets message for Slack WebHook
-func (m ComputeEngineLog) GetSlackMessage(color string) *slack.WebhookMessage {
+// MakeWebhookMessage gets message for Slack WebHook
+func (m ComputeLog) MakeWebhookMessage(color string) *slack.WebhookMessage {
 	attachment := slack.Attachment{
 		Color:      color,
 		AuthorName: "GCP Slack Notifier",
 		Title:      "Compute Engine",
-		Text:       m.GetText(),
+		Text:       m.GetPayloadMessage(),
 		Fields: []slack.AttachmentField{
 			{Title: "Project", Value: m.Resource.Labels.ProjectID, Short: true},
 			{Title: "Zone", Value: m.Resource.Labels.Zone, Short: true},
-			{Title: "Instance", Value: m.GetName(), Short: true},
+			{Title: "Instance", Value: m.GetInstanceName(), Short: true},
 			{Title: "TimeStamp", Value: m.TimeStamp.Format(time.RFC3339), Short: true},
 		},
 	}

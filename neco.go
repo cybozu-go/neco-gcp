@@ -5,7 +5,15 @@ import (
 	"fmt"
 )
 
+// This file contains settings or constants which specific to the Neco project.
+
 const (
+	necoBranch     = "release"
+	necoAppsBranch = "release"
+
+	machineType = "n1-standard-32"
+	zone        = "asia-northeast1-c"
+
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
 	autoDCTestServiceAccountName = "auto-dctest-vminstance"
 	slackNotifierConfigName      = "slack-notifier-config"
@@ -39,19 +47,19 @@ func NewNecoStartupScriptBuilder() *NecoStartupScriptBuilder {
 	return &NecoStartupScriptBuilder{}
 }
 
-// WithFluentd enables fluentd
+// WithFluentd enables fluentd logging
 func (b *NecoStartupScriptBuilder) WithFluentd() *NecoStartupScriptBuilder {
 	b.withFluentd = true
 	return b
 }
 
-// WithNeco sets which branch to run neco
+// WithNeco sets branch name to run neco
 func (b *NecoStartupScriptBuilder) WithNeco(branch string) *NecoStartupScriptBuilder {
 	b.necoBranch = branch
 	return b
 }
 
-// WithNecoApps sets which branch to run neco-apps
+// WithNecoApps sets branch name to run neco-apps
 func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScriptBuilder, error) {
 	if len(b.necoBranch) == 0 {
 		return nil, errors.New("please specify neco branch to run neco-apps")

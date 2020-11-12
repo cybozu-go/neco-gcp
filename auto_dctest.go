@@ -17,12 +17,6 @@ const (
 	deleteInstancesMode = "delete"
 	createInstancesMode = "create"
 
-	necoBranch     = "release"
-	necoAppsBranch = "release"
-
-	machineType = "n1-standard-32"
-	zone        = "asia-northeast1-c"
-
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
 	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
 

@@ -13,7 +13,7 @@ const (
 	zone      = "asia-northeast1-c"
 )
 
-func TestComputeEngineLogValidation(t *testing.T) {
+func TestComputeLogShouldFail(t *testing.T) {
 	for _, n := range []string{
 		"./log/invalid_event.json",
 		"./log/invalid_resource_type.json",
@@ -24,14 +24,14 @@ func TestComputeEngineLogValidation(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		m, err := NewComputeEngineLog(json)
+		m, err := NewComputeLogFromJSON(json)
 		if err == nil {
 			t.Errorf("filename: %s log: %#v", n, m)
 		}
 	}
 }
 
-func TestComputeEngineLog(t *testing.T) {
+func TestComputeLogShouldSucceed(t *testing.T) {
 	testCases := []struct {
 		inputFileName string
 		color         string
@@ -113,22 +113,22 @@ func TestComputeEngineLog(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		m, err := NewComputeEngineLog(json)
+		m, err := NewComputeLogFromJSON(json)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		name := m.GetName()
+		name := m.GetInstanceName()
 		if name != tt.name {
 			t.Errorf("expect: %s, actual: %s", tt.name, name)
 		}
 
-		text := m.GetText()
+		text := m.GetPayloadMessage()
 		if text != tt.text {
 			t.Errorf("expect: %s, actual: %s", tt.text, text)
 		}
 
-		g := m.GetSlackMessage(tt.color)
+		g := m.MakeWebhookMessage(tt.color)
 		if diff := cmp.Diff(g, tt.msg); diff != "" {
 			t.Errorf("diff: %s", diff)
 		}
