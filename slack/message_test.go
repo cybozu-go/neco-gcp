@@ -15,9 +15,9 @@ const (
 
 func TestComputeLogShouldFail(t *testing.T) {
 	for _, n := range []string{
-		"./log/invalid_event.json",
-		"./log/invalid_resource_type.json",
-		"./log/invalid_subevent.json",
+		"./log/invalid/from_cloud_function.json",
+		"./log/invalid/non_target_event_type.json",
+		"./log/invalid/non_target_event_subtype.json",
 	} {
 		json, err := ioutil.ReadFile(n)
 		if err != nil {
@@ -40,7 +40,7 @@ func TestComputeLogShouldSucceed(t *testing.T) {
 		msg           *slack.WebhookMessage
 	}{
 		{
-			"./log/startup.json",
+			"./log/valid/startup_script.json",
 			"red",
 			"sample-0",
 			"startup",
@@ -62,7 +62,7 @@ func TestComputeLogShouldSucceed(t *testing.T) {
 			},
 		},
 		{
-			"./log/delete.json",
+			"./log/valid/delete.json",
 			"green",
 			"sample-1",
 			"Instance Deleted",
@@ -84,7 +84,7 @@ func TestComputeLogShouldSucceed(t *testing.T) {
 			},
 		},
 		{
-			"./log/insert.json",
+			"./log/valid/insert.json",
 			"green",
 			"sample-2",
 			"Instance Inserted",
