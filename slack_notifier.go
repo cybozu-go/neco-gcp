@@ -18,7 +18,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"data": string(m.Data),
 	})
 
-	b, err := necogcpslack.NewComputeLogFromJSON(m.Data)
+	b, err := necogcpslack.NewComputeLog(m.Data)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
 			"data":      string(m.Data),
@@ -41,7 +41,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	result, err := client.AccessSecretVersion(
 		ctx,
 		&secretmanagerpb.AccessSecretVersionRequest{
-			Name: MakeSlackNotifierConfigURL(b.Resource.Labels.ProjectID),
+			Name: MakeSlackNotifierConfigURL(b.GetProjectID()),
 		},
 	)
 	if err != nil {
@@ -90,7 +90,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return nil
 	}
 
-	logMsg := b.GetPayloadMessage()
+	logMsg := b.GetMessage()
 	color, err := c.FindColorByMessage(logMsg)
 	if err != nil {
 		log.Error("failed to get color from message", map[string]interface{}{
@@ -103,7 +103,14 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	whMsg := b.MakeWebhookMessage(color)
+	whMsg := necogcpslack.NewSlackWebhookMessageForCompute(
+		b.GetProjectID(),
+		b.GetZone(),
+		b.GetTimeStamp(),
+		b.GetInstanceName(),
+		b.GetMessage(),
+		color,
+	)
 	log.Debug("msg", map[string]interface{}{
 		"msg": whMsg,
 	})

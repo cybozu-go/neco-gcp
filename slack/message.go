@@ -2,38 +2,42 @@ package slack
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/slack-go/slack"
 )
 
 const (
-	computeResourceType    = "gce_instance"
-	computeInsertEventName = "compute.instances.insert"
-	computeDeleteEventName = "compute.instances.delete"
+	computeServiceType = "gce_instance"
+
+	computeInsertMethodName = "v1.compute.instances.insert"
+	computeDeleteMethodName = "v1.compute.instances.delete"
+	startupScriptMethodName = "startup-script"
+
+	computeInsertMessage = "Instance Inserted"
+	computeDeleteMessage = "Instance Deleted"
+
+	computeAPILogName    = "cloudaudit.googleapis.com%2Factivity"
+	startupScriptLogName = "systemd"
 )
 
-// ComputeLog is a JSON-style message of Compute Engine on Cloud Logging
-type ComputeLog struct {
-	TextPayload string      `json:"textPayload"`
-	JSONPayload JSONPayload `json:"jsonPayload"`
-	Resource    Resource    `json:"resource"`
-	TimeStamp   time.Time   `json:"timestamp"`
+// ComputeLog is a JSON-style log from Compute Engine
+type ComputeLog interface {
+	GetInstanceName() string
+	GetMethodName() string
+	GetMessage() string
+	GetProjectID() string
+	GetZone() string
+	GetTimeStamp() string
 }
 
-// JSONPayload is a nested field of MessageBody
-type JSONPayload struct {
-	Host            string              `json:"_HOSTNAME"`
-	Message         string              `json:"MESSAGE"`
-	EventType       string              `json:"event_type"`
-	EventSubType    string              `json:"event_subtype"`
-	PayloadResource JSONPayloadResource `json:"resource"`
-}
-
-// JSONPayloadResource is a nested field of JSONPayload
-type JSONPayloadResource struct {
-	Name string `json:"name"`
+type computeLogCommon struct {
+	Resource  Resource  `json:"resource"`
+	TimeStamp time.Time `json:"timestamp"`
+	LogName   string
 }
 
 // Resource is a nested field of MessageBody
@@ -44,81 +48,187 @@ type Resource struct {
 
 // Labels is a nested field of Resource
 type Labels struct {
-	InstanceID string `json:"instance_id"`
-	ProjectID  string `json:"project_id"`
-	Zone       string `json:"zone"`
-	Region     string `json:"region"`
+	ProjectID string `json:"project_id"`
+	Zone      string `json:"zone"`
 }
 
-// NewComputeLogFromJSON parses JSON log from Compute Engine API or startup-script, and creates ComputeEngineLog
-func NewComputeLogFromJSON(jsonPayload []byte) (*ComputeLog, error) {
-	var m ComputeLog
+func newComputeLogCommon(jsonPayload []byte) (*computeLogCommon, error) {
+	var m computeLogCommon
+	err := json.Unmarshal(jsonPayload, &m)
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (l computeLogCommon) getType() string {
+	return l.Resource.Type
+}
+
+// GetProjectID returns GCP project ID
+func (l computeLogCommon) GetProjectID() string {
+	return l.Resource.Labels.ProjectID
+}
+
+// GetZone returns GCP zone the instance locates in
+func (l computeLogCommon) GetZone() string {
+	return l.Resource.Labels.Zone
+}
+
+// GetTimeStamp returns timestamp of log
+func (l computeLogCommon) GetTimeStamp() string {
+	return l.TimeStamp.Format(time.RFC3339)
+}
+
+// GetLogName returns name of log
+func (l computeLogCommon) GetLogName() string {
+	return path.Base(l.LogName)
+}
+
+// ComputeAPILog is a JSON-style log from Compute Engine API
+type ComputeAPILog struct {
+	ProtoPayload ProtoPayload `json:"protoPayload"`
+	Operation    Operation    `json:"operation"`
+	computeLogCommon
+}
+
+// ProtoPayload is a nested field of ProtoPayload
+type ProtoPayload struct {
+	MethodName   string `json:"methodName"`
+	ResourceName string `json:"resourceName"`
+}
+
+// Operation is a nested field of Operation
+type Operation struct {
+	Last bool `json:"last"`
+}
+
+// NewComputeAPILog parses JSON log from Compute Engine API and creates ComputeAPILog
+func NewComputeAPILog(jsonPayload []byte) (*ComputeAPILog, error) {
+	var m ComputeAPILog
 	err := json.Unmarshal(jsonPayload, &m)
 	if err != nil {
 		return nil, err
 	}
 
-	// NOTE: This JSON-styled log is parsed and may invoke slack notification.
-	// If the message includes an invalid JSON value, the cloud function might fall into an infinite loop,
-	// like Cloud Functions -> Cloud Logging Sink -> Cloud Functions -> ... .
-	// We block the infinite loop as possible by checking resource type.
-	if m.Resource.Type != computeResourceType {
-		return nil, fmt.Errorf("invalid resource type: %s", m.Resource.Type)
+	// If operation is not last, do not catch this log to avoid sending too many alerts
+	if !m.Operation.Last {
+		return nil, errors.New("operation should be last")
 	}
 
-	// This means the log is from startup-script.
-	if len(m.JSONPayload.Message) > 0 {
-		return &m, nil
+	// If method is neither insert nor delete, do not catch this log to avoid sending too many alerts
+	if m.ProtoPayload.MethodName != computeInsertMethodName && m.ProtoPayload.MethodName != computeDeleteMethodName {
+		return nil, errors.New("method should be insert or delete")
 	}
 
-	// This means the log is from Compute Engine API but operation has not completed yet.
-	if m.JSONPayload.EventType != "GCE_OPERATION_DONE" {
-		return nil, fmt.Errorf("invalid event type: %s", m.JSONPayload.EventType)
-	}
+	return &m, nil
+}
 
-	// This means the log is from Compute Engine API but the event subtype is neither `create` nor `delete`.
-	if m.JSONPayload.EventSubType != computeInsertEventName && m.JSONPayload.EventSubType != computeDeleteEventName {
-		return nil, fmt.Errorf("invalid event subtype: %s", m.JSONPayload.EventType)
+// GetInstanceName returns Compute Engine instance name
+func (l ComputeAPILog) GetInstanceName() string {
+	return path.Base(l.ProtoPayload.ResourceName)
+}
+
+// GetMethodName returns Compute Engine method name
+func (l ComputeAPILog) GetMethodName() string {
+	return l.ProtoPayload.MethodName
+}
+
+// GetMessage returns Compute Engine log message
+func (l ComputeAPILog) GetMessage() string {
+	switch l.ProtoPayload.MethodName {
+	case computeInsertMethodName:
+		return computeInsertMessage
+	case computeDeleteMethodName:
+		return computeDeleteMessage
+	default:
+		return ""
+	}
+}
+
+// ComputeStartupScriptLog is a JSON-style message of Compute Engine startup script on Cloud Logging
+type ComputeStartupScriptLog struct {
+	JSONPayload JSONPayload `json:"jsonPayload"`
+	computeLogCommon
+}
+
+// JSONPayload is a nested field of MessageBody
+type JSONPayload struct {
+	HostName string `json:"_HOSTNAME"`
+	Message  string `json:"MESSAGE"`
+}
+
+// NewComputeStartupScriptLog parses JSON log from Compute Engine startup script and creates ComputeStartupScriptLog
+func NewComputeStartupScriptLog(jsonPayload []byte) (*ComputeStartupScriptLog, error) {
+	var m ComputeStartupScriptLog
+	err := json.Unmarshal(jsonPayload, &m)
+	if err != nil {
+		return nil, err
 	}
 	return &m, nil
 }
 
-// GetInstanceName returns instance name
-func (m ComputeLog) GetInstanceName() string {
-	switch m.JSONPayload.EventSubType {
-	case computeInsertEventName:
-		return m.JSONPayload.PayloadResource.Name
-	case computeDeleteEventName:
-		return m.JSONPayload.PayloadResource.Name
+// GetInstanceName returns Compute Engine instance name
+func (l ComputeStartupScriptLog) GetInstanceName() string {
+	return l.JSONPayload.HostName
+}
+
+// GetMethodName returns Compute Engine method name
+func (l ComputeStartupScriptLog) GetMethodName() string {
+	return startupScriptMethodName
+}
+
+// GetMessage returns Compute Engine log message
+func (l ComputeStartupScriptLog) GetMessage() string {
+	return l.JSONPayload.Message
+}
+
+// NewComputeLog parses JSON log from any Compute Engine and creates slack webhook message
+func NewComputeLog(jsonPayload []byte) (ComputeLog, error) {
+	c, err := newComputeLogCommon(jsonPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	// NOTE:
+	// This function invocation MUST NOT BE DELETED because the logs from cloud function can cause
+	// an infinite loop as below.
+	// Cloud Functions -> Cloud Logging Sink -> Cloud Functions -> ...
+	t := c.getType()
+	if t != computeServiceType {
+		return nil, fmt.Errorf("this log is not from compute engine: %s", t)
+	}
+
+	n := c.GetLogName()
+	switch n {
+	case computeAPILogName:
+		return NewComputeAPILog(jsonPayload)
+	case startupScriptLogName:
+		return NewComputeStartupScriptLog(jsonPayload)
 	default:
-		return m.JSONPayload.Host
+		return nil, fmt.Errorf("invalid log name: %s", n)
 	}
 }
 
-// GetPayloadMessage returns payload message to notify
-func (m ComputeLog) GetPayloadMessage() string {
-	switch m.JSONPayload.EventSubType {
-	case computeInsertEventName:
-		return "Instance Inserted"
-	case computeDeleteEventName:
-		return "Instance Deleted"
-	default:
-		return m.JSONPayload.Message
-	}
-}
-
-// MakeWebhookMessage gets message for Slack WebHook
-func (m ComputeLog) MakeWebhookMessage(color string) *slack.WebhookMessage {
+// NewSlackWebhookMessageForCompute gets message for Slack WebHook
+func NewSlackWebhookMessageForCompute(
+	projectID string,
+	zone string,
+	timestamp string,
+	instanceName string,
+	message string,
+	color string,
+) *slack.WebhookMessage {
 	attachment := slack.Attachment{
 		Color:      color,
 		AuthorName: "GCP Slack Notifier",
 		Title:      "Compute Engine",
-		Text:       m.GetPayloadMessage(),
+		Text:       message,
 		Fields: []slack.AttachmentField{
-			{Title: "Project", Value: m.Resource.Labels.ProjectID, Short: true},
-			{Title: "Zone", Value: m.Resource.Labels.Zone, Short: true},
-			{Title: "Instance", Value: m.GetInstanceName(), Short: true},
-			{Title: "TimeStamp", Value: m.TimeStamp.Format(time.RFC3339), Short: true},
+			{Title: "Project", Value: projectID, Short: true},
+			{Title: "Zone", Value: zone, Short: true},
+			{Title: "Instance", Value: instanceName, Short: true},
+			{Title: "TimeStamp", Value: timestamp, Short: true},
 		},
 	}
 
