@@ -39,7 +39,7 @@
         "granted": true,
         "resourceAttributes": {
           "service": "compute",
-          "name": "projects/neco-dev/zones/asia-northeast1-c/disks/sample-0-1",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/disks/sample-0",
           "type": "compute.disks"
         }
       },
