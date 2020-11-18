@@ -17,12 +17,6 @@ const (
 	deleteInstancesMode = "delete"
 	createInstancesMode = "create"
 
-	necoBranch     = "release"
-	necoAppsBranch = "release"
-
-	machineType = "n1-standard-32"
-	zone        = "asia-northeast1-c"
-
 	skipAutoDeleteLabelKey      = "skip-auto-delete"
 	excludeSkipAutoDeleteFilter = "-labels." + skipAutoDeleteLabelKey + ":*"
 
@@ -117,7 +111,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			builder.Build(),
 		)
 		if err != nil {
-			log.Error("[auto-dctest] failed to create instance(s)", map[string]interface{}{
+			log.Error("failed to create instance(s)", map[string]interface{}{
 				"prefix":         b.InstanceNamePrefix,
 				"num":            b.InstancesNum,
 				"serviceaccount": sa,
@@ -127,7 +121,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 			})
 			return err
 		}
-		log.Info("[auto-dctest] created instance(s) successfully", map[string]interface{}{
+		log.Info("created instance(s) successfully", map[string]interface{}{
 			"prefix":         b.InstanceNamePrefix,
 			"num":            b.InstancesNum,
 			"serviceaccount": sa,
@@ -146,13 +140,13 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		}
 		err := runner.DeleteFilteredInstances(ctx, filter)
 		if err != nil {
-			log.Error("[auto-dctest] failed to delete instance(s)", map[string]interface{}{
+			log.Error("failed to delete instance(s)", map[string]interface{}{
 				"force":     b.DoForceDelete,
 				log.FnError: err,
 			})
 			return err
 		}
-		log.Info("[auto-dctest] deleted all instance(s) successfully", map[string]interface{}{
+		log.Info("deleted all instance(s) successfully", map[string]interface{}{
 			"force": b.DoForceDelete,
 		})
 		return nil

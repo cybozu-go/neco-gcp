@@ -1,0 +1,167 @@
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "sample@cybozu.co.jp"
+    },
+    "requestMetadata": {
+      "callerIp": "103.79.12.129",
+      "callerSuppliedUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+      "requestAttributes": {
+        "time": "2020-11-17T03:04:19.445262Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "compute.googleapis.com",
+    "methodName": "v1.compute.instances.insert",
+    "authorizationInfo": [
+      {
+        "permission": "compute.instances.create",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+          "type": "compute.instances"
+        }
+      },
+      {
+        "permission": "compute.disks.create",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/disks/sample-0",
+          "type": "compute.disks"
+        }
+      },
+      {
+        "permission": "compute.disks.create",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/disks/sample-0",
+          "type": "compute.disks"
+        }
+      },
+      {
+        "permission": "compute.subnetworks.use",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/regions/asia-northeast1/subnetworks/default",
+          "type": "compute.subnetworks"
+        }
+      },
+      {
+        "permission": "compute.subnetworks.useExternalIp",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/regions/asia-northeast1/subnetworks/default",
+          "type": "compute.subnetworks"
+        }
+      },
+      {
+        "permission": "compute.instances.setMetadata",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+          "type": "compute.instances"
+        }
+      },
+      {
+        "permission": "compute.instances.setServiceAccount",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+          "type": "compute.instances"
+        }
+      }
+    ],
+    "resourceName": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+    "request": {
+      "machineType": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/machineTypes/n1-standard-32",
+      "serviceAccounts": [
+        {
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-platform"
+          ],
+          "email": "auto-dctest-vminstance@neco-dev.iam.gserviceaccount.com"
+        }
+      ],
+      "networkInterfaces": [
+        {
+          "accessConfigs": [
+            {
+              "type": "ONE_TO_ONE_NAT",
+              "name": "External NAT"
+            }
+          ],
+          "network": "https://www.googleapis.com/compute/v1/projects/neco-dev/global/networks/default"
+        }
+      ],
+      "disks": [
+        {
+          "initializeParams": {
+            "sourceImage": "https://www.googleapis.com/compute/v1/projects/neco-dev/global/images/vmx-enabled",
+            "diskName": "sample-0"
+          },
+          "type": "PERSISTENT",
+          "boot": true,
+          "autoDelete": true
+        },
+        {
+          "autoDelete": true,
+          "interface": "NVME",
+          "initializeParams": {
+            "diskType": "zones/asia-northeast1-c/diskTypes/local-ssd"
+          },
+          "type": "SCRATCH"
+        }
+      ],
+      "@type": "type.googleapis.com/compute.instances.insert",
+      "name": "sample-0"
+    },
+    "response": {
+      "zone": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c",
+      "status": "RUNNING",
+      "user": "sample@cybozu.co.jp",
+      "insertTime": "2020-11-16T19:04:19.290-08:00",
+      "id": "4613795090054153052",
+      "operationType": "insert",
+      "targetId": "835530871071998813",
+      "@type": "type.googleapis.com/operation",
+      "startTime": "2020-11-16T19:04:19.293-08:00",
+      "selfLinkWithId": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/operations/4613795090054153052",
+      "name": "operation-1605582257968-5b444c024d6c4-7abaaee3-7138745b",
+      "targetLink": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/operations/operation-1605582257968-5b444c024d6c4-7abaaee3-7138745b",
+      "progress": "0"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "asia-northeast1-c"
+      ]
+    }
+  },
+  "insertId": "ibqzvodvtfw",
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "project_id": "neco-dev",
+      "instance_id": "835530871071998813",
+      "zone": "asia-northeast1-c"
+    }
+  },
+  "timestamp": "2020-11-17T03:04:18.136882Z",
+  "severity": "NOTICE",
+  "logName": "projects/neco-dev/logs/cloudaudit.googleapis.com%2Factivity",
+  "operation": {
+    "id": "operation-1605582257968-5b444c024d6c4-7abaaee3-7138745b",
+    "producer": "compute.googleapis.com",
+    "first": true
+  },
+  "receiveTimestamp": "2020-11-17T03:04:20.233541529Z"
+}

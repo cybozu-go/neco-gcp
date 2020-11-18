@@ -18,7 +18,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"data": string(m.Data),
 	})
 
-	b, err := necogcpslack.NewComputeEngineLog(m.Data)
+	b, err := necogcpslack.NewComputeLog(m.Data)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
 			"data":      string(m.Data),
@@ -38,11 +38,12 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/" + b.Resource.Labels.ProjectID + "/secrets/" + slackNotifierConfigName + "/versions/latest",
-	}
-
-	result, err := client.AccessSecretVersion(ctx, accessRequest)
+	result, err := client.AccessSecretVersion(
+		ctx,
+		&secretmanagerpb.AccessSecretVersionRequest{
+			Name: MakeSlackNotifierConfigURL(b.GetProjectID()),
+		},
+	)
 	if err != nil {
 		log.Error("failed to access secret version", map[string]interface{}{
 			log.FnError: err,
@@ -61,8 +62,8 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	name := b.GetName()
-	teams, err := c.GetTeamSet(name)
+	name := b.GetInstanceName()
+	teams, err := c.FindTeamsByInstanceName(name)
 	if err != nil {
 		log.Error("failed to get teams", map[string]interface{}{
 			"instancename": name,
@@ -74,7 +75,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"teams": teams,
 	})
 
-	urls, err := c.ConvertTeamsToURLs(teams)
+	urls, err := c.GetWebHookURLsFromTeams(teams)
 	if err != nil {
 		log.Error("failed to convert teams to URLs", map[string]interface{}{
 			"teams":     teams,
@@ -89,11 +90,11 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		return nil
 	}
 
-	text := b.GetText()
-	color, err := c.GetColorFromMessage(text)
+	logMsg := b.GetMessage()
+	color, err := c.FindColorByMessage(logMsg)
 	if err != nil {
 		log.Error("failed to get color from message", map[string]interface{}{
-			"text":      text,
+			"text":      logMsg,
 			log.FnError: err,
 		})
 		return err
@@ -102,16 +103,23 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	msg := b.GetSlackMessage(color)
+	whMsg := necogcpslack.NewSlackWebhookMessageForCompute(
+		b.GetProjectID(),
+		b.GetZone(),
+		b.GetTimeStamp(),
+		b.GetInstanceName(),
+		b.GetMessage(),
+		color,
+	)
 	log.Debug("msg", map[string]interface{}{
-		"msg": msg,
+		"msg": whMsg,
 	})
 
 	for url := range urls {
-		err = slack.PostWebhookContext(ctx, url, msg)
+		err = slack.PostWebhookContext(ctx, url, whMsg)
 		if err != nil {
 			log.Error("failed to post slack message", map[string]interface{}{
-				"message":   msg,
+				"message":   whMsg,
 				log.FnError: err,
 			})
 			return err

@@ -21,15 +21,15 @@ severity:
     regex: ^ERROR
 rules:
   - name: sample1
-    regex: sample1-+[0-9]
+    regex: sample1-[0-9]+
     targetTeams:
       - team1
   - name: sample2
-    regex: sample2-+[0-9]
+    regex: sample2-[0-9]+
     targetTeams:
       - team2
   - name: sample23
-    regex: sample23-+[0-9]
+    regex: sample23-[0-9]+
     targetTeams:
       - team2
       - team3
@@ -51,9 +51,9 @@ rules:
 			{"danger", "^ERROR"},
 		},
 		Rules: []Rule{
-			{"sample1", "sample1-+[0-9]", []string{"team1"}},
-			{"sample2", "sample2-+[0-9]", []string{"team2"}},
-			{"sample23", "sample23-+[0-9]", []string{"team2", "team3"}},
+			{"sample1", "sample1-[0-9]+", []string{"team1"}},
+			{"sample2", "sample2-[0-9]+", []string{"team2"}},
+			{"sample23", "sample23-[0-9]+", []string{"team2", "team3"}},
 		},
 	}
 	if !cmp.Equal(*n, expect) {
@@ -99,15 +99,15 @@ rules:
 	}
 
 	for _, tt := range testCases {
-		teams, err := n.GetTeamSet(tt.input.target)
+		teams, err := n.FindTeamsByInstanceName(tt.input.target)
 		if err != nil {
 			t.Errorf("test case: %#v, err: %#v", tt, err)
 		}
-		targetURLs, err := n.ConvertTeamsToURLs(teams)
+		targetURLs, err := n.GetWebHookURLsFromTeams(teams)
 		if err != nil {
 			t.Errorf("test case: %#v, err: %#v", tt, err)
 		}
-		color, err := n.GetColorFromMessage(tt.input.message)
+		color, err := n.FindColorByMessage(tt.input.message)
 		if err != nil {
 			t.Errorf("test case: %#v, err: %#v", tt, err)
 		}

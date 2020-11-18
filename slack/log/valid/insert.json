@@ -1,0 +1,36 @@
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "sample@cybozu.co.jp"
+    },
+    "requestMetadata": {
+      "callerIp": "160.86.196.148",
+      "callerSuppliedUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+    },
+    "serviceName": "compute.googleapis.com",
+    "methodName": "v1.compute.instances.insert",
+    "resourceName": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-2",
+    "request": {
+      "@type": "type.googleapis.com/compute.instances.insert"
+    }
+  },
+  "insertId": "1y6x68c99o",
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "zone": "asia-northeast1-c",
+      "project_id": "neco-dev2",
+      "instance_id": "943723678531818248"
+    }
+  },
+  "timestamp": "2020-11-13T06:56:27.128942Z",
+  "severity": "NOTICE",
+  "logName": "projects/neco-dev/logs/cloudaudit.googleapis.com%2Factivity",
+  "operation": {
+    "id": "operation-1605250534911-5b3f783e8ac7b-b817cc98-ea99b2e1",
+    "producer": "compute.googleapis.com",
+    "last": true
+  },
+  "receiveTimestamp": "2020-11-13T06:56:28.210760734Z"
+}

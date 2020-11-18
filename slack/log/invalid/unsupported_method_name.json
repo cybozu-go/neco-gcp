@@ -1,0 +1,36 @@
+{
+    "protoPayload": {
+        "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+        "authenticationInfo": {
+            "principalEmail": "sample@cybozu.co.jp"
+        },
+        "requestMetadata": {
+            "callerIp": "160.86.196.148",
+            "callerSuppliedUserAgent": "google-cloud-sdk google-cloud-sdk gcloud/305.0.0 command/gcloud.compute.instances.add-labels invocation-id/f15c48f75df843b982e007c08b26ab62 environment/None environment-version/None interactive/True from-script/False python/2.7.16 term/screen-256color (Linux 4.15.0-54-generic),gzip(gfe)"
+        },
+        "serviceName": "compute.googleapis.com",
+        "methodName": "v1.compute.instances.setLabels",
+        "resourceName": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
+        "request": {
+            "@type": "type.googleapis.com/compute.instances.setLabels"
+        }
+    },
+    "insertId": "xl9a1nd2t5k",
+    "resource": {
+        "type": "gce_instance",
+        "labels": {
+            "project_id": "neco-dev",
+            "zone": "asia-northeast1-c",
+            "instance_id": "5255484940906057211"
+        }
+    },
+    "timestamp": "2020-11-17T06:53:25.695981Z",
+    "severity": "NOTICE",
+    "logName": "projects/neco-dev/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+        "id": "operation-1605596003005-5b447f369734a-e3e5c314-0b836418",
+        "producer": "compute.googleapis.com",
+        "last": true
+    },
+    "receiveTimestamp": "2020-11-17T06:53:26.694257786Z"
+}

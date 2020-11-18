@@ -1,0 +1,19 @@
+{
+    "textPayload": "2020-11-16T11:00:04.769752Z localhost main info: \"[auto-dctest] deleted all instance(s) successfully\" force=false",
+    "insertId": "000001-28636867-d10f-433e-bc6d-eaf8cd65abea",
+    "resource": {
+        "type": "cloud_function",
+        "labels": {
+            "project_id": "neco-dev",
+            "function_name": "auto-dctest",
+            "region": "asia-northeast1"
+        }
+    },
+    "timestamp": "2020-11-16T11:00:04.769Z",
+    "labels": {
+        "execution_id": "7rdbja6oe3fi"
+    },
+    "logName": "projects/neco-dev/logs/cloudfunctions.googleapis.com%2Fcloud-functions",
+    "trace": "projects/neco-dev/traces/e7da4f9e78c3179c4bfa6e31d0402b52",
+    "receiveTimestamp": "2020-11-16T11:00:14.288206749Z"
+}
