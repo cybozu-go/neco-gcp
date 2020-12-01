@@ -25,6 +25,10 @@ const (
 	localSSDMountPoint = "/var/scratch"
 )
 
+type temporaryer interface {
+	Temporary() bool
+}
+
 // SetupHostVM setup vmx-enabled instance
 func SetupHostVM(ctx context.Context) error {
 	err := enableXForwarding()
@@ -125,8 +129,14 @@ func mountHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	err = syscall.Mount(homeDisk, homeMountPoint, homeFSType, syscall.MS_RELATIME, "")
-	if err != nil {
+	for {
+		err := syscall.Mount(homeDisk, homeMountPoint, homeFSType, syscall.MS_RELATIME, "")
+		if err == nil {
+			break
+		}
+		if e, ok := err.(temporaryer); ok && e.Temporary() {
+			continue
+		}
 		return err
 	}
 
@@ -143,8 +153,14 @@ func formatHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	err = syscall.Mount(homeDisk, "/mnt", homeFSType, syscall.MS_RELATIME, "")
-	if err != nil {
+	for {
+		err = syscall.Mount(homeDisk, "/mnt", homeFSType, syscall.MS_RELATIME, "")
+		if err == nil {
+			break
+		}
+		if e, ok := err.(temporaryer); ok && e.Temporary() {
+			continue
+		}
 		return err
 	}
 
@@ -153,7 +169,17 @@ func formatHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	return syscall.Unmount("/mnt", syscall.MNT_FORCE)
+	for {
+		err := syscall.Unmount("/mnt", syscall.MNT_FORCE)
+		if err == nil {
+			break
+		}
+		if e, ok := err.(temporaryer); ok && e.Temporary() {
+			continue
+		}
+		return err
+	}
+	return nil
 }
 
 func setupLocalSSD(ctx context.Context) error {
@@ -167,8 +193,14 @@ func setupLocalSSD(ctx context.Context) error {
 		return err
 	}
 
-	err = syscall.Mount(localSSDDisk, localSSDMountPoint, localSSDFSType, syscall.MS_RELATIME, "")
-	if err != nil {
+	for {
+		err := syscall.Mount(localSSDDisk, localSSDMountPoint, localSSDFSType, syscall.MS_RELATIME, "")
+		if err == nil {
+			break
+		}
+		if e, ok := err.(temporaryer); ok && e.Temporary() {
+			continue
+		}
 		return err
 	}
 
