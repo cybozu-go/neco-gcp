@@ -5,11 +5,6 @@ import (
 	"testing"
 )
 
-const (
-	projectID = "neco-dev"
-	zone      = "asia-northeast1-c"
-)
-
 func TestComputeLogInvalid(t *testing.T) {
 	for _, n := range []string{
 		"./log/invalid/from_cloud_function.json",
