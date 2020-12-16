@@ -36,7 +36,6 @@ func MakeSlackNotifierConfigURL(projectID string) string {
 
 // NecoStartupScriptBuilder creates startup-script builder to run dctest
 type NecoStartupScriptBuilder struct {
-	deleteIfFail   bool
 	withFluentd    bool
 	necoBranch     string
 	necoAppsBranch string
@@ -76,7 +75,7 @@ echo "starting auto dctest..."
 
 delete_myself()
 {
-echo "ERROR Auto dctest was failed. Deleting the instance..."
+echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
 /snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
 }
 `
