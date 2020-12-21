@@ -45,10 +45,12 @@ func (a artifactSet) ctURL() string {
 func (a artifactSet) assetURLs() []string {
 	return []string{
 		fmt.Sprintf("https://github.com/coreos/etcd/releases/download/v%s/etcd-v%s-linux-amd64.tar.gz", a.etcdVersion, a.etcdVersion),
-		"https://cloud-images.ubuntu.com/releases/18.04/release/ubuntu-18.04-server-cloudimg-amd64.img",
 		"https://stable.release.flatcar-linux.net/amd64-usr/current/flatcar_production_qemu_image.img.bz2",
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe.vmlinuz", a.coreOSVersion),
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe_image.cpio.gz", a.coreOSVersion),
+		"https://cloud-images.ubuntu.com/releases/20.04/release/ubuntu-20.04-server-cloudimg-amd64.img",
+		// TODO: remove below two lines after migration to Ubuntu 20.04 completed
+		"https://cloud-images.ubuntu.com/releases/18.04/release/ubuntu-18.04-server-cloudimg-amd64.img",
 		fmt.Sprintf("https://github.com/cybozu/neco-ubuntu/releases/download/%s/cybozu-ubuntu-18.04-server-cloudimg-amd64.img", a.customUbuntuVersion),
 	}
 }
