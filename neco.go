@@ -73,10 +73,10 @@ func (b *NecoStartupScriptBuilder) Build() string {
 
 echo "starting auto dctest..."
 
-delete_myself()
+finalize()
 {
-echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
+echo "[auto-dctest] Auto dctest was failed."
+exit 1
 }
 `
 
@@ -105,7 +105,7 @@ service google-fluentd start &&
 service google-fluentd restart
 }
 
-if ! with_fluentd ; then delete_myself; fi
+if ! with_fluentd ; then finalize; fi
 `
 	}
 
@@ -121,7 +121,7 @@ mount -t ext4 /dev/nvme0n1 /var/scratch &&
 chmod 1777 /var/scratch
 }
 
-if ! prepare ; then delete_myself; fi
+if ! prepare ; then finalize; fi
 `
 
 	if len(b.necoBranch) > 0 {
@@ -145,7 +145,7 @@ git checkout %s &&
 make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 }
 
-if ! run_neco ; then delete_myself; fi
+if ! run_neco ; then finalize; fi
 echo "[auto-dctest] Neco bootstrap was succeeded!"
 `, b.necoBranch)
 	}
@@ -163,7 +163,7 @@ gcloud secrets versions access latest --secret="%s" > account.json &&
 make setup dctest BOOTSTRAP=1 OVERLAY=neco-dev
 }
 
-if ! run_necoapps ; then delete_myself; fi
+if ! run_necoapps ; then finalize; fi
 echo "[auto-dctest] Neco Apps bootstrap was succeeded!"
 `, b.necoAppsBranch, necoAppsAccountSecretName)
 	}
