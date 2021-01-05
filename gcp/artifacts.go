@@ -8,7 +8,7 @@ var artifacts = artifactSet{
 	customUbuntuVersion: "20190829",
 	coreOSVersion:       "2605.5.0",
 	ctVersion:           "0.6.1",
-	baseImage:           "ubuntu-1804-bionic-v20201201",
+	baseImage:           "ubuntu-1804-bionic-v20201211a",
 	baseImageProject:    "ubuntu-os-cloud",
 	debPackages: []string{
 		"git",
