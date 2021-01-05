@@ -6,7 +6,6 @@ cmd/
 docs/
 slack/log/
 statik/
-vendor/
 
 .gitignore
 *_test.go

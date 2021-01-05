@@ -6,16 +6,15 @@ import (
 
 // artifactSet represents a set of artifacts for GCP instance.
 type artifactSet struct {
-	goVersion           string
-	rktVersion          string
-	etcdVersion         string
-	placematVersion     string
-	customUbuntuVersion string
-	coreOSVersion       string
-	ctVersion           string
-	baseImage           string
-	baseImageProject    string
-	debPackages         []string
+	goVersion        string
+	rktVersion       string
+	etcdVersion      string
+	placematVersion  string
+	coreOSVersion    string
+	ctVersion        string
+	baseImage        string
+	baseImageProject string
+	debPackages      []string
 }
 
 func (a artifactSet) seaBIOSURLs() []string {
@@ -49,9 +48,6 @@ func (a artifactSet) assetURLs() []string {
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe.vmlinuz", a.coreOSVersion),
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe_image.cpio.gz", a.coreOSVersion),
 		"https://cloud-images.ubuntu.com/releases/20.04/release/ubuntu-20.04-server-cloudimg-amd64.img",
-		// TODO: remove below two lines after migration to Ubuntu 20.04 completed
-		"https://cloud-images.ubuntu.com/releases/18.04/release/ubuntu-18.04-server-cloudimg-amd64.img",
-		fmt.Sprintf("https://github.com/cybozu/neco-ubuntu/releases/download/%s/cybozu-ubuntu-18.04-server-cloudimg-amd64.img", a.customUbuntuVersion),
 	}
 }
 
