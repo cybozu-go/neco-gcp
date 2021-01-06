@@ -15,7 +15,7 @@ Failure response body is a JSON object with these fields:
 <a name="shutdown" />`POST /shutdown`
 -------------------------------------
 
-Shutdown all instances and delete target instances in `neco-gcp.yml`.
+Shutdown all instances and delete target instances in `necogcp.yml`.
 
 ### Verification
 

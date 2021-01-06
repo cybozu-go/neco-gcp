@@ -13,7 +13,7 @@ Overview
 
 Developer's development environment is deployed by GCE.
 The instance name is called `host-vm` which is based on `vmx-enabled` instance image.
-Developer can create custom `vmx-enabled` image with `$HOME/.neco-gcp.yml`.
+Developer can create custom `vmx-enabled` image with `$HOME/.necogcp.yml`.
 
 Usage
 -----
