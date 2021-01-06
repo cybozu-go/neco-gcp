@@ -1,15 +1,14 @@
 package gcp
 
 var artifacts = artifactSet{
-	goVersion:           "1.13.8",
-	rktVersion:          "1.30.0",
-	etcdVersion:         "3.3.19",
-	placematVersion:     "1.5.3",
-	customUbuntuVersion: "20190829",
-	coreOSVersion:       "2605.5.0",
-	ctVersion:           "0.6.1",
-	baseImage:           "ubuntu-1804-bionic-v20201211a",
-	baseImageProject:    "ubuntu-os-cloud",
+	goVersion:        "1.13.8",
+	rktVersion:       "1.30.0",
+	etcdVersion:      "3.3.19",
+	placematVersion:  "1.5.3",
+	coreOSVersion:    "2605.5.0",
+	ctVersion:        "0.6.1",
+	baseImage:        "ubuntu-1804-bionic-v20201211a",
+	baseImageProject: "ubuntu-os-cloud",
 	debPackages: []string{
 		"git",
 		"build-essential",
