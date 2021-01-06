@@ -31,7 +31,7 @@ First, download a credential to access your GCP account by following steps:
 necogcp command is used for creating a VM image, creating a VM instance, and so on.
 
 ```console
-make necogcp
+make install-necogcp
 ```
 
 ### Create `vmx-enabled` instance image for your project
