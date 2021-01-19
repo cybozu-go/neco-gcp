@@ -82,7 +82,7 @@
     ],
     "resourceName": "projects/neco-dev/zones/asia-northeast1-c/instances/sample-0",
     "request": {
-      "machineType": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/machineTypes/n1-standard-32",
+      "machineType": "https://www.googleapis.com/compute/v1/projects/neco-dev/zones/asia-northeast1-c/machineTypes/n1-highmem-32",
       "serviceAccounts": [
         {
           "scopes": [
