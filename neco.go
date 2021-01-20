@@ -11,7 +11,7 @@ const (
 	necoBranch     = "release"
 	necoAppsBranch = "release"
 
-	machineType = "n1-standard-32"
+	machineType = "n1-highmem-32"
 	zone        = "asia-northeast1-c"
 
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"

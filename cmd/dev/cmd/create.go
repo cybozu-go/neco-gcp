@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	machineType        = "n1-standard-32"
+	machineType        = "n1-highmem-32"
 	serviceAccountName = "default"
 )
 
