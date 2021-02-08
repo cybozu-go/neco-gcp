@@ -31,11 +31,7 @@ var artifacts = artifactSet{
 		"unzip",
 		"skopeo",
 		// required by building neco
-		"libdevmapper-dev",
-		"libgpgme-dev",
-		"libostree-dev",
 		"fakeroot",
-		"btrfs-tools",
 		// docker CE
 		"docker-ce",
 		"docker-ce-cli",
