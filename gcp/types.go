@@ -10,6 +10,7 @@ type artifactSet struct {
 	rktVersion       string
 	etcdVersion      string
 	placematVersion  string
+	placemat2Version string
 	coreOSVersion    string
 	ctVersion        string
 	baseImage        string
@@ -34,6 +35,10 @@ func (a artifactSet) rktURL() string {
 
 func (a artifactSet) placematURL() string {
 	return fmt.Sprintf("https://github.com/cybozu-go/placemat/releases/download/v%s/placemat_%s_amd64.deb", a.placematVersion, a.placematVersion)
+}
+
+func (a artifactSet) placemat2URL() string {
+	return fmt.Sprintf("https://github.com/cybozu-go/placemat/releases/download/v%s/placemat2_%s_amd64.deb", a.placemat2Version, a.placemat2Version)
 }
 
 func (a artifactSet) ctURL() string {
