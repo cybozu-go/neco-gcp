@@ -75,7 +75,7 @@ echo "starting auto dctest..."
 
 delete_myself()
 {
-echo "[auto-dctest] Auto dctest was failed. Deleting the instance..."
+echo "[auto-dctest] Auto dctest failed. Deleting the instance..."
 /snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
 }
 `
@@ -146,7 +146,7 @@ make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 }
 
 if ! run_neco ; then delete_myself; fi
-echo "[auto-dctest] Neco bootstrap was succeeded!"
+echo "[auto-dctest] Neco bootstrap succeeded!"
 `, b.necoBranch)
 	}
 
@@ -164,7 +164,7 @@ make setup dctest SUITE=bootstrap OVERLAY=neco-dev
 }
 
 if ! run_necoapps ; then delete_myself; fi
-echo "[auto-dctest] Neco Apps bootstrap was succeeded!"
+echo "[auto-dctest] Neco Apps bootstrap succeeded!"
 `, b.necoAppsBranch, necoAppsAccountSecretName)
 	}
 	return s
