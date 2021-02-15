@@ -12,6 +12,7 @@ teams:
   team1: https://webhook/team1
   team2: https://webhook/team2
   team3: https://webhook/team3
+  team5: https://webhook/team5
 severity:
   - color: good
     regex: ^INFO
@@ -33,17 +34,24 @@ rules:
     targetTeams:
       - team2
       - team3
+  - name: sample5
+    regex: sample5-[0-9]+
+    excludeRegex: sample5-100
+    targetTeams:
+      - team5
 `
 	n, err := NewSlackNotifierConfig([]byte(yaml))
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	exRegex := "sample5-100"
 	expect := SlackNotifierConfig{
 		Teams: map[string]string{
 			"team1": "https://webhook/team1",
 			"team2": "https://webhook/team2",
 			"team3": "https://webhook/team3",
+			"team5": "https://webhook/team5",
 		},
 		Severity: []Severity{
 			{"good", "^INFO"},
@@ -51,9 +59,10 @@ rules:
 			{"danger", "^ERROR"},
 		},
 		Rules: []Rule{
-			{"sample1", "sample1-[0-9]+", []string{"team1"}},
-			{"sample2", "sample2-[0-9]+", []string{"team2"}},
-			{"sample23", "sample23-[0-9]+", []string{"team2", "team3"}},
+			{"sample1", "sample1-[0-9]+", nil, []string{"team1"}},
+			{"sample2", "sample2-[0-9]+", nil, []string{"team2"}},
+			{"sample23", "sample23-[0-9]+", nil, []string{"team2", "team3"}},
+			{"sample5", "sample5-[0-9]+", &exRegex, []string{"team5"}},
 		},
 	}
 	if !cmp.Equal(*n, expect) {
@@ -91,6 +100,22 @@ rules:
 		},
 		{
 			input: Input{"sample4-0", "DEBUG team1 message"},
+			expect: Expect{
+				map[string]struct{}{},
+				"good",
+			},
+		},
+		{
+			input: Input{"sample5-0", "DEBUG team5 message"},
+			expect: Expect{
+				map[string]struct{}{
+					"https://webhook/team5": {},
+				},
+				"good",
+			},
+		},
+		{
+			input: Input{"sample5-100", "DEBUG team5 message"},
 			expect: Expect{
 				map[string]struct{}{},
 				"good",

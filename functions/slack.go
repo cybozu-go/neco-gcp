@@ -25,9 +25,10 @@ type Severity struct {
 
 // Rule is a notification rule for Slack
 type Rule struct {
-	Name        string   `yaml:"name"`
-	Regex       string   `yaml:"regex"`
-	TargetTeams []string `yaml:"targetTeams"`
+	Name         string   `yaml:"name"`
+	Regex        string   `yaml:"regex"`
+	ExcludeRegex *string  `yaml:"excludeRegex"`
+	TargetTeams  []string `yaml:"targetTeams"`
 }
 
 // NewSlackNotifierConfig creates new Notifier from config YAML
@@ -51,6 +52,15 @@ func (c SlackNotifierConfig) FindTeamsByInstanceName(target string) (map[string]
 		}
 		if !matched {
 			continue
+		}
+		if r.ExcludeRegex != nil {
+			exMatched, err := regexp.Match(*r.ExcludeRegex, []byte(target))
+			if err != nil {
+				return nil, err
+			}
+			if exMatched {
+				continue
+			}
 		}
 		for _, t := range r.TargetTeams {
 			teams[t] = struct{}{}
