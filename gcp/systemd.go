@@ -2,6 +2,7 @@ package gcp
 
 import (
 	"context"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -49,6 +50,29 @@ func StopService(ctx context.Context, name string) error {
 // DisableService disables the service.
 func DisableService(ctx context.Context, name string) error {
 	return well.CommandContext(ctx, "systemctl", "disable", name+".service").Run()
+}
+
+// ExistsService returns true if the service unit exists.
+func ExistsService(ctx context.Context, name string) (bool, error) {
+	_, err := well.CommandContext(ctx, "systemctl", "status", name+".service").Output()
+	if err == nil {
+		// service exists, and is active
+		return true, nil
+	}
+	exitError, ok := err.(*exec.ExitError)
+	if !ok {
+		return false, err
+	}
+	switch exitError.ProcessState.ExitCode() {
+	case 3:
+		// service exists, but is inactive
+		return true, nil
+	case 4:
+		// service doesn't exist
+		return false, nil
+	default:
+		return false, err
+	}
 }
 
 // IsActiveService returns true is the service is active.
