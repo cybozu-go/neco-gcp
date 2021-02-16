@@ -88,14 +88,34 @@ func mountHomeDisk(ctx context.Context) error {
 		return err
 	}
 
+	/*
+	 * Those daemons touch $HOME to install ssh keys.
+	 * We stop them during mounting /home just in case.
+	 */
+	accountDaemons := []string{"google-accounts-daemon", "google-guest-agent"}
+	accountDaemon := ""
+	for _, ad := range accountDaemons {
+		exists, err := ExistsService(ctx, ad)
+		if err != nil {
+			return err
+		}
+		if exists {
+			accountDaemon = ad
+			break
+		}
+	}
+	if accountDaemon == "" {
+		return errors.New("no known account daemon found")
+	}
+
 	err = RetryWithSleep(ctx, retryCount, time.Second,
 		func(ctx context.Context) error {
-			active, err := IsActiveService(ctx, "google-accounts-daemon")
+			active, err := IsActiveService(ctx, accountDaemon)
 			if err != nil {
 				return err
 			}
 			if !active {
-				return errors.New("google-accounts-daemon.service is not yet active")
+				return errors.New(accountDaemon + ".service is not yet active")
 			}
 			return nil
 
@@ -103,7 +123,7 @@ func mountHomeDisk(ctx context.Context) error {
 		func(err error) {
 			log.Error("timeout for checking service is active", map[string]interface{}{
 				log.FnError: err,
-				"service":   "google-accounts-daemon.service",
+				"service":   accountDaemon + ".service",
 			})
 		},
 	)
@@ -111,7 +131,7 @@ func mountHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	err = StopService(ctx, "google-accounts-daemon")
+	err = StopService(ctx, accountDaemon)
 	if err != nil {
 		return err
 	}
@@ -140,10 +160,11 @@ func mountHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	err = StartService(ctx, "google-accounts-daemon")
+	err = StartService(ctx, accountDaemon)
 	if err != nil {
 		return err
 	}
+
 	return StartService(ctx, "ssh")
 }
 
