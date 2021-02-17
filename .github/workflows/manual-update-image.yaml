@@ -1,0 +1,22 @@
+name: ManualImageUpdate
+on:
+  workflow_dispatch:
+jobs:
+  update-vmx-enabled-image:
+    name: update vmx enabled image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+      - name: Build necogcp command
+        run: make setup build-necogcp
+      - run: pwd
+      - name: Update vmx enabled image
+        run: |
+          echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+          gcloud auth activate-service-account --key-file=account_dev.json
+          echo "/tmp/workspace/necogcp neco-test create-image --project-id neco-dev"
+        env:
+          GCLOUD_SERVICE_ACCOUNT_NECO_DEV: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}

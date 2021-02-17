@@ -7,6 +7,7 @@ setup:
 	GO111MODULE=off go get -u github.com/gostaticanalysis/nilerr/cmd/nilerr
 	GOFLAGS= go install github.com/rakyll/statik
 	cd /tmp; env GOFLAGS= GO111MODULE=on go get honnef.co/go/tools/cmd/staticcheck
+	cd /tmp; env GOFLAGS= GO111MODULE=on go get github.com/cybozu/neco-containers/golang/analyzer/cmd/custom-checker
 
 test: build
 	test -z "$$(gofmt -s -l . | grep -v '^statik/statik.go\|^build/' | tee /dev/stderr)"

@@ -1,0 +1,34 @@
+name: WeeklyImageUpdate
+on:
+  pull_request:
+  schedule:
+    - cron:  '0 15 * * 0'
+jobs:
+  update-vmx-enabled-image:
+    name: update vmx enabled image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}
+          service_account_key: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}
+          export_default_credentials: true
+        env:
+          GCLOUD_SERVICE_ACCOUNT_NECO_DEV: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}
+      - name: Build necogcp command
+        run: make setup build-necogcp
+      - run: pwd
+      - name: Update vmx enabled image
+        run: |
+          echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
+          ls
+          gcloud auth activate-service-account --key-file=account_dev.json
+          /home/runner/work/neco-gcp/neco-gcp/build/necogcp neco-test list-instances -p neco-dev
+          echo "/home/runner/work/neco-gcp/neco-gcp/build/necogcp neco-test create-image --project-id neco-dev"
+        env:
+          GCLOUD_SERVICE_ACCOUNT_NECO_DEV: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}
