@@ -10,13 +10,15 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.15
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.NECO_DEV_PROJECT_ID }}
+          service_account_key: ${{ secrets.NECO_DEV_SERVICE_ACCOUNT }}
+          export_default_credentials: true
       - name: Build necogcp command
         run: make setup build-necogcp
-      - run: pwd
       - name: Update vmx enabled image
         run: |
-          echo $GCLOUD_SERVICE_ACCOUNT_NECO_DEV > account_dev.json
-          gcloud auth activate-service-account --key-file=account_dev.json
-          echo "/tmp/workspace/necogcp neco-test create-image --project-id neco-dev"
-        env:
-          GCLOUD_SERVICE_ACCOUNT_NECO_DEV: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_NECO_DEV }}
+          /home/runner/work/neco-gcp/neco-gcp/build/necogcp neco-test list-instances -p neco-dev
+          echo "/home/runner/work/neco-gcp/neco-gcp/build/necogcp neco-test create-image --project-id neco-dev"
