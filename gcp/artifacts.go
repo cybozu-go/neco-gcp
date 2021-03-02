@@ -8,7 +8,7 @@ var artifacts = artifactSet{
 	placemat2Version: "2.0.2",
 	coreOSVersion:    "2605.5.0",
 	ctVersion:        "0.6.1",
-	baseImage:        "ubuntu-1804-bionic-v20210211",
+	baseImage:        "ubuntu-1804-bionic-v20210224",
 	baseImageProject: "ubuntu-os-cloud",
 	debPackages: []string{
 		"git",
