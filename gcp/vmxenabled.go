@@ -102,17 +102,7 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 		return err
 	}
 
-	err = installDebianPackage(ctx, client, artifacts.rktURL())
-	if err != nil {
-		return err
-	}
-
 	err = installDebianPackage(ctx, client, artifacts.placematURL())
-	if err != nil {
-		return err
-	}
-
-	err = installDebianPackage(ctx, client, artifacts.placemat2URL())
 	if err != nil {
 		return err
 	}
