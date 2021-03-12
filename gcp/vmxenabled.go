@@ -11,13 +11,13 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/well"
-	"github.com/rakyll/statik/fs"
 )
 
 const (
@@ -375,13 +375,8 @@ func installBinaryFile(ctx context.Context, client *http.Client, url, dest strin
 }
 
 func dumpStaticFiles() error {
-	statikFS, err := fs.New()
-	if err != nil {
-		return err
-	}
-
 	for _, file := range staticFiles {
-		err := copyStatic(statikFS, file)
+		err := copyStatic(file)
 		if err != nil {
 			log.Error("failed to copy file: "+file, map[string]interface{}{
 				log.FnError: err,
@@ -396,8 +391,8 @@ func dumpStaticFiles() error {
 	return nil
 }
 
-func copyStatic(fs http.FileSystem, fileName string) error {
-	src, err := fs.Open(fileName)
+func copyStatic(fileName string) error {
+	src, err := assets.Open(path.Join("assets", fileName))
 	if err != nil {
 		return err
 	}

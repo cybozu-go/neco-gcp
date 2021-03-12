@@ -14,7 +14,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.3.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rakyll/statik v0.1.7
 	github.com/slack-go/slack v0.6.5
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v1.0.0

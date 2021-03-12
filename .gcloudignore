@@ -5,7 +5,6 @@ build/
 cmd/
 docs/
 slack/log/
-statik/
 
 .gitignore
 *_test.go
