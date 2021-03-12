@@ -7,10 +7,8 @@ import (
 // artifactSet represents a set of artifacts for GCP instance.
 type artifactSet struct {
 	goVersion        string
-	rktVersion       string
 	etcdVersion      string
 	placematVersion  string
-	placemat2Version string
 	coreOSVersion    string
 	ctVersion        string
 	baseImage        string
@@ -29,16 +27,8 @@ func (a artifactSet) goURL() string {
 	return fmt.Sprintf("https://dl.google.com/go/go%s.linux-amd64.tar.gz", a.goVersion)
 }
 
-func (a artifactSet) rktURL() string {
-	return fmt.Sprintf("https://github.com/rkt/rkt/releases/download/v%s/rkt_%s-1_amd64.deb", a.rktVersion, a.rktVersion)
-}
-
 func (a artifactSet) placematURL() string {
-	return fmt.Sprintf("https://github.com/cybozu-go/placemat/releases/download/v%s/placemat_%s_amd64.deb", a.placematVersion, a.placematVersion)
-}
-
-func (a artifactSet) placemat2URL() string {
-	return fmt.Sprintf("https://github.com/cybozu-go/placemat/releases/download/v%s/placemat2_%s_amd64.deb", a.placemat2Version, a.placemat2Version)
+	return fmt.Sprintf("https://github.com/cybozu-go/placemat/releases/download/v%s/placemat2_%s_amd64.deb", a.placematVersion, a.placematVersion)
 }
 
 func (a artifactSet) ctURL() string {

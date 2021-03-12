@@ -1,14 +1,12 @@
 package gcp
 
 var artifacts = artifactSet{
-	goVersion:        "1.15.6",
-	rktVersion:       "1.30.0",
+	goVersion:        "1.15.9",
 	etcdVersion:      "3.3.19",
-	placematVersion:  "1.5.3",
-	placemat2Version: "2.0.2",
+	placematVersion:  "2.0.2",
 	coreOSVersion:    "2605.5.0",
 	ctVersion:        "0.6.1",
-	baseImage:        "ubuntu-1804-bionic-v20210224",
+	baseImage:        "ubuntu-2004-focal-v20210223",
 	baseImageProject: "ubuntu-os-cloud",
 	debPackages: []string{
 		"git",
@@ -23,7 +21,6 @@ var artifacts = artifactSet{
 		"picocom",
 		"swtpm",
 		"cloud-utils",
-		"init-system-helpers=1.56+nmu1~ubuntu18.04.1",
 		"bird2",
 		"squid",
 		"chrony",
