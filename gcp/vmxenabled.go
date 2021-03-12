@@ -28,11 +28,9 @@ const (
 var (
 	staticFiles = []string{
 		"/etc/apt/apt.conf.d/20auto-upgrades",
-		"/etc/bash_completion.d/rktutil",
 		"/etc/containers/registries.conf",
 		"/etc/docker/daemon.json",
 		"/etc/profile.d/go.sh",
-		"/usr/local/bin/podenter",
 	}
 )
 
