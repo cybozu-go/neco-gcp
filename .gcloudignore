@@ -5,6 +5,10 @@ build/
 cmd/
 docs/
 slack/log/
+gcp/app
+gcp/*.go
+necogcp-app/
+vendor/
 
 .gitignore
 *_test.go
