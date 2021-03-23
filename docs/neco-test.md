@@ -35,7 +35,7 @@ Edit [artifacts.go](../../gcp/artifacts.go)
 `google-cloud-sdk-app-engine-go` should be installed before the deployment.
 
 ```console
-make -f Makefile.gcp PROJECT=neco-test create
+make -f Makefile.apps PROJECT=neco-test create
 ```
 
 ### Create or Update `vmx-enabled` image for neco-test
