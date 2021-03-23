@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
+      # Cloud Functions supports only Go runtimes 1.11 and 1.13.
+      # Therefore, this test confirms that the source is able to build with Go 1.13.
       matrix:
         go-version: ["1.13", "1.16"]
     steps:
