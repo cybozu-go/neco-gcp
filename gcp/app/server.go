@@ -12,7 +12,7 @@ import (
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/gcp"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
