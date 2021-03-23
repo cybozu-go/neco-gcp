@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -148,7 +149,7 @@ func (cc *ComputeCLIClient) CreateHostVMInstance(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	tmpfile, err := os.CreateTemp("", "gcp-start-up-script-*.sh")
+	tmpfile, err := ioutil.TempFile("/tmp", "gcp-start-up-script-*.sh")
 	if err != nil {
 		return err
 	}

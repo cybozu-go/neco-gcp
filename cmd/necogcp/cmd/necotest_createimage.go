@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 
 	"github.com/cybozu-go/log"
@@ -20,7 +21,7 @@ var necotestCreateImageCmd = &cobra.Command{
 		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		cc := gcp.NewComputeCLIClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
-			f, err := os.CreateTemp("", "*.yml")
+			f, err := ioutil.TempFile("", "*.yml")
 			if err != nil {
 				return err
 			}

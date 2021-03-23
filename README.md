@@ -1,4 +1,4 @@
-[![main](https://github.com/cybozu-go/neco-gcp/actions/workflows/main.yaml/badge.svg)](https://github.com/cybozu-go/neco-gcp/actions/workflows/main.yaml)
+[![CircleCI](https://circleci.com/gh/cybozu-go/neco-gcp.svg?style=svg)](https://circleci.com/gh/cybozu-go/neco-gcp)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/cybozu-go/neco-gcp?tab=overview)](https://pkg.go.dev/github.com/cybozu-go/neco-gcp?tab=overview)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cybozu-go/neco-gcp)](https://goreportcard.com/report/github.com/cybozu-go/neco-gcp)
 

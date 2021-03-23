@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"syscall"
@@ -54,7 +55,7 @@ func enableXForwarding() error {
 	}
 	defer f.Close()
 
-	data, err := io.ReadAll(f)
+	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func enableXForwarding() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(destFile, replaced, st.Mode())
+	return ioutil.WriteFile(destFile, replaced, st.Mode())
 }
 
 func mountHomeDisk(ctx context.Context) error {
@@ -74,7 +75,7 @@ func mountHomeDisk(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	data, err := io.ReadAll(f)
+	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		return err
 	}
