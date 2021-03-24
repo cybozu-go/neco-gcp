@@ -57,7 +57,7 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 		return err
 	}
 
-	err = configureProjectAtomic(ctx)
+	err = configureKubic(ctx)
 	if err != nil {
 		return err
 	}
@@ -220,13 +220,15 @@ func configureSWTPM(ctx context.Context) error {
 	return well.CommandContext(ctx, "add-apt-repository", "-y", "ppa:smoser/swtpm").Run()
 }
 
-func configureProjectAtomic(ctx context.Context) error {
-	err := well.CommandContext(ctx, "apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv", "7AD8C79D").Run()
+func configureKubic(ctx context.Context) error {
+	err := well.CommandContext(ctx, "sh", "-c",
+		`echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list`).Run()
 	if err != nil {
 		return err
 	}
 
-	return well.CommandContext(ctx, "add-apt-repository", "deb http://ppa.launchpad.net/projectatomic/ppa/ubuntu bionic main").Run()
+	return well.CommandContext(ctx, "sh", "-c",
+		"curl -fsSL https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/devel_kubic_libcontainers_stable.gpg > /dev/null").Run()
 }
 
 func configureDocker(ctx context.Context) error {
@@ -250,7 +252,7 @@ func configureDocker(ctx context.Context) error {
 		return err
 	}
 
-	return well.CommandContext(ctx, "add-apt-repository", "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable").Run()
+	return well.CommandContext(ctx, "add-apt-repository", "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable").Run()
 }
 
 func installAptPackages(ctx context.Context, optionalPackages []string) error {
