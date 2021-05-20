@@ -10,6 +10,8 @@ TOPIC_NAME := slack-notifier-events
 FUNCTION_NAME := slack-notifier
 SINK_NAME := auto-dctest-alerts
 
+SECRET_NAME := slack-notifier-config
+
 setup:
 	sudo apt-get update
 	sudo apt-get install -y --no-install-recommends jq
@@ -73,6 +75,12 @@ create-logging-sink:
 delete-logging-sink:
 	gcloud --quiet logging sinks delete $(SINK_NAME) --project $(GCP_PROJECT)
 
+create-slack-notifier-config: slack-notifier-config.yaml
+	gcloud secrets create ${SECRET_NAME} --data-file=$< --project $(GCP_PROJECT)
+
+update-slack-notifier-config: slack-notifier-config.yaml
+	gcloud secrets versions add ${SECRET_NAME} --data-file=$< --project $(GCP_PROJECT)
+
 .PHONY: \
 	setup \
 	init \
@@ -80,4 +88,5 @@ delete-logging-sink:
 	enable-api \
 	create-service-account delete-service-account \
 	deploy-function delete-function \
-	create-logging-sink delete-logging-sink
+	create-logging-sink delete-logging-sink \
+	create-slack-notifier-config update-slack-notifier-config

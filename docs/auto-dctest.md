@@ -157,13 +157,20 @@ severity: # See https://api.slack.com/reference/messaging/attachments#fields
 rules:
   - name: team1-rule
     regex: team1-[0-9]+
+    excludeRegex: 'team1-0'
     targetTeams:
       - team1
 ```
 
-With the above setting, the notifications for `team1`'s instance with postfix `-[0-9]+` will be sent to `team1`'s Slack webhook.
+With the above setting, the notifications for `team1`'s instance with postfix `-[0-9]+` except for `team1-0` will be sent to `team1`'s Slack webhook.
 
 This YAML file must be uploaded to Secret Manager with the specific name `slack-notifier-config`.
+
+You should save the YAML file as `slack-notifier-config.yaml` and run the following commands.
+```
+export GCP_PROJECT=<project>
+make create-slack-notifier-config -f Makefile.slack
+```
 
 ### Manual management with `necogcp` command
 
@@ -207,8 +214,13 @@ so an administrator should modify it periodically.
 
 #### Team management
 
-To add a team, an administrator should run `make -f Makefile.dctest add-team` and
-modify Slack settings and upload it to Secret Manager.
+To add a team, an administrator should run as follows
+```
+export GCP_PROJECT=<project>
+make -f Makefile.dctest add-team TEAM_NAME=<team name> INSTANCE_NUM=<max instance number>
+# create slack-notifier-config.yaml
+make update-slack-notifier-config -f Makefile.slack
+```
 
 ### Development
 
