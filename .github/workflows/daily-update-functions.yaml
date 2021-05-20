@@ -1,0 +1,52 @@
+name: DailyUpdateFunctions
+on:
+  workflow_dispatch:
+  schedule:
+    # - cron:  '0 15 * * *'
+    - cron:  '0 15 * * 0'
+env:
+  go-version: 1.16
+  project: neco-dev
+jobs:
+  update-functions:
+    name: update auto-dctest function
+    runs-on: ubuntu-20.04
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.go-version }}
+
+      - name: Build necogcp command
+        run: make setup build-necogcp
+
+      - name: Set up Cloud SDK for neco-dev
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.NECO_DEV_PROJECT_ID }}
+          service_account_key: ${{ secrets.NECO_DEV_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+
+      - name: Delete auto-dctest functions
+        run: |
+          export GCP_PROJECT=${{ env.project }}
+          make -f Makefile.dctest delete-function
+
+      - name: Deploy auto-dctest functions
+        run: |
+          export GCP_PROJECT=${{ env.project }}
+          make -f Makefile.dctest deploy-function
+
+      - name: Delete slack-notifier functions
+        run: |
+          export GCP_PROJECT=${{ env.project }}
+          make -f Makefile.slack delete-function
+
+      - name: Deploy slack-notifier functions
+        run: |
+          export GCP_PROJECT=${{ env.project }}
+          make -f Makefile.slack deploy-function
