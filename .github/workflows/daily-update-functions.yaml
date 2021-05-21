@@ -2,8 +2,12 @@ name: DailyUpdateFunctions
 on:
   workflow_dispatch:
   schedule:
-    # - cron:  '0 15 * * *'
-    - cron:  '0 15 * * 0'
+    - cron:  '0 15 * * *'
+  watch:
+    types: [started]
+  push:
+    branches:
+      - 'add-function-update-ci'
 env:
   go-version: 1.16
   project: neco-dev
