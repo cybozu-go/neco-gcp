@@ -214,3 +214,7 @@ modify Slack settings and upload it to Secret Manager.
 
 [`cmd/dev`](../cmd/dev) includes commands, which are equivalent to the Cloud Functions executed by `auto-dctest`.
 These are useful if you want to debug the Cloud Function without deploying.
+
+### CI
+
+To avoid the cloud functions(i.e. `slack-notifier` and `auto-dctest`) being outdated, they are recreated in CI nightly.
