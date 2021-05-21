@@ -38,21 +38,21 @@ jobs:
       - name: Delete auto-dctest functions
         continue-on-error: true
         run: |
-          export GCP_PROJECT=${{ env.project }}
+          export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.dctest delete-function
 
       - name: Deploy auto-dctest functions
         run: |
-          export GCP_PROJECT=${{ env.project }}
+          export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.dctest deploy-function
 
       - name: Delete slack-notifier functions
         continue-on-error: true
         run: |
-          export GCP_PROJECT=${{ env.project }}
+          export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.slack delete-function
 
       - name: Deploy slack-notifier functions
         run: |
-          export GCP_PROJECT=${{ env.project }}
+          export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.slack deploy-function
