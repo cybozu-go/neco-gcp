@@ -36,6 +36,7 @@ jobs:
           export_default_credentials: true
 
       - name: Delete auto-dctest functions
+        continue-on-error: true
         run: |
           export GCP_PROJECT=${{ env.project }}
           make -f Makefile.dctest delete-function
@@ -46,6 +47,7 @@ jobs:
           make -f Makefile.dctest deploy-function
 
       - name: Delete slack-notifier functions
+        continue-on-error: true
         run: |
           export GCP_PROJECT=${{ env.project }}
           make -f Makefile.slack delete-function
