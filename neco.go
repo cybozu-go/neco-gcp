@@ -143,7 +143,18 @@ cd ${GOPATH}/src/github.com/cybozu-go &&
 git clone https://github.com/cybozu-go/neco &&
 cd ${GOPATH}/src/github.com/cybozu-go/neco/dctest &&
 git checkout %s &&
-make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
+make setup placemat MENU_ARG=menu-ss.yml
+sleep 5
+
+# kubectl caches the results, but it takes time to write
+# To speed up this caching, mount the directory to be cached by tmpfs.
+${GOPATH}/src/github.com/cybozu-go/neco/dctest/dcssh boot-0 'sudo mount -t tmpfs -o size=5M tmpfs ./.kube'
+${GOPATH}/src/github.com/cybozu-go/neco/dctest/dcssh boot-1 'mkdir .kube'
+${GOPATH}/src/github.com/cybozu-go/neco/dctest/dcssh boot-1 'sudo mount -t tmpfs -o size=5M tmpfs ./.kube'
+${GOPATH}/src/github.com/cybozu-go/neco/dctest/dcssh boot-2 'mkdir .kube'
+${GOPATH}/src/github.com/cybozu-go/neco/dctest/dcssh boot-2 'sudo mount -t tmpfs -o size=5M tmpfs ./.kube'
+
+make test SUITE=bootstrap
 }
 
 if ! run_neco ; then delete_myself; fi
