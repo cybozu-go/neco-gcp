@@ -118,7 +118,7 @@ create-creating-scheduler:
 	fi
 	gcloud scheduler jobs create pubsub $(CREATING_SCHEDULER_NAME) \
 		--project $(GCP_PROJECT) \
-		--schedule '0 9 * * 1-5' \
+		--schedule '*/30 9-19 * * 1-5' \
 		--topic $(TOPIC_NAME) \
 		--message-body '{"mode":"create", "namePrefix":"$(TEAM_NAME)", "num":$(INSTANCE_NUM)}' \
 		--time-zone 'Asia/Tokyo' \
