@@ -21,7 +21,7 @@ This document describes the system which bootstraps [Neco](https://github.com/cy
 This system consists of the following two types of components:
 
 - `auto-dctest`: create/delete VM instances
-  - Cloud Scheduler(to create VM): triggered at 9:00AM
+  - Cloud Scheduler(to create VM): triggered every 30 minutes between 9:00AM and 8:00PM
   - Cloud Scheduler(to delete VM): triggered at 8:00PM
   - Cloud Scheduler(to force-delete VM): triggered at 11:00PM
   - Cloud Pub/Sub: messaging queue to accept messages from Cloud Scheduler
