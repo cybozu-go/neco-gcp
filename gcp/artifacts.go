@@ -6,7 +6,7 @@ var artifacts = artifactSet{
 	placematVersion:  "2.0.5",
 	coreOSVersion:    "2605.5.0",
 	ctVersion:        "0.6.1",
-	baseImage:        "ubuntu-2004-focal-v20210510",
+	baseImage:        "ubuntu-2004-focal-v20210908",
 	baseImageProject: "ubuntu-os-cloud",
 	debPackages: []string{
 		"git",
