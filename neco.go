@@ -15,6 +15,8 @@ const (
 	zone        = "asia-northeast1-c"
 
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
+	ghcrTokenName                = "ghcr-readonly-token"
+	quayTokenName                = "quay-readonly-token"
 	autoDCTestServiceAccountName = "auto-dctest-vminstance"
 	slackNotifierConfigName      = "slack-notifier-config"
 )
@@ -160,12 +162,14 @@ git clone https://github.com/cybozu-go/neco-apps &&
 cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test &&
 git checkout %s &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
+gcloud secrets versions access latest --secret="%s" > ghcr_token &&
+gcloud secrets versions access latest --secret="%s" > quay_token &&
 make setup dctest SUITE=bootstrap OVERLAY=neco-dev
 }
 
 if ! run_necoapps ; then delete_myself; fi
 echo "[auto-dctest] Neco Apps bootstrap succeeded!"
-`, b.necoAppsBranch, necoAppsAccountSecretName)
+`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrTokenName, quayTokenName)
 	}
 	return s
 }
