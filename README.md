@@ -13,3 +13,8 @@ Documentation
 -------------
 
 [docs](docs/) directory contains documents about designs and specifications.
+
+License
+-------
+
+neco-gcp is licensed under the Apache License, Version 2.0.
