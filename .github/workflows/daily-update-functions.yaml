@@ -4,7 +4,7 @@ on:
   schedule:
     - cron:  '0 15 * * *'
 env:
-  go-version: 1.16
+  go-version: 1.17
 jobs:
   update-functions:
     name: update auto-dctest function
