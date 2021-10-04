@@ -8,17 +8,16 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/well"
-	"github.com/rakyll/statik/fs"
 )
 
 const (
@@ -125,7 +124,7 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 }
 
 func configureDNS(ctx context.Context) error {
-	data, err := ioutil.ReadFile("/etc/os-release")
+	data, err := os.ReadFile("/etc/os-release")
 	if err != nil {
 		return err
 	}
@@ -151,7 +150,7 @@ func configureDNS(ctx context.Context) error {
 		return err
 	}
 
-	data, err = ioutil.ReadFile("/etc/resolv.conf")
+	data, err = os.ReadFile("/etc/resolv.conf")
 	if err != nil {
 		return err
 	}
@@ -167,7 +166,7 @@ func configureDNS(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile("/etc/resolv.conf", []byte(newData), 0644)
+	return os.WriteFile("/etc/resolv.conf", []byte(newData), 0644)
 }
 
 func apt(ctx context.Context, args ...string) error {
@@ -240,7 +239,7 @@ func configureDocker(ctx context.Context) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to get docker repository GPG key: %d", resp.StatusCode)
 	}
-	key, err := ioutil.ReadAll(resp.Body)
+	key, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
@@ -347,7 +346,7 @@ func installDebianPackage(ctx context.Context, client *http.Client, url string) 
 	}
 	defer resp.Body.Close()
 
-	f, err := ioutil.TempFile("", "")
+	f, err := os.CreateTemp("", "")
 	if err != nil {
 		return err
 	}
@@ -376,13 +375,8 @@ func installBinaryFile(ctx context.Context, client *http.Client, url, dest strin
 }
 
 func dumpStaticFiles() error {
-	statikFS, err := fs.New()
-	if err != nil {
-		return err
-	}
-
 	for _, file := range staticFiles {
-		err := copyStatic(statikFS, file)
+		err := copyStatic(file)
 		if err != nil {
 			log.Error("failed to copy file: "+file, map[string]interface{}{
 				log.FnError: err,
@@ -397,8 +391,8 @@ func dumpStaticFiles() error {
 	return nil
 }
 
-func copyStatic(fs http.FileSystem, fileName string) error {
-	src, err := fs.Open(fileName)
+func copyStatic(fileName string) error {
+	src, err := assets.Open(path.Join("assets", fileName))
 	if err != nil {
 		return err
 	}

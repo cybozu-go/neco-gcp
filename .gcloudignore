@@ -4,7 +4,10 @@ build/
 cmd/
 docs/
 slack/log/
-statik/
+gcp/app
+gcp/*.go
+necogcp-app/
+vendor/
 
 go.sum
 .gcloudignore
