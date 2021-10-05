@@ -147,8 +147,11 @@ git checkout %s &&
 make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 }
 
-if ! run_neco ; then delete_myself; fi
-echo "[auto-dctest] Neco bootstrap succeeded!"
+if run_neco ; then
+  echo "[auto-dctest] Neco bootstrap succeeded!"
+else
+  delete_myself
+fi
 `, b.necoBranch)
 	}
 
@@ -167,8 +170,11 @@ gcloud secrets versions access latest --secret="%s" > quay_token &&
 make setup dctest SUITE=bootstrap OVERLAY=neco-dev
 }
 
-if ! run_necoapps ; then delete_myself; fi
-echo "[auto-dctest] Neco Apps bootstrap succeeded!"
+if run_necoapps ; then
+  echo "[auto-dctest] Neco Apps bootstrap succeeded!"
+else
+  delete_myself
+fi
 `, b.necoAppsBranch, necoAppsAccountSecretName, ghcrTokenName, quayTokenName)
 	}
 	return s
