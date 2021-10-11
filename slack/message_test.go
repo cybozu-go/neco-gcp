@@ -1,7 +1,7 @@
 package slack
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -11,7 +11,7 @@ func TestComputeLogInvalid(t *testing.T) {
 		"./log/invalid/operation_first.json",
 		"./log/invalid/unsupported_method_name.json",
 	} {
-		json, err := ioutil.ReadFile(n)
+		json, err := os.ReadFile(n)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -63,7 +63,7 @@ func TestComputeLogValid(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		json, err := ioutil.ReadFile(tt.inputFileName)
+		json, err := os.ReadFile(tt.inputFileName)
 		if err != nil {
 			t.Fatalf("%s: %v", tt.inputFileName, err)
 		}

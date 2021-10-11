@@ -4,7 +4,6 @@ build/
 cmd/
 docs/
 slack/log/
-statik/
 
 go.sum
 .gcloudignore
