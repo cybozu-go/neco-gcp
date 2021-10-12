@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"regexp"
-	"syscall"
 	"time"
 
 	"github.com/cybozu-go/log"
@@ -149,7 +148,7 @@ func mountHomeDisk(ctx context.Context) error {
 	}
 
 	for {
-		err := syscall.Mount(homeDisk, homeMountPoint, homeFSType, syscall.MS_RELATIME, "")
+		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, "-o", "relatime", homeDisk, homeMountPoint).Run()
 		if err == nil {
 			break
 		}
@@ -174,7 +173,7 @@ func formatHomeDisk(ctx context.Context) error {
 	}
 
 	for {
-		err = syscall.Mount(homeDisk, "/mnt", homeFSType, syscall.MS_RELATIME, "")
+		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, "-o", "relatime", homeDisk, "/mnt").Run()
 		if err == nil {
 			break
 		}
@@ -190,7 +189,7 @@ func formatHomeDisk(ctx context.Context) error {
 	}
 
 	for {
-		err := syscall.Unmount("/mnt", syscall.MNT_FORCE)
+		err := well.CommandContext(ctx, "/bin/umount", "/mnt", "-f").Run()
 		if err == nil {
 			break
 		}
@@ -214,7 +213,7 @@ func setupLocalSSD(ctx context.Context) error {
 	}
 
 	for {
-		err := syscall.Mount(localSSDDisk, localSSDMountPoint, localSSDFSType, syscall.MS_RELATIME, "")
+		err = well.CommandContext(ctx, "/bin/mount", "-t", localSSDFSType, "-o", "relatime", localSSDDisk, localSSDMountPoint).Run()
 		if err == nil {
 			break
 		}
