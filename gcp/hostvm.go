@@ -148,7 +148,7 @@ func mountHomeDisk(ctx context.Context) error {
 	}
 
 	for {
-		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, "-o", "relatime", homeDisk, homeMountPoint).Run()
+		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, homeDisk, homeMountPoint).Run()
 		if err == nil {
 			break
 		}
@@ -173,7 +173,7 @@ func formatHomeDisk(ctx context.Context) error {
 	}
 
 	for {
-		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, "-o", "relatime", homeDisk, "/mnt").Run()
+		err = well.CommandContext(ctx, "/bin/mount", "-t", homeFSType, homeDisk, "/mnt").Run()
 		if err == nil {
 			break
 		}
@@ -213,7 +213,7 @@ func setupLocalSSD(ctx context.Context) error {
 	}
 
 	for {
-		err = well.CommandContext(ctx, "/bin/mount", "-t", localSSDFSType, "-o", "relatime", localSSDDisk, localSSDMountPoint).Run()
+		err = well.CommandContext(ctx, "/bin/mount", "-t", localSSDFSType, localSSDDisk, localSSDMountPoint).Run()
 		if err == nil {
 			break
 		}
