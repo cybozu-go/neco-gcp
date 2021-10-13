@@ -3,6 +3,7 @@
 build/
 cmd/
 docs/
+gcp/assets/bin/
 slack/log/
 
 go.sum

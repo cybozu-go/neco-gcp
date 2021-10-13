@@ -35,7 +35,7 @@ var (
 )
 
 // SetupVMXEnabled setup vmx-enabled instance
-func SetupVMXEnabled(ctx context.Context, project string, option []string) error {
+func SetupVMXEnabled(ctx context.Context, project string, optionalPackages []string) error {
 	err := configureDNS(ctx)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func SetupVMXEnabled(ctx context.Context, project string, option []string) error
 		return err
 	}
 
-	err = installAptPackages(ctx, option)
+	err = installAptPackages(ctx, optionalPackages)
 	if err != nil {
 		return err
 	}

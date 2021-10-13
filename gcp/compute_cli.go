@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -138,7 +139,7 @@ func (cc *ComputeCLIClient) CreateHostVMInstance(ctx context.Context) error {
 		return err
 	}
 	shutdownAt := shutdownTime.Format("15:04")
-	log.Info("the instance will shutdown at UTC "+shutdownAt, map[string]interface{}{})
+	log.Info("the instance will shutdown at UTC "+shutdownAt, nil)
 	buf := new(bytes.Buffer)
 	err = startUpScriptTmpl.Execute(buf, struct {
 		ShutdownAt string
@@ -156,7 +157,7 @@ func (cc *ComputeCLIClient) CreateHostVMInstance(ctx context.Context) error {
 		tmpfile.Close()
 		os.Remove(tmpfile.Name())
 	}()
-	log.Info("start up script for "+tmpfile.Name(), map[string]interface{}{})
+	log.Info("create a temporary file (start up script): "+tmpfile.Name(), nil)
 	_, err = tmpfile.Write(buf.Bytes())
 	if err != nil {
 		return err
@@ -352,9 +353,60 @@ func (cc *ComputeCLIClient) DeleteVMXEnabledImage(ctx context.Context) error {
 }
 
 // Upload uploads a file to the instance through ssh
-func (cc *ComputeCLIClient) Upload(ctx context.Context, file string) error {
+func (cc *ComputeCLIClient) Upload(ctx context.Context, file, target, mode string) error {
 	gcmd := cc.gCloudCompute()
-	gcmd = append(gcmd, "scp", "--zone", cc.cfg.Common.Zone, file, fmt.Sprintf("%s@%s:/tmp", cc.user, cc.instance))
+	gcmd = append(gcmd, "scp", "--zone", cc.cfg.Common.Zone, file, fmt.Sprintf("%s@%s:%s", cc.user, cc.instance, target))
+	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	err := c.Run()
+	if err != nil {
+		return err
+	}
+
+	gcmd = cc.gCloudComputeSSH([]string{"sudo", "chmod", mode, target})
+	c = well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
+}
+
+// UploadSetupCommand uploads the "setup" command on the instance through ssh
+func (cc *ComputeCLIClient) UploadSetupCommand(ctx context.Context) error {
+	tmpfile, err := os.CreateTemp("", "necogcp-setup-command-")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tmpfile.Close()
+		os.Remove(tmpfile.Name())
+	}()
+	log.Info("create a temporary file (setup command): "+tmpfile.Name(), nil)
+
+	src, err := assets.Open(filepath.Join("assets", "bin", "setup"))
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	_, err = io.Copy(tmpfile, src)
+	if err != nil {
+		return err
+	}
+
+	return cc.Upload(ctx, tmpfile.Name(), "/tmp/setup", "775")
+}
+
+// RunSetupHostVM executes "setup host-vm" on the instance through ssh
+func (cc *ComputeCLIClient) RunSetupHostVM(ctx context.Context) error {
+	err := cc.UploadSetupCommand(ctx)
+	if err != nil {
+		return err
+	}
+
+	gcmd := cc.gCloudComputeSSH([]string{"sudo", "/tmp/setup", "host-vm"})
 	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
@@ -362,19 +414,38 @@ func (cc *ComputeCLIClient) Upload(ctx context.Context, file string) error {
 	return c.Run()
 }
 
-// RunSetup executes "necogcp setup" on the instance through ssh
-func (cc *ComputeCLIClient) RunSetup(ctx context.Context, progFile, cfgFile string) error {
-	err := cc.Upload(ctx, progFile)
+// RunSetupVMXEnabled executes "setup vmx-enabled" on the instance through ssh
+func (cc *ComputeCLIClient) RunSetupVMXEnabled(ctx context.Context, optionalPackages []string) error {
+	err := cc.UploadSetupCommand(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = cc.Upload(ctx, cfgFile)
+	tmpfile, err := os.CreateTemp("", "necogcp-setup-packages-*.json")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tmpfile.Close()
+		os.Remove(tmpfile.Name())
+	}()
+	log.Info("create a temporary file (optional packages file): "+tmpfile.Name(), nil)
+
+	buf, err := json.Marshal(optionalPackages)
+	if err != nil {
+		panic(err)
+	}
+	_, err = tmpfile.Write(buf)
 	if err != nil {
 		return err
 	}
 
-	gcmd := cc.gCloudComputeSSH([]string{"sudo", "/tmp/" + filepath.Base(progFile), "--config", "/tmp/" + filepath.Base(cfgFile), "setup-instance"})
+	err = cc.Upload(ctx, tmpfile.Name(), "/tmp/package.json", "664")
+	if err != nil {
+		return err
+	}
+
+	gcmd := cc.gCloudComputeSSH([]string{"sudo", "/tmp/setup", "vmx-enabled", cc.cfg.Common.Project, "/tmp/package.json"})
 	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout

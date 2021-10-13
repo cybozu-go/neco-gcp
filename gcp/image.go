@@ -2,11 +2,10 @@ package gcp
 
 import (
 	"context"
-	"os"
 )
 
 // CreateVMXEnabledImage creates vmx-enabled image
-func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, cfgFile string) error {
+func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient) error {
 	cc.DeleteInstance(ctx)
 
 	err := cc.CreateVMXEnabledInstance(ctx)
@@ -21,12 +20,8 @@ func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, cfgFile st
 		return err
 	}
 
-	progFile, err := os.Executable()
-	if err != nil {
-		return err
-	}
-
-	err = cc.RunSetup(ctx, progFile, cfgFile)
+	optionalPackages := append(cc.cfg.Compute.OptionalPackages, cc.cfg.Compute.VMXEnabled.OptionalPackages...)
+	err = cc.RunSetupVMXEnabled(ctx, optionalPackages)
 	if err != nil {
 		return err
 	}

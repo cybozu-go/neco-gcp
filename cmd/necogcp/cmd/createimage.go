@@ -19,7 +19,7 @@ If vmx-enabled image already exists in the project, it is re-created.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cc := gcp.NewComputeCLIClient(cfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
-			return gcp.CreateVMXEnabledImage(ctx, cc, cfgFile)
+			return gcp.CreateVMXEnabledImage(ctx, cc)
 		})
 		well.Stop()
 		err := well.Wait()
