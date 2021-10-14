@@ -173,7 +173,7 @@ if run_necoapps ; then
 else
   delete_myself
 fi
-`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName)
+`, b.necoAppsBranch, necoAppsAccountSecretName)
 	}
 	return s
 }
