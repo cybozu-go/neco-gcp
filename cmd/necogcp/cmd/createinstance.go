@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/gcp"
@@ -48,12 +47,7 @@ If host-vm instance already exists in the project, it is re-created.`,
 				return err
 			}
 
-			progFile, err := os.Executable()
-			if err != nil {
-				return err
-			}
-
-			return cc.RunSetup(ctx, progFile, cfgFile)
+			return cc.RunSetupHostVM(ctx)
 		})
 		well.Stop()
 		err := well.Wait()

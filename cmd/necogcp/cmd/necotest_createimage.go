@@ -2,13 +2,11 @@ package cmd
 
 import (
 	"context"
-	"os"
 
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 var necotestCreateImageCmd = &cobra.Command{
@@ -20,30 +18,7 @@ var necotestCreateImageCmd = &cobra.Command{
 		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		cc := gcp.NewComputeCLIClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
-			f, err := os.CreateTemp("", "*.yml")
-			if err != nil {
-				return err
-			}
-			defer func() {
-				f.Close()
-				os.Remove(f.Name())
-			}()
-
-			data, err := yaml.Marshal(necotestCfg)
-			if err != nil {
-				return err
-			}
-			_, err = f.Write(data)
-			if err != nil {
-				return err
-			}
-
-			err = f.Sync()
-			if err != nil {
-				return err
-			}
-
-			return gcp.CreateVMXEnabledImage(ctx, cc, f.Name())
+			return gcp.CreateVMXEnabledImage(ctx, cc)
 		})
 		well.Stop()
 		err := well.Wait()

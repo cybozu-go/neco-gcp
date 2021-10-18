@@ -1,2 +1,3 @@
-build
+build/
+gcp/assets/bin/
 slack-notifier-config.yaml

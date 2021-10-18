@@ -19,15 +19,18 @@ build-dev:
 	mkdir -p build
 	go build -o ./build/dev ./cmd/dev
 
-build-necogcp:
+build-setup:
+	GOOS=linux GOARCH=amd64 go build -o ./gcp/assets/bin/ ./cmd/setup
+
+build-necogcp: build-setup
 	mkdir -p build
 	go build -o ./build/necogcp ./cmd/necogcp
 
-install-necogcp:
+install-necogcp: build-setup
 	go install ./cmd/necogcp
 
 clean:
-	rm -rf ./build
+	rm -rf ./build ./gcp/assets/bin
 
 .PHONY: \
 	setup \
