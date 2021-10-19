@@ -1,4 +1,4 @@
-package necogcp
+package slacknotifier
 
 import (
 	"context"
@@ -6,19 +6,22 @@ import (
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/functions"
-	necogcpslack "github.com/cybozu-go/neco-gcp/pkg/slack"
 	"github.com/slack-go/slack"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
-// SlackNotifierEntryPoint consumes a Pub/Sub message to send notification via Slack
-func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
+// makeConfigURL retruns config url for slack notifier
+func makeConfigURL(projectID, secretName string) string {
+	return "projects/" + projectID + "/secrets/" + secretName + "/versions/latest"
+}
+
+// SendNotification consumes a Pub/Sub message to send notification via Slack
+func SendNotification(ctx context.Context, secretName string, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
 
-	b, err := necogcpslack.NewComputeLog(m.Data)
+	b, err := NewComputeLog(m.Data)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
 			"data":      string(m.Data),
@@ -41,7 +44,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	result, err := client.AccessSecretVersion(
 		ctx,
 		&secretmanagerpb.AccessSecretVersionRequest{
-			Name: MakeSlackNotifierConfigURL(b.GetProjectID()),
+			Name: makeConfigURL(b.GetProjectID(), secretName),
 		},
 	)
 	if err != nil {
@@ -54,7 +57,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"len": len(result.GetPayload().GetData()),
 	})
 
-	c, err := functions.NewSlackNotifierConfig(result.GetPayload().GetData())
+	c, err := NewSlackNotifierConfig(result.GetPayload().GetData())
 	if err != nil {
 		log.Error("failed to read config", map[string]interface{}{
 			log.FnError: err,
@@ -103,7 +106,7 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"color": color,
 	})
 
-	whMsg := necogcpslack.NewSlackWebhookMessageForCompute(
+	whMsg := NewSlackWebhookMessageForCompute(
 		b.GetProjectID(),
 		b.GetZone(),
 		b.GetTimeStamp(),
