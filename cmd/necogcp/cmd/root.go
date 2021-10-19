@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/mitchellh/mapstructure"

@@ -3,8 +3,8 @@
 build/
 cmd/
 docs/
-gcp/assets/bin/
-slack/log/
+pkg/gcp/assets/bin/
+pkg/slack/log/
 
 go.sum
 .gcloudignore

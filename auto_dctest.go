@@ -9,8 +9,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/functions"
-	"github.com/cybozu-go/neco-gcp/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/functions"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 const (

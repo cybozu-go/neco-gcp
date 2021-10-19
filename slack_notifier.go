@@ -6,8 +6,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/functions"
-	necogcpslack "github.com/cybozu-go/neco-gcp/slack"
+	"github.com/cybozu-go/neco-gcp/pkg/functions"
+	necogcpslack "github.com/cybozu-go/neco-gcp/pkg/slack"
 	"github.com/slack-go/slack"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )

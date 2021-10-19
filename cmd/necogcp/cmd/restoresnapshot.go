@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cybozu-go/neco-gcp/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
 )

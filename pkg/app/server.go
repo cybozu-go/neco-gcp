@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/slack-go/slack"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
