@@ -165,6 +165,8 @@ git clone https://github.com/cybozu-go/neco-apps &&
 cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test &&
 git checkout %s &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
+gcloud secrets versions access latest --secret="%s" > ghcr_dockerconfig.json &&
+gcloud secrets versions access latest --secret="%s" > quay_dockerconfig.json &&
 make setup dctest SUITE=bootstrap OVERLAY=neco-dev
 }
 
@@ -173,7 +175,7 @@ if run_necoapps ; then
 else
   delete_myself
 fi
-`, b.necoAppsBranch, necoAppsAccountSecretName)
+`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName)
 	}
 	return s
 }
