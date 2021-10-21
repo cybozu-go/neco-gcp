@@ -98,6 +98,30 @@ func (c *ComputeClient) Create(
 				AutoDelete: true,
 				Interface:  "NVME",
 			},
+			{
+				Type: "SCRATCH",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
+				},
+				AutoDelete: true,
+				Interface:  "NVME",
+			},
+			{
+				Type: "SCRATCH",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
+				},
+				AutoDelete: true,
+				Interface:  "NVME",
+			},
+			{
+				Type: "SCRATCH",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
+				},
+				AutoDelete: true,
+				Interface:  "NVME",
+			},
 		},
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
