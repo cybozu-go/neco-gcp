@@ -1,4 +1,4 @@
-package functions
+package slacknotifier
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestSlackNotifier(t *testing.T) {
+func TestSlackNotifierConfig(t *testing.T) {
 	yaml := `
 teams:
   team1: https://webhook/team1

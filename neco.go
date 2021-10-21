@@ -31,11 +31,6 @@ func MakeNecoDevServiceAccountEmail(projectID string) string {
 	return fmt.Sprintf("%s@%s.iam.gserviceaccount.com", autoDCTestServiceAccountName, projectID)
 }
 
-// MakeSlackNotifierConfigURL retruns config url for slack notifier
-func MakeSlackNotifierConfigURL(projectID string) string {
-	return "projects/" + projectID + "/secrets/" + slackNotifierConfigName + "/versions/latest"
-}
-
 // NecoStartupScriptBuilder creates startup-script builder to run dctest
 type NecoStartupScriptBuilder struct {
 	withFluentd    bool

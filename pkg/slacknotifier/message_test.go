@@ -1,4 +1,4 @@
-package slack
+package slacknotifier
 
 import (
 	"os"
