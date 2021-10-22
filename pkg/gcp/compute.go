@@ -134,6 +134,9 @@ func (c *ComputeClient) Create(
 	var waitOp *compute.Operation
 	for {
 		log.Info("waiting for completion of compute API...", nil)
+		// zoneOperations.wait API is a blocking call.
+		// But sometimes it returns before an operation will be "DONE". So retry until be "DONE".
+		// https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait#iam-permissions
 		waitOp, err = c.service.ZoneOperations.Wait(c.projectID, c.zone, insertOp.Name).Do()
 		if err != nil {
 			return err
