@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"path"
 	"time"
 
 	"github.com/cybozu-go/log"
@@ -50,24 +48,6 @@ func (c *ComputeClient) Create(
 	imageURL string,
 	startupScript string,
 ) error {
-	iamService, err := iam.NewService(c.ctx)
-	if err != nil {
-		return err
-	}
-	saURI := fmt.Sprintf("projects/%s/serviceAccounts/%s", c.projectID, serviceAccountEmail)
-	_, err = iamService.Projects.ServiceAccounts.Keys.Get(saURI).Do()
-	if err != nil {
-		return err
-	}
-	url, err := url.Parse(imageURL)
-	if err != nil {
-		return err
-	}
-	_, err = c.service.Images.Get(c.projectID, path.Base(url.Path)).Do()
-	if err != nil {
-		return err
-	}
-
 	instance := &compute.Instance{
 		Name:        instanceName,
 		MachineType: c.projectEndpoint + "/zones/" + c.zone + "/machineTypes/" + machineType,
@@ -146,9 +126,28 @@ func (c *ComputeClient) Create(
 		},
 	}
 
-	_, err = c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
+	insertOp, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
 	if err != nil {
 		return err
+	}
+
+	var waitOp *compute.Operation
+	for {
+		log.Info("waiting for completion of compute API...", nil)
+		// zoneOperations.wait API is a blocking call.
+		// But sometimes it returns before an operation will be "DONE". So retry until be "DONE".
+		// https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait#iam-permissions
+		waitOp, err = c.service.ZoneOperations.Wait(c.projectID, c.zone, insertOp.Name).Do()
+		if err != nil {
+			return err
+		}
+		if waitOp.Status == "DONE" {
+			break
+		}
+	}
+	if waitOp.Error != nil {
+		str, _ := waitOp.Error.MarshalJSON()
+		return fmt.Errorf("failed to create instance: %s", str)
 	}
 
 	// Wait for instance creation
