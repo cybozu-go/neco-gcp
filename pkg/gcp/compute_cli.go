@@ -276,7 +276,7 @@ func (cc *ComputeCLIClient) ResizeHomeDisk(ctx context.Context) error {
 	}
 
 	gcmdResize := cc.gCloudComputeDisks()
-	gcmdResize = append(gcmdResize, "resize", "home", "--size", configSize)
+	gcmdResize = append(gcmdResize, "resize", "home", "--size", configSize, "--zone", cc.cfg.Common.Zone)
 	c = well.CommandContext(ctx, gcmdResize[0], gcmdResize[1:]...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
