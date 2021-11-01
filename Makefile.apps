@@ -1,37 +1,85 @@
-NUM_VERSIONS = $(shell gcloud app versions list --project $(PROJECT) --format list | wc -l)
-PROJECT = neco-test
+GCP_PROJECT = neco-test
+REGION := asia-northeast1
 
-.PHONY:	all
-all:
-	@echo "Specify one of these targets:"
-	@echo
-	@echo "    create    - Deploy GAE app on neco-test"
-	@echo "    destroy   - Destroy all version of GAE app on neco-test"
+TEAM_NAME ?=
+INSTANCE_NUM ?=
+LOG_LEVEL ?= info
 
-.PHONY:	create
-create:
-	gcloud app deploy \
-		--project $(PROJECT) \
-		--quiet \
-		--promote \
-		--stop-previous-version \
-		$(CURDIR)/necogcp-app/app.yaml \
-		$(CURDIR)/necogcp-app/cron.yaml
+SERVICE_FUNCTION_ACCOUNT_NAME := gcp-apps-function
+SERVICE_FUNCTION_ACCOUNT_EMAIL := $(SERVICE_FUNCTION_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+SERVICE_FUNCTION_ACCOUNT_DISPNAME := "For function to create/delete VM instance"
 
-.PHONY: destroy
-destroy:
-	# delete old versions
-	if [ "$(NUM_VERSIONS)" -gt 1 ]; then \
-		gcloud app versions list \
-			--project $(PROJECT) \
-			--sort-by=LAST_DEPLOYED \
-			--limit $(shell expr $(NUM_VERSIONS) - 1) \
-			--format="value(version.id)" | \
-			xargs gcloud app versions delete --quiet; \
-	fi
-	# stop serving instances
-	gcloud app versions list \
-		--project $(PROJECT) \
-		--filter="SERVING_STATUS:SERVING" \
-		--format="value(version.id)" | \
-		xargs gcloud app versions stop --quiet
+
+init: \
+	enable-api \
+	create-function-service-account \
+	deploy-extend-function \
+	deploy-shutdown-function \
+
+clean: \
+	delete-function-service-account \
+	delete-extend-function \
+	delete-shutdown-function \
+
+enable-api:
+	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudfunctions.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudscheduler.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudbuild.googleapis.com
+
+create-function-service-account:
+	gcloud iam service-accounts create $(SERVICE_FUNCTION_ACCOUNT_NAME) \
+		--project $(GCP_PROJECT) \
+		--display-name $(SERVICE_FUNCTION_ACCOUNT_DISPNAME)
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_FUNCTION_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_FUNCTION_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+
+delete-function-service-account:
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_FUNCTION_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_FUNCTION_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud --quiet iam service-accounts delete $(SERVICE_FUNCTION_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
+deploy-extend-function:
+	gcloud --quiet functions deploy extend-api \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point ExtendEntryPoint \
+		--runtime go116 \
+		--trigger-http \
+		--memory 128MB \
+		--timeout 300s \
+		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)\
+
+deploy-shutdown-function:
+	gcloud --quiet functions deploy shutdown-api \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point ShutdownEntryPoint \
+		--runtime go116 \
+		--trigger-http \
+		--memory 128MB \
+		--timeout 300s \
+		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)
+
+delete-extend-function:
+	gcloud --quiet functions delete extend-api --project $(GCP_PROJECT) --region $(REGION)
+
+delete-shutdown-function:
+	gcloud --quiet functions delete shutdown-api --project $(GCP_PROJECT) --region $(REGION)
+
+
+.PHONY: \
+	init \
+	clean \
+	enable-api \
+	create-function-service-account delete-function-service-account \
+	deploy-extend-function delete-extend-function \
+	deploy-shutdown-function delete-shutdown-function \

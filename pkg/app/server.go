@@ -18,7 +18,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Server is the API Server of GAE app
+// Server is the API Server of cloud functions app
 type Server struct {
 	client *http.Client
 	cfg    *gcp.Config
@@ -39,18 +39,7 @@ func NewServer(cfg *gcp.Config) (*Server, error) {
 	}, nil
 }
 
-// HandleShutdown handles REST API /shutdown
-func (s Server) HandleShutdown(w http.ResponseWriter, r *http.Request) {
-	gaeHeader := r.Header.Get("X-Appengine-Cron")
-	if len(gaeHeader) == 0 {
-		RenderError(r.Context(), w, APIErrForbidden)
-		return
-	}
-
-	s.shutdown(w, r)
-}
-
-func (s Server) shutdown(w http.ResponseWriter, r *http.Request) {
+func (s Server) Shutdown(w http.ResponseWriter, r *http.Request) {
 	project := s.cfg.Common.Project
 	commonZone := s.cfg.Common.Zone
 	addZones := s.cfg.App.Shutdown.AdditionalZones
@@ -125,7 +114,6 @@ func (s Server) shutdown(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 	log.Info("shutdown instances", map[string]interface{}{
 		"deleted": status.Deleted,
 		"stopped": status.Stopped,
@@ -158,11 +146,6 @@ func getShutdownAt(instance *compute.Instance) (time.Time, error) {
 	return time.Time{}, errShutdownMetadataNotFound
 }
 
-// HandleExtend handles REST API /extend
-func (s Server) HandleExtend(w http.ResponseWriter, r *http.Request) {
-	s.extend(w, r)
-}
-
 func (s Server) findGCPInstanceByName(service *compute.Service, project string, instance string) (*compute.Instance, string, error) {
 	commonZone := s.cfg.Common.Zone
 	addZones := s.cfg.App.Shutdown.AdditionalZones
@@ -185,7 +168,7 @@ func (s Server) findGCPInstanceByName(service *compute.Service, project string, 
 	return nil, "", err
 }
 
-func (s Server) extend(w http.ResponseWriter, r *http.Request) {
+func (s Server) Extend(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	bodyRaw, err := ioutil.ReadAll(r.Body)
 	if err != nil {
