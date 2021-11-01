@@ -17,6 +17,7 @@ const (
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
 	ghcrDockerConfigName         = "ghcr-readonly-dockerconfigjson"
 	quayDockerConfigName         = "quay-readonly-dockerconfigjson"
+	cybozuPrivateRepoReadPATName = "cybuzo-private-repo-read-pat"
 	autoDCTestServiceAccountName = "auto-dctest-vminstance"
 	slackNotifierConfigName      = "slack-notifier-config"
 )
@@ -162,6 +163,7 @@ git checkout %s &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
 gcloud secrets versions access latest --secret="%s" > ghcr_dockerconfig.json &&
 gcloud secrets versions access latest --secret="%s" > quay_dockerconfig.json &&
+gcloud secrets versions access latest --secret="%s" > cybozu_private_repo_read_pat &&
 make setup dctest SUITE=bootstrap OVERLAY=neco-dev
 }
 
@@ -170,7 +172,7 @@ if run_necoapps ; then
 else
   delete_myself
 fi
-`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName)
+`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName, cybozuPrivateRepoReadPATName)
 	}
 	return s
 }
