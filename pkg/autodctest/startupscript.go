@@ -1,31 +1,17 @@
-package necogcp
+package autodctest
 
 import (
 	"errors"
 	"fmt"
 )
 
-// This file contains settings or constants which specific to the Neco project.
-
 const (
-	necoBranch     = "release"
-	necoAppsBranch = "release"
-
-	machineType = "n1-highmem-32"
-	zone        = "asia-northeast1-c"
-
 	necoAppsAccountSecretName    = "cloud-dns-admin-account"
 	ghcrDockerConfigName         = "ghcr-readonly-dockerconfigjson"
 	quayDockerConfigName         = "quay-readonly-dockerconfigjson"
 	cybozuPrivateRepoReadPATName = "cybuzo-private-repo-read-pat"
 	autoDCTestServiceAccountName = "auto-dctest-vminstance"
-	slackNotifierConfigName      = "slack-notifier-config"
 )
-
-// MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
-func MakeVMXEnabledImageURL(projectID string) string {
-	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
-}
 
 // MakeNecoDevServiceAccountEmail returns custom service account name in the project
 func MakeNecoDevServiceAccountEmail(projectID string) string {

@@ -5,8 +5,7 @@ import (
 	"errors"
 
 	"github.com/cybozu-go/log"
-	necogcp "github.com/cybozu-go/neco-gcp"
-	"github.com/cybozu-go/neco-gcp/pkg/functions"
+	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -54,14 +53,14 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 				"instancenameprefix": instanceNamePrefix,
 				"instancesnum":       instancesNum,
 			})
-			runner := functions.NewAutoDCTestRunner(cc)
+			runner := autodctest.NewAutoDCTestRunner(cc)
 			return runner.CreateInstancesIfNotExist(
 				ctx,
 				instanceNamePrefix,
 				instancesNum,
 				serviceAccountName,
 				machineType,
-				necogcp.MakeVMXEnabledImageURL(projectID),
+				gcp.MakeVMXEnabledImageURL(projectID),
 				"",
 			)
 		})

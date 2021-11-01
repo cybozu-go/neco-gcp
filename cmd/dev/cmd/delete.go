@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/functions"
+	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -37,7 +37,7 @@ Please DO NOT use this command except for the purpose.
 				"project": projectID,
 				"zone":    zone,
 			})
-			runner := functions.NewAutoDCTestRunner(cc)
+			runner := autodctest.NewAutoDCTestRunner(cc)
 			return runner.DeleteFilteredInstances(ctx, "")
 		})
 

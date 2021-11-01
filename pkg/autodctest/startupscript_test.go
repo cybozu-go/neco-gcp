@@ -1,4 +1,4 @@
-package necogcp
+package autodctest
 
 import (
 	"strings"
