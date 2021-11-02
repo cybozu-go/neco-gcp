@@ -53,7 +53,7 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 				"instancenameprefix": instanceNamePrefix,
 				"instancesnum":       instancesNum,
 			})
-			runner := autodctest.NewAutoDCTestRunner(cc)
+			runner := autodctest.NewRunner(cc)
 			return runner.CreateInstancesIfNotExist(
 				ctx,
 				instanceNamePrefix,

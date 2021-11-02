@@ -25,8 +25,8 @@ const (
 	projectIDEnvName = "GCP_PROJECT"
 )
 
-// AutoDCTestMessageBody is body of Pub/Sub message.
-type AutoDCTestMessageBody struct {
+// messageBody is body of Pub/Sub message.
+type messageBody struct {
 	Mode               string `json:"mode"`
 	InstanceNamePrefix string `json:"namePrefix"`
 	InstancesNum       int    `json:"num"`
@@ -38,7 +38,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
-	var b AutoDCTestMessageBody
+	var b messageBody
 	err := json.Unmarshal(m.Data, &b)
 	if err != nil {
 		log.Error("failed to unmarshal json", map[string]interface{}{
@@ -68,7 +68,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string
 		})
 		return err
 	}
-	runner := NewAutoDCTestRunner(client)
+	runner := NewRunner(client)
 
 	switch b.Mode {
 	case createInstancesMode:
@@ -90,7 +90,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string
 			return nil
 		}
 
-		builder, err := NewNecoStartupScriptBuilder().
+		builder, err := NewStartupScriptBuilder().
 			WithFluentd().
 			WithNeco(necoBranch).
 			WithNecoApps(necoAppsBranch)

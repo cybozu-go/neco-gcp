@@ -6,12 +6,12 @@ import (
 )
 
 func TestNecoStartupScriptBuilder(t *testing.T) {
-	_, err := NewNecoStartupScriptBuilder().WithNecoApps("this-is-neco-apps")
+	_, err := NewStartupScriptBuilder().WithNecoApps("this-is-neco-apps")
 	if err == nil {
 		t.Errorf("should fail when neco-apps is enabled without neco")
 	}
 
-	builder, err := NewNecoStartupScriptBuilder().
+	builder, err := NewStartupScriptBuilder().
 		WithFluentd().
 		WithNeco("this-is-neco").
 		WithNecoApps("this-is-neco-apps")
