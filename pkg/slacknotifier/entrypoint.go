@@ -59,7 +59,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 		"len": len(result.GetPayload().GetData()),
 	})
 
-	c, err := NewSlackNotifierConfig(result.GetPayload().GetData())
+	c, err := NewConfig(result.GetPayload().GetData())
 	if err != nil {
 		log.Error("failed to read config", map[string]interface{}{
 			log.FnError: err,
