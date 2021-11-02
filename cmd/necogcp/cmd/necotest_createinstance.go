@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	necogcp "github.com/cybozu-go/neco-gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -33,12 +33,12 @@ var necotestCreateInstanceCmd = &cobra.Command{
 			log.ErrorExit(errors.New("project id is required"))
 		}
 		if len(serviceAccountEmail) == 0 {
-			serviceAccountEmail = necogcp.MakeNecoDevServiceAccountEmail(projectID)
+			serviceAccountEmail = autodctest.MakeNecoDevServiceAccountEmail(projectID)
 			log.Info("Use default service account", map[string]interface{}{
 				"serviceaccount": serviceAccountEmail,
 			})
 		}
-		builder := necogcp.NewNecoStartupScriptBuilder().WithFluentd()
+		builder := autodctest.NewNecoStartupScriptBuilder().WithFluentd()
 		if len(necoBranch) > 0 {
 			log.Info("run neco", map[string]interface{}{
 				"branch": necoBranch,
@@ -77,7 +77,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				createInstanceName,
 				serviceAccountEmail,
 				machineType,
-				necogcp.MakeVMXEnabledImageURL(projectID),
+				gcp.MakeVMXEnabledImageURL(projectID),
 				builder.Build(),
 			)
 		})

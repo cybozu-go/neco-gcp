@@ -10,13 +10,15 @@ import (
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
+const slackNotifierConfigName = "slack-notifier-config"
+
 // makeConfigURL retruns config url for slack notifier
-func makeConfigURL(projectID, secretName string) string {
-	return "projects/" + projectID + "/secrets/" + secretName + "/versions/latest"
+func makeConfigURL(projectID string) string {
+	return "projects/" + projectID + "/secrets/" + slackNotifierConfigName + "/versions/latest"
 }
 
-// SendNotification consumes a Pub/Sub message to send notification via Slack
-func SendNotification(ctx context.Context, secretName string, m *pubsub.Message) error {
+// EntryPoint consumes a Pub/Sub message to send notification via Slack
+func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
@@ -44,7 +46,7 @@ func SendNotification(ctx context.Context, secretName string, m *pubsub.Message)
 	result, err := client.AccessSecretVersion(
 		ctx,
 		&secretmanagerpb.AccessSecretVersionRequest{
-			Name: makeConfigURL(b.GetProjectID(), secretName),
+			Name: makeConfigURL(b.GetProjectID()),
 		},
 	)
 	if err != nil {

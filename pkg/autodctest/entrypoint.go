@@ -1,4 +1,4 @@
-package necogcp
+package autodctest
 
 import (
 	"context"
@@ -9,11 +9,13 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/functions"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 const (
+	necoBranch     = "release"
+	necoAppsBranch = "release"
+
 	deleteInstancesMode = "delete"
 	createInstancesMode = "create"
 
@@ -31,8 +33,8 @@ type AutoDCTestMessageBody struct {
 	DoForceDelete      bool   `json:"doForce"`
 }
 
-// AutoDCTestEntryPoint consumes a Pub/Sub message
-func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
+// EntryPoint consumes a Pub/Sub message
+func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string, jpHolidays []string) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
@@ -66,7 +68,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		})
 		return err
 	}
-	runner := functions.NewAutoDCTestRunner(client)
+	runner := NewAutoDCTestRunner(client)
 
 	switch b.Mode {
 	case createInstancesMode:
@@ -100,7 +102,7 @@ func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		}
 
 		sa := MakeNecoDevServiceAccountEmail(projectID)
-		imageURL := MakeVMXEnabledImageURL(projectID)
+		imageURL := gcp.MakeVMXEnabledImageURL(projectID)
 		err = runner.CreateInstancesIfNotExist(
 			ctx,
 			b.InstanceNamePrefix,
