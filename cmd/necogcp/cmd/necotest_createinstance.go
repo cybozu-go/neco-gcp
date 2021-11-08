@@ -38,7 +38,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				"serviceaccount": serviceAccountEmail,
 			})
 		}
-		builder := autodctest.NewNecoStartupScriptBuilder().WithFluentd()
+		builder := autodctest.NewStartupScriptBuilder().WithFluentd()
 		if len(necoBranch) > 0 {
 			log.Info("run neco", map[string]interface{}{
 				"branch": necoBranch,

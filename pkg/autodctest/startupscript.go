@@ -18,32 +18,32 @@ func MakeNecoDevServiceAccountEmail(projectID string) string {
 	return fmt.Sprintf("%s@%s.iam.gserviceaccount.com", autoDCTestServiceAccountName, projectID)
 }
 
-// NecoStartupScriptBuilder creates startup-script builder to run dctest
-type NecoStartupScriptBuilder struct {
+// StartupScriptBuilder creates startup-script builder to run dctest
+type StartupScriptBuilder struct {
 	withFluentd    bool
 	necoBranch     string
 	necoAppsBranch string
 }
 
-// NewNecoStartupScriptBuilder creates NecoStartupScriptBuilder
-func NewNecoStartupScriptBuilder() *NecoStartupScriptBuilder {
-	return &NecoStartupScriptBuilder{}
+// NewStartupScriptBuilder creates NecoStartupScriptBuilder
+func NewStartupScriptBuilder() *StartupScriptBuilder {
+	return &StartupScriptBuilder{}
 }
 
 // WithFluentd enables fluentd logging
-func (b *NecoStartupScriptBuilder) WithFluentd() *NecoStartupScriptBuilder {
+func (b *StartupScriptBuilder) WithFluentd() *StartupScriptBuilder {
 	b.withFluentd = true
 	return b
 }
 
 // WithNeco sets branch name to run neco
-func (b *NecoStartupScriptBuilder) WithNeco(branch string) *NecoStartupScriptBuilder {
+func (b *StartupScriptBuilder) WithNeco(branch string) *StartupScriptBuilder {
 	b.necoBranch = branch
 	return b
 }
 
 // WithNecoApps sets branch name to run neco-apps
-func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScriptBuilder, error) {
+func (b *StartupScriptBuilder) WithNecoApps(branch string) (*StartupScriptBuilder, error) {
 	if len(b.necoBranch) == 0 {
 		return nil, errors.New("please specify neco branch to run neco-apps")
 	}
@@ -52,7 +52,7 @@ func (b *NecoStartupScriptBuilder) WithNecoApps(branch string) (*NecoStartupScri
 }
 
 // Build  builds startup script
-func (b *NecoStartupScriptBuilder) Build() string {
+func (b *StartupScriptBuilder) Build() string {
 	s := `#! /bin/sh
 
 echo "starting auto dctest..."
