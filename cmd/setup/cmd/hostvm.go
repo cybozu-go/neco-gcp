@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/setup"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +27,7 @@ Please run this command on host-vm instance.`,
 			if hostname != "host-vm" {
 				return errors.New("this host is not supported")
 			}
-			return gcp.SetupHostVM(ctx)
+			return setup.HostVM(ctx)
 		})
 		well.Stop()
 		err := well.Wait()

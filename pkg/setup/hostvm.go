@@ -1,4 +1,4 @@
-package gcp
+package setup
 
 import (
 	"bytes"
@@ -27,8 +27,8 @@ type temporaryer interface {
 	Temporary() bool
 }
 
-// SetupHostVM setup vmx-enabled instance
-func SetupHostVM(ctx context.Context) error {
+// HostVM setup vmx-enabled instance
+func HostVM(ctx context.Context) error {
 	err := enableXForwarding()
 	if err != nil {
 		return err
@@ -90,9 +90,8 @@ func mountHomeDisk(ctx context.Context) error {
 	 * Those daemons touch $HOME to install ssh keys.
 	 * We stop them during mounting /home just in case.
 	 */
-	accountDaemons := []string{"google-accounts-daemon", "google-guest-agent"}
-	accountDaemon := ""
-	for _, ad := range accountDaemons {
+	var accountDaemon string
+	for _, ad := range []string{"google-accounts-daemon", "google-guest-agent"} {
 		exists, err := ExistsService(ctx, ad)
 		if err != nil {
 			return err
@@ -106,27 +105,33 @@ func mountHomeDisk(ctx context.Context) error {
 		return errors.New("no known account daemon found")
 	}
 
-	err = RetryWithSleep(ctx, retryCount, time.Second,
-		func(ctx context.Context) error {
-			active, err := IsActiveService(ctx, accountDaemon)
-			if err != nil {
-				return err
-			}
-			if !active {
-				return errors.New(accountDaemon + ".service is not yet active")
-			}
-			return nil
+	var active bool
+	for retryCount := 0; retryCount < 300; retryCount++ {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Second):
+		}
 
-		},
-		func(err error) {
-			log.Error("timeout for checking service is active", map[string]interface{}{
+		result, err := IsActiveService(ctx, accountDaemon)
+		if err != nil {
+			log.Error("failed to check account daemon", map[string]interface{}{
 				log.FnError: err,
 				"service":   accountDaemon + ".service",
 			})
-		},
-	)
-	if err != nil {
-		return err
+			continue
+		}
+		if !result {
+			log.Error("account daemon is not yet active", map[string]interface{}{
+				"service": accountDaemon + ".service",
+			})
+			continue
+		}
+		active = true
+		break
+	}
+	if !active {
+		return errors.New("account daemon is inactive")
 	}
 
 	err = StopService(ctx, accountDaemon)

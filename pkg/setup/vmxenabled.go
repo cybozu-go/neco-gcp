@@ -1,4 +1,4 @@
-package gcp
+package setup
 
 import (
 	"archive/tar"
@@ -34,8 +34,8 @@ var (
 	}
 )
 
-// SetupVMXEnabled setup vmx-enabled instance
-func SetupVMXEnabled(ctx context.Context, project string, optionalPackages []string) error {
+// VMXEnabled setup vmx-enabled instance
+func VMXEnabled(ctx context.Context, project string, optionalPackages []string) error {
 	err := configureDNS(ctx)
 	if err != nil {
 		return err

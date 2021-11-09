@@ -4,6 +4,11 @@ import (
 	"context"
 )
 
+const (
+	vmxEnabledBaseImage        = "ubuntu-2004-focal-v20210908"
+	vmxEnabledBaseImageProject = "ubuntu-os-cloud"
+)
+
 // MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
 func MakeVMXEnabledImageURL(projectID string) string {
 	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"

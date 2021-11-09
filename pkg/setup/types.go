@@ -1,4 +1,4 @@
-package gcp
+package setup
 
 import (
 	"fmt"
@@ -6,14 +6,12 @@ import (
 
 // artifactSet represents a set of artifacts for GCP instance.
 type artifactSet struct {
-	goVersion        string
-	etcdVersion      string
-	placematVersion  string
-	coreOSVersion    string
-	ctVersion        string
-	baseImage        string
-	baseImageProject string
-	debPackages      []string
+	goVersion       string
+	etcdVersion     string
+	placematVersion string
+	coreOSVersion   string
+	ctVersion       string
+	debPackages     []string
 }
 
 func (a artifactSet) seaBIOSURLs() []string {
@@ -38,7 +36,7 @@ func (a artifactSet) ctURL() string {
 
 func (a artifactSet) assetURLs() []string {
 	return []string{
-		fmt.Sprintf("https://github.com/coreos/etcd/releases/download/v%s/etcd-v%s-linux-amd64.tar.gz", a.etcdVersion, a.etcdVersion),
+		fmt.Sprintf("https://github.com/etcd-io/etcd/releases/download/v%s/etcd-v%s-linux-amd64.tar.gz", a.etcdVersion, a.etcdVersion),
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_qemu_image.img.bz2", a.coreOSVersion),
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe.vmlinuz", a.coreOSVersion),
 		fmt.Sprintf("https://stable.release.flatcar-linux.net/amd64-usr/%s/flatcar_production_pxe_image.cpio.gz", a.coreOSVersion),
