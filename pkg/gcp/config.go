@@ -135,7 +135,7 @@ func NecoTestConfig(projectID, zone string) *Config {
 			},
 		},
 		Compute: ComputeConfig{
-			MachineType:    "n1-highmem-32",
+			MachineType:    "n1-standard-64",
 			BootDiskSizeGB: defaultBootDiskSizeGB,
 			HostVM: HostVMConfig{
 				HomeDisk:       defaultHomeDisk,

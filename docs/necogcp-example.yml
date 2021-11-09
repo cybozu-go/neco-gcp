@@ -9,7 +9,7 @@ app:
     - my-instance-1
     - my-instance-2
 compute:
-  machine-type: n1-highmem-32
+  machine-type: n1-standard-64
   auto-shutdown:
     timezone: "Asia/Tokyo"
     shutdown-at: "21:00"

@@ -2,7 +2,7 @@ package necogcp
 
 // Instance settings for auto dctest
 const (
-	autoDCTestMachineType = "n1-highmem-32"
+	autoDCTestMachineType = "n1-standard-64"
 	autoDCTestZone        = "asia-northeast1-c"
 )
 
