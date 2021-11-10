@@ -1,4 +1,4 @@
-package app
+package api
 
 // ShutdownStatus represents status of /shutdown
 type ShutdownStatus struct {

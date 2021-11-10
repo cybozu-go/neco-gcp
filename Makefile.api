@@ -5,7 +5,7 @@ TEAM_NAME ?=
 INSTANCE_NUM ?=
 LOG_LEVEL ?= info
 
-SERVICE_FUNCTION_ACCOUNT_NAME := gcp-apps-function
+SERVICE_FUNCTION_ACCOUNT_NAME := gcp-http-function
 SERVICE_FUNCTION_ACCOUNT_EMAIL := $(SERVICE_FUNCTION_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 SERVICE_FUNCTION_ACCOUNT_DISPNAME := "For function to create/delete VM instance"
 
@@ -48,7 +48,7 @@ delete-function-service-account:
 	gcloud --quiet iam service-accounts delete $(SERVICE_FUNCTION_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
 deploy-extend-function:
-	gcloud --quiet functions deploy extend-api \
+	gcloud --quiet functions deploy extend \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ExtendEntryPoint \
@@ -59,7 +59,7 @@ deploy-extend-function:
 		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)\
 
 deploy-shutdown-function:
-	gcloud --quiet functions deploy shutdown-api \
+	gcloud --quiet functions deploy shutdown \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ShutdownEntryPoint \
@@ -70,10 +70,10 @@ deploy-shutdown-function:
 		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)
 
 delete-extend-function:
-	gcloud --quiet functions delete extend-api --project $(GCP_PROJECT) --region $(REGION)
+	gcloud --quiet functions delete extend --project $(GCP_PROJECT) --region $(REGION)
 
 delete-shutdown-function:
-	gcloud --quiet functions delete shutdown-api --project $(GCP_PROJECT) --region $(REGION)
+	gcloud --quiet functions delete shutdown --project $(GCP_PROJECT) --region $(REGION)
 
 
 .PHONY: \

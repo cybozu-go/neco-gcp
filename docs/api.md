@@ -1,4 +1,4 @@
-GAE app REST API
+Google Cloud Functions REST API
 ================
 
 - [POST /shutdown](#shutdown)
