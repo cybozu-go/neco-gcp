@@ -35,7 +35,7 @@ var (
 )
 
 // VMXEnabled setup vmx-enabled instance
-func VMXEnabled(ctx context.Context, project string, optionalPackages []string) error {
+func VMXEnabled(ctx context.Context, project string, artifacts *ArtifactSet, optionalPackages []string) error {
 	err := configureDNS(ctx)
 	if err != nil {
 		return err
@@ -66,7 +66,8 @@ func VMXEnabled(ctx context.Context, project string, optionalPackages []string) 
 		return err
 	}
 
-	err = installAptPackages(ctx, optionalPackages)
+	debPackages := append(artifacts.DebPackages, optionalPackages...)
+	err = installAptPackages(ctx, debPackages)
 	if err != nil {
 		return err
 	}
@@ -89,12 +90,12 @@ func VMXEnabled(ctx context.Context, project string, optionalPackages []string) 
 		Timeout:   10 * time.Minute,
 	}
 
-	err = installSeaBIOS(client)
+	err = installSeaBIOS(client, artifacts.seaBIOSURLs())
 	if err != nil {
 		return err
 	}
 
-	err = installGo(client)
+	err = installGo(client, artifacts.goURL())
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func VMXEnabled(ctx context.Context, project string, optionalPackages []string) 
 	}
 
 	if project == "neco-test" || project == "neco-dev" {
-		err = downloadAssets(client)
+		err = downloadAssets(client, artifacts.assetURLs(), artifacts.bz2Files())
 		if err != nil {
 			return err
 		}
@@ -254,31 +255,23 @@ func configureDocker(ctx context.Context) error {
 	return well.CommandContext(ctx, "add-apt-repository", "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable").Run()
 }
 
-func installAptPackages(ctx context.Context, optionalPackages []string) error {
+func installAptPackages(ctx context.Context, debPackages []string) error {
 	err := apt(ctx, "update")
 	if err != nil {
 		return err
 	}
 
 	args := []string{"install", "-y", "--no-install-recommends"}
-	args = append(args, artifacts.debPackages...)
+	args = append(args, debPackages...)
 	err = apt(ctx, args...)
 	if err != nil {
 		return err
 	}
-	if len(optionalPackages) != 0 {
-		args := []string{"install", "-y", "--no-install-recommends"}
-		args = append(args, optionalPackages...)
-		err = apt(ctx, args...)
-		if err != nil {
-			return err
-		}
-	}
 	return apt(ctx, "clean")
 }
 
-func installSeaBIOS(client *http.Client) error {
-	for _, url := range artifacts.seaBIOSURLs() {
+func installSeaBIOS(client *http.Client, urls []string) error {
+	for _, url := range urls {
 		err := downloadFile(client, url, "/usr/share/seabios")
 		if err != nil {
 			return err
@@ -288,8 +281,8 @@ func installSeaBIOS(client *http.Client) error {
 	return nil
 }
 
-func installGo(client *http.Client) error {
-	resp, err := client.Get(artifacts.goURL())
+func installGo(client *http.Client, url string) error {
+	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
@@ -423,14 +416,14 @@ func copyStatic(fileName string) error {
 	return err
 }
 
-func downloadAssets(client *http.Client) error {
+func downloadAssets(client *http.Client, assetURLs, bz2Files []string) error {
 	err := os.MkdirAll(assetDir, 0755)
 	if err != nil {
 		return err
 	}
 
 	// Download files
-	for _, url := range artifacts.assetURLs() {
+	for _, url := range assetURLs {
 		err := downloadFile(client, url, assetDir)
 		if err != nil {
 			return err
@@ -441,7 +434,7 @@ func downloadAssets(client *http.Client) error {
 	}
 
 	// Decompress bzip2 archives
-	for _, bz2file := range artifacts.bz2Files() {
+	for _, bz2file := range bz2Files {
 		bz2, err := os.Open(filepath.Join(assetDir, bz2file))
 		if err != nil {
 			return err

@@ -4,21 +4,16 @@ import (
 	"context"
 )
 
-const (
-	vmxEnabledBaseImage        = "ubuntu-2004-focal-v20210908"
-	vmxEnabledBaseImageProject = "ubuntu-os-cloud"
-)
-
 // MakeVMXEnabledImageURL returns vmx-enabled image URL in the project
 func MakeVMXEnabledImageURL(projectID string) string {
 	return "https://www.googleapis.com/compute/v1/projects/" + projectID + "/global/images/vmx-enabled"
 }
 
 // CreateVMXEnabledImage creates vmx-enabled image
-func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient) error {
+func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, baseImageProject, baseImage string) error {
 	cc.DeleteInstance(ctx)
 
-	err := cc.CreateVMXEnabledInstance(ctx)
+	err := cc.CreateVMXEnabledInstance(ctx, baseImageProject, baseImage)
 	if err != nil {
 		return err
 	}

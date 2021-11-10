@@ -20,7 +20,7 @@ build-dev:
 	go build -o ./build/dev ./cmd/dev
 
 build-setup:
-	GOOS=linux GOARCH=amd64 go build -o ./pkg/gcp/assets/bin/ ./cmd/setup
+	GOOS=linux GOARCH=amd64 go build -o ./pkg/gcp/bin/ ./cmd/setup
 
 build-necogcp: build-setup
 	mkdir -p build
@@ -30,7 +30,7 @@ install-necogcp: build-setup
 	go install ./cmd/necogcp
 
 clean:
-	rm -rf ./build ./pkg/gcp/assets/bin
+	rm -rf ./build ./pkg/gcp/bin/setup
 
 .PHONY: \
 	setup \

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/cybozu-go/log"
+	necogcp "github.com/cybozu-go/neco-gcp"
 	"github.com/cybozu-go/neco-gcp/pkg/setup"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -38,7 +39,7 @@ Please run this command on vmx-enabled instance.`,
 				return err
 			}
 
-			return setup.VMXEnabled(ctx, args[0], optionalPackages)
+			return setup.VMXEnabled(ctx, args[0], &necogcp.VMXEnabledArtifacts, optionalPackages)
 		})
 		well.Stop()
 		err := well.Wait()

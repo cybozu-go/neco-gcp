@@ -101,13 +101,13 @@ func (cc *ComputeCLIClient) gCloudComputeSSH(command []string) []string {
 }
 
 // CreateVMXEnabledInstance creates vmx-enabled instance
-func (cc *ComputeCLIClient) CreateVMXEnabledInstance(ctx context.Context) error {
+func (cc *ComputeCLIClient) CreateVMXEnabledInstance(ctx context.Context, baseImageProject, baseImage string) error {
 	gcmd := cc.gCloudComputeInstances()
 	bootDiskSize := strconv.Itoa(cc.cfg.Compute.BootDiskSizeGB) + "GB"
 	gcmd = append(gcmd, "create", cc.instance,
 		"--zone", cc.cfg.Common.Zone,
-		"--image", vmxEnabledBaseImage,
-		"--image-project", vmxEnabledBaseImageProject,
+		"--image-project", baseImageProject,
+		"--image", baseImage,
 		"--boot-disk-type", "pd-ssd",
 		"--boot-disk-size", bootDiskSize,
 		"--machine-type", cc.cfg.Compute.MachineType)
