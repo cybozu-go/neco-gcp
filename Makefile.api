@@ -8,18 +8,21 @@ LOG_LEVEL ?= info
 SERVICE_FUNCTION_ACCOUNT_NAME := gcp-http-function
 SERVICE_FUNCTION_ACCOUNT_EMAIL := $(SERVICE_FUNCTION_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 SERVICE_FUNCTION_ACCOUNT_DISPNAME := "For function to create/delete VM instance"
-
+SHUTDOWN_SCHEDULER_NAME := shutdown
+TOPIC_NAME := shutdown-events
 
 init: \
 	enable-api \
 	create-function-service-account \
 	deploy-extend-function \
 	deploy-shutdown-function \
+	create-shutdown-scheduler \
 
 clean: \
 	delete-function-service-account \
 	delete-extend-function \
 	delete-shutdown-function \
+	delete-shutdown-scheduler \
 
 enable-api:
 	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
@@ -64,7 +67,7 @@ deploy-shutdown-function:
 		--region $(REGION) \
 		--entry-point ShutdownEntryPoint \
 		--runtime go116 \
-		--trigger-http \
+		--trigger-topic $(TOPIC_NAME) \
 		--memory 128MB \
 		--timeout 300s \
 		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)
@@ -76,6 +79,18 @@ delete-shutdown-function:
 	gcloud --quiet functions delete shutdown --project $(GCP_PROJECT) --region $(REGION)
 
 
+create-shutdown-scheduler:
+	gcloud scheduler jobs create pubsub $(SHUTDOWN_SCHEDULER_NAME) \
+		--project $(GCP_PROJECT) \
+		--schedule '*/5 * * * *' \
+		--topic $(TOPIC_NAME) \
+		--message-body '{}' \
+		--time-zone 'Asia/Tokyo' \
+		--description 'shutdown vm instances'
+
+delete-shutdown-scheduler:
+	gcloud --quiet scheduler jobs delete $(SHUTDOWN_SCHEDULER_NAME) --project $(GCP_PROJECT)
+
 .PHONY: \
 	init \
 	clean \
@@ -83,3 +98,4 @@ delete-shutdown-function:
 	create-function-service-account delete-function-service-account \
 	deploy-extend-function delete-extend-function \
 	deploy-shutdown-function delete-shutdown-function \
+	create-shutdown-scheduler delete-shutdown-scheduler

@@ -26,7 +26,7 @@ func ExtendEntryPoint(w http.ResponseWriter, r *http.Request) {
 		log.ErrorExit(err)
 	}
 	cfg := gcp.NecoTestConfig("yamatchas-test", "asia-northeast2-c")
-	Extend(w, r, client, cfg)
+	extend(w, r, client, cfg)
 }
 
 func contain(name string, items []string) bool {
@@ -69,7 +69,7 @@ func findGCPInstanceByName(service *compute.Service, project string, instance st
 	return nil, "", err
 }
 
-func Extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gcp.Config) {
+func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gcp.Config) {
 	defer r.Body.Close()
 	bodyRaw, err := ioutil.ReadAll(r.Body)
 	if err != nil {

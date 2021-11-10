@@ -19,10 +19,10 @@ func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message) error {
 		log.ErrorExit(err)
 	}
 	cfg := gcp.NecoTestConfig("yamatchas-test", "asia-northeast2-c")
-	return Shutdown(ctx, m, client, cfg)
+	return shutdown(ctx, m, client, cfg)
 }
 
-func Shutdown(ctx context.Context, m *pubsub.Message, client *http.Client, cfg *gcp.Config) error {
+func shutdown(ctx context.Context, m *pubsub.Message, client *http.Client, cfg *gcp.Config) error {
 	project := cfg.Common.Project
 	commonZone := cfg.Common.Zone
 	addZones := cfg.App.Shutdown.AdditionalZones

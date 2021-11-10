@@ -30,12 +30,10 @@ Edit [config.go](../../gcp/config.go)
 
 Edit [artifacts.go](../../gcp/artifacts.go)
 
-### Deploy GAE app
-
-`google-cloud-sdk-app-engine-go` should be installed before the deployment.
+### Deploy Cloud Functions app
 
 ```console
-make -f Makefile.apps create
+make -f Makefile.api init
 ```
 
 ### Create or Update `vmx-enabled` image for neco-test
