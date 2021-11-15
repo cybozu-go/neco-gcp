@@ -20,12 +20,12 @@ import (
 
 var errShutdownMetadataNotFound = errors.New(gcp.MetadataKeyShutdownAt + " is not found")
 
-func ExtendEntryPoint(w http.ResponseWriter, r *http.Request) {
+func ExtendEntryPoint(w http.ResponseWriter, r *http.Request, project, zone string) {
 	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/compute")
 	if err != nil {
 		log.ErrorExit(err)
 	}
-	cfg := gcp.NecoTestConfig("yamatchas-test", "asia-northeast2-c")
+	cfg := gcp.NecoTestConfig(project, zone)
 	extend(w, r, client, cfg)
 }
 

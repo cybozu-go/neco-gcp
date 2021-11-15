@@ -15,11 +15,11 @@ import (
 // >> For the Go runtime, your function must be in a Go package at the root of your project. Your function cannot be in package main. Sub-packages are only supported when using Go modules.
 
 func ExtendEntryPoint(w http.ResponseWriter, r *http.Request) {
-	api.ExtendEntryPoint(w, r)
+	api.ExtendEntryPoint(w, r, NecoTestProject, NecoTestZone)
 }
 
 func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	return api.ShutdownEntryPoint(ctx, m)
+	return api.ShutdownEntryPoint(ctx, m, NecoTestProject, NecoTestZone)
 }
 
 // SlackNotifierEntryPoint is the entrypoint for the "slack-notifier" function.

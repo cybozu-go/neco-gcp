@@ -13,7 +13,6 @@ TOPIC_NAME := shutdown-events
 
 init: \
 	enable-api \
-	create-function-service-account \
 	deploy-extend-function \
 	deploy-shutdown-function \
 	create-shutdown-scheduler \

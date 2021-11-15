@@ -13,12 +13,12 @@ import (
 	"google.golang.org/api/option"
 )
 
-func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message) error {
+func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message, necoTestProject, necoTestZone string) error {
 	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/compute")
 	if err != nil {
 		log.ErrorExit(err)
 	}
-	cfg := gcp.NecoTestConfig("yamatchas-test", "asia-northeast2-c")
+	cfg := gcp.NecoTestConfig(necoTestProject, necoTestZone)
 	return shutdown(ctx, m, client, cfg)
 }
 
