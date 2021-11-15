@@ -33,7 +33,7 @@ Edit [artifacts.go](../../gcp/artifacts.go)
 ### Deploy Cloud Functions app
 
 ```console
-make -f Makefile.api init
+make -f Makefile.instancedel init
 ```
 
 ### Create or Update `vmx-enabled` image for neco-test

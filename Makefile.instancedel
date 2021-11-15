@@ -1,7 +1,7 @@
 GCP_PROJECT = neco-test
 REGION := asia-northeast1
 
-SERVICE_ACCOUNT_NAME := gcp-api-function
+SERVICE_ACCOUNT_NAME := gcp-instance-deleter
 SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
 SERVICE_ACCOUNT_DISPNAME := "For function to extend/shutdown VM instance"
 SHUTDOWN_SCHEDULER_NAME := shutdown
@@ -9,7 +9,7 @@ TOPIC_NAME := shutdown-events
 
 init: \
 	enable-api \
-	create-service-account
+	create-service-account \
 	deploy-extend-function \
 	deploy-shutdown-function \
 	create-shutdown-scheduler \

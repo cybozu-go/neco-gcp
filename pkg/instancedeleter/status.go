@@ -1,4 +1,4 @@
-package api
+package instancedeleter
 
 // ShutdownStatus represents status of /shutdown
 type ShutdownStatus struct {
