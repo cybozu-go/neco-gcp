@@ -51,6 +51,13 @@ jobs:
           export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.slack deploy-function
 
+      - name: Set up Cloud SDK for neco-test
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.NECO_TEST_PROJECT_ID }}
+          service_account_key: ${{ secrets.NECO_TEST_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+          
       - name: Delete instance-deleter extend functions
         continue-on-error: true
         run: |
