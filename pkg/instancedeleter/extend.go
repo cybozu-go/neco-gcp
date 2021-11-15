@@ -1,4 +1,4 @@
-package app
+package instancedeleter
 
 import (
 	"context"
@@ -18,126 +18,15 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Server is the API Server of GAE app
-type Server struct {
-	client *http.Client
-	cfg    *gcp.Config
-}
-
 var errShutdownMetadataNotFound = errors.New(gcp.MetadataKeyShutdownAt + " is not found")
 
-// NewServer creates a new Server
-func NewServer(cfg *gcp.Config) (*Server, error) {
+func ExtendEntryPoint(w http.ResponseWriter, r *http.Request, project, zone string) {
 	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/compute")
 	if err != nil {
-		return nil, err
+		log.ErrorExit(err)
 	}
-
-	return &Server{
-		client: client,
-		cfg:    cfg,
-	}, nil
-}
-
-// HandleShutdown handles REST API /shutdown
-func (s Server) HandleShutdown(w http.ResponseWriter, r *http.Request) {
-	gaeHeader := r.Header.Get("X-Appengine-Cron")
-	if len(gaeHeader) == 0 {
-		RenderError(r.Context(), w, APIErrForbidden)
-		return
-	}
-
-	s.shutdown(w, r)
-}
-
-func (s Server) shutdown(w http.ResponseWriter, r *http.Request) {
-	project := s.cfg.Common.Project
-	commonZone := s.cfg.Common.Zone
-	addZones := s.cfg.App.Shutdown.AdditionalZones
-	exclude := s.cfg.App.Shutdown.Exclude
-	stop := s.cfg.App.Shutdown.Stop
-	status := ShutdownStatus{}
-	now := time.Now().UTC()
-	expiration := s.cfg.App.Shutdown.Expiration
-
-	service, err := compute.NewService(r.Context(), option.WithHTTPClient(s.client))
-	if err != nil {
-		RenderError(r.Context(), w, InternalServerError(err))
-		return
-	}
-
-	targetZones := append([]string{commonZone}, addZones...)
-	var errList []error
-	for _, zone := range targetZones {
-		instanceList, err := service.Instances.List(project, zone).Do()
-		if err != nil {
-			errList = append(errList, err)
-			continue
-		}
-
-		for _, instance := range instanceList.Items {
-			if contain(instance.Name, exclude) {
-				continue
-			}
-
-			shutdownAt, err := getShutdownAt(instance)
-			switch err {
-			case errShutdownMetadataNotFound:
-			case nil:
-				if now.Sub(shutdownAt) >= 0 {
-					_, err := service.Instances.Delete(project, zone, instance.Name).Do()
-					if err != nil {
-						errList = append(errList, err)
-						continue
-					}
-					status.Deleted = append(status.Deleted, instance.Name)
-				}
-				continue
-			default:
-				errList = append(errList, err)
-				continue
-			}
-
-			creationTime, err := time.Parse(time.RFC3339, instance.CreationTimestamp)
-			if err != nil {
-				errList = append(errList, err)
-				continue
-			}
-			elapsed := now.Sub(creationTime)
-			if elapsed.Seconds() < expiration.Seconds() {
-				continue
-			}
-
-			if contain(instance.Name, stop) {
-				_, err := service.Instances.Stop(project, zone, instance.Name).Do()
-				if err != nil {
-					RenderError(r.Context(), w, InternalServerError(err))
-					continue
-				}
-				status.Stopped = append(status.Stopped, instance.Name)
-			} else {
-				_, err := service.Instances.Delete(project, zone, instance.Name).Do()
-				if err != nil {
-					RenderError(r.Context(), w, InternalServerError(err))
-					continue
-				}
-				status.Deleted = append(status.Deleted, instance.Name)
-			}
-		}
-	}
-
-	log.Info("shutdown instances", map[string]interface{}{
-		"deleted": status.Deleted,
-		"stopped": status.Stopped,
-	})
-	if len(errList) != 0 {
-		log.Error("shutdown failed", map[string]interface{}{
-			"errors": errList,
-		})
-		RenderError(r.Context(), w, InternalServerError(errList[0]))
-		return
-	}
-	RenderJSON(w, status, http.StatusOK)
+	cfg := gcp.NecoTestConfig(project, zone)
+	extend(w, r, client, cfg)
 }
 
 func contain(name string, items []string) bool {
@@ -158,14 +47,9 @@ func getShutdownAt(instance *compute.Instance) (time.Time, error) {
 	return time.Time{}, errShutdownMetadataNotFound
 }
 
-// HandleExtend handles REST API /extend
-func (s Server) HandleExtend(w http.ResponseWriter, r *http.Request) {
-	s.extend(w, r)
-}
-
-func (s Server) findGCPInstanceByName(service *compute.Service, project string, instance string) (*compute.Instance, string, error) {
-	commonZone := s.cfg.Common.Zone
-	addZones := s.cfg.App.Shutdown.AdditionalZones
+func findGCPInstanceByName(service *compute.Service, project string, instance string, cfg *gcp.Config) (*compute.Instance, string, error) {
+	commonZone := cfg.Common.Zone
+	addZones := cfg.App.Shutdown.AdditionalZones
 	targetZones := append([]string{commonZone}, addZones...)
 
 	var err error
@@ -185,7 +69,7 @@ func (s Server) findGCPInstanceByName(service *compute.Service, project string, 
 	return nil, "", err
 }
 
-func (s Server) extend(w http.ResponseWriter, r *http.Request) {
+func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gcp.Config) {
 	defer r.Body.Close()
 	bodyRaw, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -206,9 +90,9 @@ func (s Server) extend(w http.ResponseWriter, r *http.Request) {
 	}
 	body = strings.Replace(body, "payload=", "", 1)
 
-	project := s.cfg.Common.Project
+	project := cfg.Common.Project
 
-	service, err := compute.NewService(r.Context(), option.WithHTTPClient(s.client))
+	service, err := compute.NewService(r.Context(), option.WithHTTPClient(client))
 	if err != nil {
 		log.Error("failed to create client", map[string]interface{}{
 			log.FnError: err,
@@ -261,14 +145,14 @@ func (s Server) extend(w http.ResponseWriter, r *http.Request) {
 	instance := message.ActionCallback.BlockActions[0].Value
 
 	// Find GCP instance from all target zones
-	target, zone, err := s.findGCPInstanceByName(service, project, instance)
+	target, zone, err := findGCPInstanceByName(service, project, instance, cfg)
 	if err != nil {
 		RenderError(r.Context(), w, InternalServerError(err))
 		return
 	}
 
 	// Extend instance lifetime
-	shutdownTime, err := gcp.ConvertLocalTimeToUTC(s.cfg.App.Shutdown.Timezone, s.cfg.App.Shutdown.ShutdownAt)
+	shutdownTime, err := gcp.ConvertLocalTimeToUTC(cfg.App.Shutdown.Timezone, cfg.App.Shutdown.ShutdownAt)
 	if err != nil {
 		RenderError(r.Context(), w, InternalServerError(err))
 		return

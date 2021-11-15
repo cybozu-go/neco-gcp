@@ -7,7 +7,7 @@ env:
   go-version: 1.17
 jobs:
   update-functions:
-    name: update auto-dctest function
+    name: update functions
     runs-on: ubuntu-20.04
     steps:
       
@@ -50,3 +50,28 @@ jobs:
         run: |
           export GCP_PROJECT=${{ secrets.NECO_DEV_PROJECT_ID }}
           make -f Makefile.slack deploy-function
+
+      - name: Set up Cloud SDK for neco-test
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.NECO_TEST_PROJECT_ID }}
+          service_account_key: ${{ secrets.NECO_TEST_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+          
+      - name: Delete instance-deleter extend functions
+        continue-on-error: true
+        run: |
+          make -f Makefile.instancedel delete-extend-function
+
+      - name: Delete instance-deleter shutdown functions
+        continue-on-error: true
+        run: |
+          make -f Makefile.instancedel delete-shutdown-function
+
+      - name: Deploy instance-deleter extend functions
+        run: |
+          make -f Makefile.instancedel deploy-extend-function
+
+      - name: Deploy instance-deleter shutdown functions
+        run: |
+          make -f Makefile.instancedel deploy-shutdown-function

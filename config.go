@@ -6,6 +6,11 @@ const (
 	autoDCTestZone        = "asia-northeast1-c"
 )
 
+const (
+	NecoTestProject = "neco-test"
+	NecoTestZone    = "asia-northeast2-c"
+)
+
 var autoDCTestJPHolidays = []string{
 	"20210111",
 	"20210211",

@@ -1,7 +1,7 @@
-GAE app REST API
+Cloud Functions API
 ================
 
-- [POST /shutdown](#shutdown)
+- [shutdown](#shutdown)
 - [POST /extend](#extend)
 
 Failure response format
@@ -15,31 +15,12 @@ Failure response body is a JSON object with these fields:
 <a name="shutdown" />`POST /shutdown`
 -------------------------------------
 
-Shutdown all instances and delete target instances in `necogcp.yml`.
+Shutdown all instances and delete target instances in `neco-test` project.
 
 ### Verification
 
-This API is supposed to be called from AppEngine Cron Service.
+This API is supposed to be called from Cloud Scheduler with Cloud Pub/Sub.
 
-This API verifies the `X-Appengine-Cron` contained in the request header.
-
-### Successful response
-
-- HTTP status code: 200 OK
-- HTTP response header: Content-Type: application/json
-- HTTP response body: list of stopped and deleted instances.
-
-```json
-{
-  "stopped": ["docker-test"],
-  "deleted": ["host-vm"]
-}
-```
-
-### Failure responses
-
-- 400 Bad Request: missing or wrong configuration file.
-- 500 Internal Server Error: other error.
 
 <a name="extend" />`POST /extend`
 ---------------------------------

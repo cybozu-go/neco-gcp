@@ -1,0 +1,103 @@
+GCP_PROJECT = neco-test
+REGION := asia-northeast1
+
+SERVICE_ACCOUNT_NAME := gcp-instance-deleter
+SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+SERVICE_ACCOUNT_DISPNAME := "For function to extend/shutdown VM instance"
+SHUTDOWN_SCHEDULER_NAME := shutdown
+TOPIC_NAME := shutdown-events
+
+init: \
+	enable-api \
+	create-service-account \
+	deploy-extend-function \
+	deploy-shutdown-function \
+	create-shutdown-scheduler \
+
+clean: \
+	delete-service-account \
+	delete-extend-function \
+	delete-shutdown-function \
+	delete-shutdown-scheduler \
+
+enable-api:
+	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudfunctions.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudscheduler.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) cloudbuild.googleapis.com
+
+create-service-account:
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
+		--project $(GCP_PROJECT) \
+		--display-name $(SERVICE_ACCOUNT_DISPNAME)
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/logging.logWriter
+
+delete-service-account:
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/compute.instanceAdmin.v1
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/logging.logWriter
+	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
+deploy-extend-function:
+	gcloud --quiet functions deploy extend \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point ExtendEntryPoint \
+		--runtime go116 \
+		--trigger-http \
+		--memory 128MB \
+		--timeout 300s \
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)\
+
+deploy-shutdown-function:
+	gcloud --quiet functions deploy shutdown \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+		--entry-point ShutdownEntryPoint \
+		--runtime go116 \
+		--trigger-topic $(TOPIC_NAME) \
+		--memory 128MB \
+		--timeout 300s \
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+
+delete-extend-function:
+	gcloud --quiet functions delete extend --project $(GCP_PROJECT) --region $(REGION)
+
+delete-shutdown-function:
+	gcloud --quiet functions delete shutdown --project $(GCP_PROJECT) --region $(REGION)
+
+
+create-shutdown-scheduler:
+	gcloud scheduler jobs create pubsub $(SHUTDOWN_SCHEDULER_NAME) \
+		--project $(GCP_PROJECT) \
+		--schedule '*/5 * * * *' \
+		--topic $(TOPIC_NAME) \
+		--message-body '{}' \
+		--time-zone 'Asia/Tokyo' \
+		--description 'shutdown vm instances'
+
+delete-shutdown-scheduler:
+	gcloud --quiet scheduler jobs delete $(SHUTDOWN_SCHEDULER_NAME) --project $(GCP_PROJECT)
+
+.PHONY: \
+	init \
+	clean \
+	enable-api \
+	create-service-account delete-service-account \
+	deploy-extend-function delete-extend-function \
+	deploy-shutdown-function delete-shutdown-function \
+	create-shutdown-scheduler delete-shutdown-scheduler
