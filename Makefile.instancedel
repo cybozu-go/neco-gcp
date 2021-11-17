@@ -59,9 +59,15 @@ deploy-extend-function:
 		--entry-point ExtendEntryPoint \
 		--runtime go116 \
 		--trigger-http \
+		--allow-unauthenticated \
 		--memory 128MB \
 		--timeout 300s \
-		--service-account=$(SERVICE_ACCOUNT_EMAIL)\
+		--service-account=$(SERVICE_ACCOUNT_EMAIL)
+	gcloud functions add-iam-policy-binding extend \
+		--project $(GCP_PROJECT) \
+		--region $(REGION) \
+	 	--member="allUsers" \
+		--role="roles/cloudfunctions.invoker"
 
 deploy-shutdown-function:
 	gcloud --quiet functions deploy shutdown \
