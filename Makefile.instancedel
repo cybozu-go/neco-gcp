@@ -52,6 +52,8 @@ delete-service-account:
 		--role=roles/logging.logWriter
 	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
+# The extend HTTP function is called from a Slack App. So allowing unauthenticated invocation.
+# ref: https://cloud.google.com/functions/docs/securing/managing-access-iam#allowing_unauthenticated_http_function_invocation
 deploy-extend-function:
 	gcloud --quiet functions deploy extend \
 		--project $(GCP_PROJECT) \
