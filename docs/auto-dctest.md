@@ -209,7 +209,7 @@ Neco environment can be created with `necogcp neco-test` commands.
 
 The scheduler for `auto-dctest` skips weekend (Saturday and Sunday) and holidays.
 
-The holiday list is hard-coded in [`holiday.go`](../holiday.go),
+The holiday list is hard-coded in [`config_autodctest.go`](../config_autodctest.go),
 so an administrator should modify it periodically.
 
 #### Team management

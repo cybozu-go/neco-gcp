@@ -3,6 +3,7 @@ package gcp
 import (
 	"bytes"
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,9 @@ import (
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/well"
 )
+
+//go:embed bin
+var binDir embed.FS
 
 var startUpScriptTmpl = template.Must(template.New("").Parse(`#!/bin/sh
 
@@ -97,13 +101,13 @@ func (cc *ComputeCLIClient) gCloudComputeSSH(command []string) []string {
 }
 
 // CreateVMXEnabledInstance creates vmx-enabled instance
-func (cc *ComputeCLIClient) CreateVMXEnabledInstance(ctx context.Context) error {
+func (cc *ComputeCLIClient) CreateVMXEnabledInstance(ctx context.Context, baseImageProject, baseImage string) error {
 	gcmd := cc.gCloudComputeInstances()
 	bootDiskSize := strconv.Itoa(cc.cfg.Compute.BootDiskSizeGB) + "GB"
 	gcmd = append(gcmd, "create", cc.instance,
 		"--zone", cc.cfg.Common.Zone,
-		"--image", artifacts.baseImage,
-		"--image-project", artifacts.baseImageProject,
+		"--image-project", baseImageProject,
+		"--image", baseImage,
 		"--boot-disk-type", "pd-ssd",
 		"--boot-disk-size", bootDiskSize,
 		"--machine-type", cc.cfg.Compute.MachineType)
@@ -385,7 +389,7 @@ func (cc *ComputeCLIClient) UploadSetupCommand(ctx context.Context) error {
 	}()
 	log.Info("create a temporary file (setup command): "+tmpfile.Name(), nil)
 
-	src, err := assets.Open(filepath.Join("assets", "bin", "setup"))
+	src, err := binDir.Open(filepath.Join("bin", "setup"))
 	if err != nil {
 		return err
 	}

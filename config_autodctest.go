@@ -1,16 +1,15 @@
 package necogcp
 
-// Instance settings for auto dctest
+// Instance settings for the "auto-dctest" function.
+// The instances will be created with the specified zone and machine type.
 const (
 	autoDCTestMachineType = "n1-highmem-32"
 	autoDCTestZone        = "asia-northeast1-c"
 )
 
-const (
-	NecoTestProject = "neco-test"
-	NecoTestZone    = "asia-northeast2-c"
-)
-
+// The holiday list for the "auto-dctest" function.
+// On the days listed here, the auto instance creation will be skipped.
+// Please update annually :)
 var autoDCTestJPHolidays = []string{
 	"20210111",
 	"20210211",

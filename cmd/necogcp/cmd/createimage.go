@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cybozu-go/log"
+	necogcp "github.com/cybozu-go/neco-gcp"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -19,7 +20,7 @@ If vmx-enabled image already exists in the project, it is re-created.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cc := gcp.NewComputeCLIClient(cfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
-			return gcp.CreateVMXEnabledImage(ctx, cc)
+			return gcp.CreateVMXEnabledImage(ctx, cc, necogcp.VMXEnabledBaseImageProject, necogcp.VMXEnabledBaseImage)
 		})
 		well.Stop()
 		err := well.Wait()

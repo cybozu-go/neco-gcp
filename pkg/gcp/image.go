@@ -10,10 +10,10 @@ func MakeVMXEnabledImageURL(projectID string) string {
 }
 
 // CreateVMXEnabledImage creates vmx-enabled image
-func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient) error {
+func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, baseImageProject, baseImage string) error {
 	cc.DeleteInstance(ctx)
 
-	err := cc.CreateVMXEnabledInstance(ctx)
+	err := cc.CreateVMXEnabledInstance(ctx, baseImageProject, baseImage)
 	if err != nil {
 		return err
 	}

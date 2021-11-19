@@ -3,7 +3,7 @@
 build/
 cmd/
 docs/
-pkg/gcp/assets/bin/
+pkg/gcp/bin/setup
 pkg/slack/log/
 
 go.sum

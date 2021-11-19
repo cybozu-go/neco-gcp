@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cybozu-go/log"
+	necogcp "github.com/cybozu-go/neco-gcp"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
@@ -18,7 +19,7 @@ var necotestCreateImageCmd = &cobra.Command{
 		necotestCfg := gcp.NecoTestConfig(projectID, zone)
 		cc := gcp.NewComputeCLIClient(necotestCfg, "vmx-enabled")
 		well.Go(func(ctx context.Context) error {
-			return gcp.CreateVMXEnabledImage(ctx, cc)
+			return gcp.CreateVMXEnabledImage(ctx, cc, necogcp.VMXEnabledBaseImageProject, necogcp.VMXEnabledBaseImage)
 		})
 		well.Stop()
 		err := well.Wait()
