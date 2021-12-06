@@ -23,7 +23,7 @@ jobs:
         run: make setup build-necogcp
 
       - name: Set up Cloud SDK for neco-dev
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0.2
         with:
           project_id: ${{ secrets.NECO_DEV_PROJECT_ID }}
           service_account_key: ${{ secrets.NECO_DEV_SERVICE_ACCOUNT }}
@@ -52,7 +52,7 @@ jobs:
           make -f Makefile.slack deploy-function
 
       - name: Set up Cloud SDK for neco-test
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0.2
         with:
           project_id: ${{ secrets.NECO_TEST_PROJECT_ID }}
           service_account_key: ${{ secrets.NECO_TEST_SERVICE_ACCOUNT }}
