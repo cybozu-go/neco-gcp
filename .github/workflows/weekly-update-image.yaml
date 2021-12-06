@@ -15,7 +15,7 @@ jobs:
       - name: Build necogcp command
         run: make setup build-necogcp
       - name: Set up Cloud SDK for neco-dev
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0.2
         with:
           project_id: ${{ secrets.NECO_DEV_PROJECT_ID }}
           service_account_key: ${{ secrets.NECO_DEV_SERVICE_ACCOUNT }}
@@ -23,7 +23,7 @@ jobs:
       - name: Update vmx enabled image on neco-dev
         run: /home/runner/work/neco-gcp/neco-gcp/build/necogcp neco-test create-image --project-id neco-dev
       - name: Set up Cloud SDK for neco-test
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0.2
         with:
           project_id: ${{ secrets.NECO_TEST_PROJECT_ID }}
           service_account_key: ${{ secrets.NECO_TEST_SERVICE_ACCOUNT }}
