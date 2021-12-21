@@ -21,9 +21,9 @@ func TestNecoStartupScriptBuilder(t *testing.T) {
 
 	s := builder.Build()
 	shouldContain := []string{
-		"service google-fluentd restart", // check for .WithFluentd
-		"git checkout this-is-neco",      // check for .WithNeco
-		"git checkout this-is-neco-apps", // check for .WithNecoApps
+		"service google-fluentd restart",           // check for .WithFluentd
+		"git clone --depth 1 -b this-is-neco",      // check for .WithNeco
+		"git clone --depth 1 -b this-is-neco-apps", // check for .WithNecoApps
 	}
 	for _, v := range shouldContain {
 		if !strings.Contains(s, v) {
