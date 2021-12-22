@@ -57,6 +57,14 @@ func (b *StartupScriptBuilder) Build() string {
 
 echo "starting auto dctest..."
 
+# Set environment variables
+HOME=/root
+GOPATH=${HOME}/go
+GO111MODULE=on
+PATH=${PATH}:/usr/local/go/bin:${GOPATH}/bin
+NECO_DIR=${GOPATH}/src/github.com/cybozu-go/neco
+export HOME GOPATH GO111MODULE PATH NECO_DIR
+
 delete_myself()
 {
 echo "[auto-dctest] Auto dctest failed. Deleting the instance..."
@@ -110,22 +118,42 @@ if ! prepare ; then delete_myself; fi
 
 	if len(b.necoBranch) > 0 {
 		s += fmt.Sprintf(`
-# Set environment variables
-HOME=/root
-GOPATH=${HOME}/go
-GO111MODULE=on
-PATH=${PATH}:/usr/local/go/bin:${GOPATH}/bin
-NECO_DIR=${GOPATH}/src/github.com/cybozu-go/neco
-export HOME GOPATH GO111MODULE PATH NECO_DIR
-
-# Run neco
-run_neco()
+prepare_neco()
 {
 mkdir -p ${GOPATH}/src/github.com/cybozu-go &&
 cd ${GOPATH}/src/github.com/cybozu-go &&
-git clone https://github.com/cybozu-go/neco &&
+git clone --depth 1 -b %s https://github.com/cybozu-go/neco
+}
+
+if ! prepare_neco ; then
+  echo '[auto-dctest] Failed to checkout neco branch "%s"'
+  delete_myself
+fi
+`, b.necoBranch, b.necoBranch)
+	}
+
+	if len(b.necoAppsBranch) > 0 {
+		s += fmt.Sprintf(`
+prepare_necoapps()
+{
+mkdir -p ${GOPATH}/src/github.com/cybozu-go &&
+cd ${GOPATH}/src/github.com/cybozu-go &&
+git clone --depth 1 -b %s https://github.com/cybozu-go/neco-apps
+}
+
+if ! prepare_necoapps ; then
+  echo '[auto-dctest] Failed to checkout neco-apps branch "%s"'
+  delete_myself
+fi
+`, b.necoAppsBranch, b.necoAppsBranch)
+	}
+
+	if len(b.necoBranch) > 0 {
+		s += `
+# Run neco
+run_neco()
+{
 cd ${GOPATH}/src/github.com/cybozu-go/neco/dctest &&
-git checkout %s &&
 make setup placemat MENU_ARG=menu-ss.yml && make test SUITE=bootstrap
 }
 
@@ -134,7 +162,7 @@ if run_neco ; then
 else
   delete_myself
 fi
-`, b.necoBranch)
+`
 	}
 
 	if len(b.necoAppsBranch) > 0 {
@@ -142,10 +170,7 @@ fi
 run_necoapps()
 {
 # Run neco-apps
-cd ${GOPATH}/src/github.com/cybozu-go &&
-git clone https://github.com/cybozu-go/neco-apps &&
 cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test &&
-git checkout %s &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
 gcloud secrets versions access latest --secret="%s" > ghcr_dockerconfig.json &&
 gcloud secrets versions access latest --secret="%s" > quay_dockerconfig.json &&
@@ -158,7 +183,7 @@ if run_necoapps ; then
 else
   delete_myself
 fi
-`, b.necoAppsBranch, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName, cybozuPrivateRepoReadPATName)
+`, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName, cybozuPrivateRepoReadPATName)
 	}
 	return s
 }
