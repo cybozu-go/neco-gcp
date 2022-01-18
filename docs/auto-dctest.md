@@ -178,14 +178,15 @@ Neco environment can be created with `necogcp neco-test` commands.
 
 #### `create-instance`
 
-| Flag (short)      | Default Value                          | Description                   |
-| :---------------- | :------------------------------------- | :---------------------------- |
-| project-id (p)    | -                                      | Project ID for GCP (required) |
-| zone (z)          | asia-northeast1-c                      | Zone name for GCP             |
-| machine-type (t)  | n1-highmem-32                          | VM Machine type               |
-| instance-name (n) | -                                      | Instance name (required)      |
-| neco-branch       | Branch of `cybozu-go/neco` to run      | release                       |
-| neco-apps-branch  | Branch of `cybozu-go/neco-apps` to run | release                       |
+| Flag (short)      | Default Value     | Description                            |
+| :---------------- | :---------------- | :------------------------------------- |
+| project-id (p)    | -                 | Project ID for GCP (required)          |
+| zone (z)          | asia-northeast1-c | Zone name for GCP                      |
+| machine-type (t)  | n1-highmem-32     | VM Machine type                        |
+| instance-name (n) | -                 | Instance name (required)               |
+| neco-branch       | release           | Branch of `cybozu-go/neco` to run      |
+| neco-apps-branch  | release           | Branch of `cybozu-go/neco-apps` to run |
+| permissive        | true              | Set permissive mode                    |
 
 #### `delete-instance`
 

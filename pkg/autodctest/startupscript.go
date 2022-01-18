@@ -23,11 +23,14 @@ type StartupScriptBuilder struct {
 	withFluentd    bool
 	necoBranch     string
 	necoAppsBranch string
+	permissive     bool
 }
 
 // NewStartupScriptBuilder creates NecoStartupScriptBuilder
 func NewStartupScriptBuilder() *StartupScriptBuilder {
-	return &StartupScriptBuilder{}
+	return &StartupScriptBuilder{
+		permissive: true,
+	}
 }
 
 // WithFluentd enables fluentd logging
@@ -49,6 +52,12 @@ func (b *StartupScriptBuilder) WithNecoApps(branch string) (*StartupScriptBuilde
 	}
 	b.necoAppsBranch = branch
 	return b, nil
+}
+
+// SetPermissive sets neco-admission's mode
+func (b *StartupScriptBuilder) SetPermissive(permissive bool) *StartupScriptBuilder {
+	b.permissive = permissive
+	return b
 }
 
 // Build  builds startup script
@@ -166,6 +175,10 @@ fi
 	}
 
 	if len(b.necoAppsBranch) > 0 {
+		var extraOptions string
+		if b.permissive {
+			extraOptions += "PERMISSIVE=1"
+		}
 		s += fmt.Sprintf(`
 run_necoapps()
 {
@@ -175,7 +188,7 @@ gcloud secrets versions access latest --secret="%s" > account.json &&
 gcloud secrets versions access latest --secret="%s" > ghcr_dockerconfig.json &&
 gcloud secrets versions access latest --secret="%s" > quay_dockerconfig.json &&
 gcloud secrets versions access latest --secret="%s" > cybozu_private_repo_read_pat &&
-make setup dctest SUITE=bootstrap OVERLAY=neco-dev
+make setup dctest SUITE=bootstrap OVERLAY=neco-dev %s
 }
 
 if run_necoapps ; then
@@ -183,7 +196,7 @@ if run_necoapps ; then
 else
   delete_myself
 fi
-`, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName, cybozuPrivateRepoReadPATName)
+`, necoAppsAccountSecretName, ghcrDockerConfigName, quayDockerConfigName, cybozuPrivateRepoReadPATName, extraOptions)
 	}
 	return s
 }

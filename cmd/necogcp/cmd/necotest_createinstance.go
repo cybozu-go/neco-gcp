@@ -18,6 +18,7 @@ var (
 	serviceAccountEmail string
 	necoBranch          string
 	necoAppsBranch      string
+	permissive          bool
 )
 
 var necotestCreateInstanceCmd = &cobra.Command{
@@ -38,7 +39,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				"serviceaccount": serviceAccountEmail,
 			})
 		}
-		builder := autodctest.NewStartupScriptBuilder().WithFluentd()
+		builder := autodctest.NewStartupScriptBuilder().WithFluentd().SetPermissive(permissive)
 		if len(necoBranch) > 0 {
 			log.Info("run neco", map[string]interface{}{
 				"branch": necoBranch,
@@ -72,6 +73,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 				"machinetype":    machineType,
 				"necobranch":     necoBranch,
 				"necoappsbranch": necoAppsBranch,
+				"permissive":     permissive,
 			})
 			return cc.Create(
 				createInstanceName,
@@ -96,5 +98,6 @@ func init() {
 	necotestCreateInstanceCmd.Flags().StringVarP(&serviceAccountEmail, "service-account", "a", "", "Service account email address")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoAppsBranch, "neco-apps-branch", "release", "Branch of cybozu-go/neco-apps to run")
+	necotestCreateInstanceCmd.Flags().BoolVar(&permissive, "permissive", true, "Set permissive mode")
 	necotestCmd.AddCommand(necotestCreateInstanceCmd)
 }
