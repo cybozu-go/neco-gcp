@@ -6,7 +6,7 @@ import "github.com/cybozu-go/neco-gcp/pkg/setup"
 // This setting is used by both "necogcp create-image" and "necogcp neco-test create-image".
 const (
 	VMXEnabledBaseImageProject = "ubuntu-os-cloud"
-	VMXEnabledBaseImage        = "ubuntu-2004-focal-v20211202"
+	VMXEnabledBaseImage        = "ubuntu-2004-focal-v20220308"
 )
 
 // The settings of software which installed in the VMXEnabled image.
