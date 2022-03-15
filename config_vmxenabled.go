@@ -14,7 +14,7 @@ const (
 var VMXEnabledArtifacts = setup.ArtifactSet{
 	GoVersion:       "1.17.8",
 	EtcdVersion:     "3.4.16",
-	PlacematVersion: "2.0.6",
+	PlacematVersion: "2.1.0",
 	CoreOSVersion:   "2905.2.3",
 	CtVersion:       "0.6.1",
 	DebPackages: []string{
