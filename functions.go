@@ -29,5 +29,5 @@ func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
 
 // AutoDCTestEntryPoint is the entrypoint for the "auto-dctest" function.
 func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	return autodctest.EntryPoint(ctx, m, autoDCTestMachineType, autoDCTestZone, autoDCTestJPHolidays)
+	return autodctest.EntryPoint(ctx, m, autoDCTestMachineType, autoDCTestNumLocalSSDs, autoDCTestZone, autoDCTestJPHolidays)
 }

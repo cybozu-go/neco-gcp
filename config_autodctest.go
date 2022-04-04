@@ -3,8 +3,9 @@ package necogcp
 // Instance settings for the "auto-dctest" function.
 // The instances will be created with the specified zone and machine type.
 const (
-	autoDCTestMachineType = "n1-standard-64"
-	autoDCTestZone        = "asia-northeast1-c"
+	autoDCTestMachineType  = "n1-standard-64"
+	autoDCTestNumLocalSSDs = 4
+	autoDCTestZone         = "asia-northeast1-c"
 )
 
 // The holiday list for the "auto-dctest" function.

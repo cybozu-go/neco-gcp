@@ -13,6 +13,7 @@ import (
 
 const (
 	machineType        = "n1-standard-64"
+	numLocalSSDs       = 4
 	serviceAccountName = "default"
 )
 
@@ -60,6 +61,7 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 				instancesNum,
 				serviceAccountName,
 				machineType,
+				numLocalSSDs,
 				gcp.MakeVMXEnabledImageURL(projectID),
 				"",
 			)

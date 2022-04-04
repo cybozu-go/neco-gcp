@@ -30,6 +30,7 @@ func (r Runner) CreateInstancesIfNotExist(
 	instancesNum int,
 	serviceAccountEmail string,
 	machineType string,
+	numLocalSSDs int,
 	imageURL string,
 	startupScript string,
 ) error {
@@ -62,6 +63,7 @@ func (r Runner) CreateInstancesIfNotExist(
 				name,
 				serviceAccountEmail,
 				machineType,
+				numLocalSSDs,
 				imageURL,
 				startupScript,
 			)

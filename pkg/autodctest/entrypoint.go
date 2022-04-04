@@ -34,7 +34,7 @@ type messageBody struct {
 }
 
 // EntryPoint consumes a Pub/Sub message
-func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string, jpHolidays []string) error {
+func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numLocalSSDs int, zone string, jpHolidays []string) error {
 	log.Debug("msg body", map[string]interface{}{
 		"data": string(m.Data),
 	})
@@ -109,6 +109,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType, zone string
 			b.InstancesNum,
 			sa,
 			machineType,
+			numLocalSSDs,
 			imageURL,
 			builder.Build(),
 		)
