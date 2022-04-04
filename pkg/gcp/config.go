@@ -8,6 +8,8 @@ import (
 const (
 	// DefaultExpiration is default expiration time
 	defaultExpiration = "0s"
+	// DefaultNumLocalSSDs is the default number of local SSDs
+	defaultNumLocalSSDs = 4
 	// DefaultBootDiskSizeGB is default instance boot disk size
 	defaultBootDiskSizeGB = 20
 	// DefaultHomeDisk is default value for attaching home disk image in host-vm
@@ -57,6 +59,7 @@ type ShutdownConfig struct {
 // ComputeConfig is configuration for GCE
 type ComputeConfig struct {
 	MachineType      string             `yaml:"machine-type"`
+	NumLocalSSDs     int                `yaml:"local-ssd"`
 	BootDiskSizeGB   int                `yaml:"boot-disk-sizeGB"`
 	OptionalPackages []string           `yaml:"optional-packages"`
 	HostVM           HostVMConfig       `yaml:"host-vm"`
@@ -97,6 +100,7 @@ func NewConfig() (*Config, error) {
 			},
 		},
 		Compute: ComputeConfig{
+			NumLocalSSDs:   defaultNumLocalSSDs,
 			BootDiskSizeGB: defaultBootDiskSizeGB,
 			AutoShutdown: AutoShutdownConfig{
 				Timezone:   defaultTimeZone,
@@ -136,6 +140,7 @@ func NecoTestConfig(projectID, zone string) *Config {
 		},
 		Compute: ComputeConfig{
 			MachineType:    "n1-standard-64",
+			NumLocalSSDs:   defaultNumLocalSSDs,
 			BootDiskSizeGB: defaultBootDiskSizeGB,
 			HostVM: HostVMConfig{
 				HomeDisk:       defaultHomeDisk,

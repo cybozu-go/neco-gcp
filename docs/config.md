@@ -38,8 +38,12 @@ Fields are common configuration for GCE provisioning.
 | Field               | Type     | Default | Description                   |
 | ------------------- | -------- | ------- | ----------------------------- |
 | `machine-type`      | string   |         | Instance machine type         |
+| `local-ssd`         | int      | `4`     | Number of local SSDs(*)       |
 | `boot-disk-sizeGB`  | int      | `20`    | Root filesystem size in GB    |
 | `optional-packages` | []string | `[]`    | List of optional APT packages |
+
+(*) There are constraints around how many local SSDs you can attach based on each machine type.
+See the [GCE documentation](https://cloud.google.com/compute/docs/disks#local_ssd_machine_type_restrictions).
 
 Fields in `auto-shutdown` are configuration for deleting `host-vm` instance.
 
