@@ -10,6 +10,7 @@ app:
     - my-instance-2
 compute:
   machine-type: n1-highmem-32
+  local-ssd: 1
   auto-shutdown:
     timezone: "Asia/Tokyo"
     shutdown-at: "21:00"

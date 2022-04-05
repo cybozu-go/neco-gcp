@@ -171,14 +171,13 @@ func (cc *ComputeCLIClient) CreateHostVMInstance(ctx context.Context) error {
 		"--image", cc.image,
 		"--boot-disk-type", "pd-ssd",
 		"--boot-disk-size", bootDiskSize,
-		"--local-ssd", "interface=nvme",
-		"--local-ssd", "interface=nvme",
-		"--local-ssd", "interface=nvme",
-		"--local-ssd", "interface=nvme",
 		"--machine-type", cc.cfg.Compute.MachineType,
 		"--metadata-from-file", "startup-script="+tmpfile.Name(),
 		"--scopes", "compute-rw,storage-rw",
 	)
+	for i := 0; i < cc.cfg.Compute.NumLocalSSDs; i++ {
+		gcmd = append(gcmd, "--local-ssd", "interface=nvme")
+	}
 	if cc.cfg.Compute.HostVM.Preemptible {
 		gcmd = append(gcmd, "--preemptible")
 	}

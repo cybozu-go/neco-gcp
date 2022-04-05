@@ -183,9 +183,13 @@ Neco environment can be created with `necogcp neco-test` commands.
 | project-id (p)    | -                                      | Project ID for GCP (required) |
 | zone (z)          | asia-northeast1-c                      | Zone name for GCP             |
 | machine-type (t)  | n1-standard-64                         | VM Machine type               |
+| local-ssd (s)     | 1                                      | Number of local SSDs(*)       |
 | instance-name (n) | -                                      | Instance name (required)      |
 | neco-branch       | Branch of `cybozu-go/neco` to run      | release                       |
 | neco-apps-branch  | Branch of `cybozu-go/neco-apps` to run | release                       |
+
+(*) There are constraints around how many local SSDs you can attach based on each machine type.
+See the [GCE documentation](https://cloud.google.com/compute/docs/disks#local_ssd_machine_type_restrictions).
 
 #### `delete-instance`
 

@@ -45,6 +45,7 @@ func (c *ComputeClient) Create(
 	instanceName string,
 	serviceAccountEmail string,
 	machineType string,
+	numLocalSSDs int,
 	imageURL string,
 	startupScript string,
 ) error {
@@ -70,38 +71,6 @@ func (c *ComputeClient) Create(
 					SourceImage: imageURL,
 				},
 			},
-			{
-				Type: "SCRATCH",
-				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
-				},
-				AutoDelete: true,
-				Interface:  "NVME",
-			},
-			{
-				Type: "SCRATCH",
-				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
-				},
-				AutoDelete: true,
-				Interface:  "NVME",
-			},
-			{
-				Type: "SCRATCH",
-				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
-				},
-				AutoDelete: true,
-				Interface:  "NVME",
-			},
-			{
-				Type: "SCRATCH",
-				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
-				},
-				AutoDelete: true,
-				Interface:  "NVME",
-			},
 		},
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
@@ -124,6 +93,17 @@ func (c *ComputeClient) Create(
 				},
 			},
 		},
+	}
+
+	for i := 0; i < numLocalSSDs; i++ {
+		instance.Disks = append(instance.Disks, &compute.AttachedDisk{
+			Type: "SCRATCH",
+			InitializeParams: &compute.AttachedDiskInitializeParams{
+				DiskType: "zones/" + c.zone + "/diskTypes/local-ssd",
+			},
+			AutoDelete: true,
+			Interface:  "NVME",
+		})
 	}
 
 	insertOp, err := c.service.Instances.Insert(c.projectID, c.zone, instance).Do()
