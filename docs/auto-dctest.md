@@ -183,7 +183,7 @@ Neco environment can be created with `necogcp neco-test` commands.
 | project-id (p)    | -                                      | Project ID for GCP (required) |
 | zone (z)          | asia-northeast1-c                      | Zone name for GCP             |
 | machine-type (t)  | n1-standard-64                         | VM Machine type               |
-| local-ssd (s)     | 4                                      | Number of local SSDs(*)       |
+| local-ssd (s)     | 1                                      | Number of local SSDs(*)       |
 | instance-name (n) | -                                      | Instance name (required)      |
 | neco-branch       | Branch of `cybozu-go/neco` to run      | release                       |
 | neco-apps-branch  | Branch of `cybozu-go/neco-apps` to run | release                       |

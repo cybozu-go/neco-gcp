@@ -13,7 +13,7 @@ import (
 
 const (
 	machineType        = "n1-standard-64"
-	numLocalSSDs       = 4
+	numLocalSSDs       = 1
 	serviceAccountName = "default"
 )
 

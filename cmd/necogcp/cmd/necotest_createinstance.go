@@ -94,7 +94,7 @@ var necotestCreateInstanceCmd = &cobra.Command{
 
 func init() {
 	necotestCreateInstanceCmd.Flags().StringVarP(&machineType, "machine-type", "t", "n1-standard-64", "Machine type")
-	necotestCreateInstanceCmd.Flags().IntVarP(&numLocalSSDs, "local-ssd", "s", 4, "Number of local SSDs")
+	necotestCreateInstanceCmd.Flags().IntVarP(&numLocalSSDs, "local-ssd", "s", 1, "Number of local SSDs")
 	necotestCreateInstanceCmd.Flags().StringVarP(&createInstanceName, "instance-name", "n", "", "Instance name")
 	necotestCreateInstanceCmd.Flags().StringVarP(&serviceAccountEmail, "service-account", "a", "", "Service account email address")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")

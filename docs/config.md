@@ -38,7 +38,7 @@ Fields are common configuration for GCE provisioning.
 | Field               | Type     | Default | Description                   |
 | ------------------- | -------- | ------- | ----------------------------- |
 | `machine-type`      | string   |         | Instance machine type         |
-| `local-ssd`         | int      | `4`     | Number of local SSDs(*)       |
+| `local-ssd`         | int      | `1`     | Number of local SSDs(*)       |
 | `boot-disk-sizeGB`  | int      | `20`    | Root filesystem size in GB    |
 | `optional-packages` | []string | `[]`    | List of optional APT packages |
 

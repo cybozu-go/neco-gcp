@@ -4,7 +4,7 @@ package necogcp
 // The instances will be created with the specified zone and machine type.
 const (
 	autoDCTestMachineType  = "n1-standard-64"
-	autoDCTestNumLocalSSDs = 4
+	autoDCTestNumLocalSSDs = 1
 	autoDCTestZone         = "asia-northeast1-c"
 )
 

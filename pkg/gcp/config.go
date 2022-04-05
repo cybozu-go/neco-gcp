@@ -9,7 +9,7 @@ const (
 	// DefaultExpiration is default expiration time
 	defaultExpiration = "0s"
 	// DefaultNumLocalSSDs is the default number of local SSDs
-	defaultNumLocalSSDs = 4
+	defaultNumLocalSSDs = 1
 	// DefaultBootDiskSizeGB is default instance boot disk size
 	defaultBootDiskSizeGB = 20
 	// DefaultHomeDisk is default value for attaching home disk image in host-vm
