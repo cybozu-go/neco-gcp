@@ -1,0 +1,38 @@
+name: Update vmx-enabled Image (weekly)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 15 * * 0'
+
+jobs:
+  update-neco-dev:
+    name: Update neco-dev project
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+      - uses: google-github-actions/auth@v0.7.0
+        with:
+          credentials_json: ${{ secrets.NECO_DEV_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v0.6.0
+
+      - run: make setup build-necogcp
+      - run: ./build/necogcp neco-test create-image --project-id neco-dev
+
+  update-neco-test:
+    name: Update neco-dev project
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+      - uses: google-github-actions/auth@v0.7.0
+        with:
+          credentials_json: ${{ secrets.NECO_TEST_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v0.6.0
+
+      - run: make setup build-necogcp
+      - run: ./build/necogcp neco-test create-image
