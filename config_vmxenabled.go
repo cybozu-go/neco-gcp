@@ -13,10 +13,10 @@ const (
 // This setting is used by both "necogcp create-image" and "necogcp neco-test create-image".
 var VMXEnabledArtifacts = setup.ArtifactSet{
 	GoVersion:       "1.17.8",
-	EtcdVersion:     "3.4.16",
-	PlacematVersion: "2.1.0",
-	CoreOSVersion:   "2905.2.3",
-	CtVersion:       "0.6.1",
+	EtcdVersion:     "3.5.3",
+	PlacematVersion: "2.2.0",
+	CoreOSVersion:   "3139.2.0",
+	CtVersion:       "0.9.3",
 	DebPackages: []string{
 		"git",
 		"build-essential",

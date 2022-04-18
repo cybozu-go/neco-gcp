@@ -30,8 +30,7 @@ func (a ArtifactSet) placematURL() string {
 }
 
 func (a ArtifactSet) ctURL() string {
-	// Download ct from coreos repository because github.com/flatcar-linux/container-linux-config-transpiler does not provide binary assets.
-	return fmt.Sprintf("https://github.com/coreos/container-linux-config-transpiler/releases/download/v%s/ct-v%s-x86_64-unknown-linux-gnu", a.CtVersion, a.CtVersion)
+	return fmt.Sprintf("https://github.com/flatcar-linux/container-linux-config-transpiler/releases/download/v%s/ct-v%s-x86_64-unknown-linux-gnu", a.CtVersion, a.CtVersion)
 }
 
 func (a ArtifactSet) assetURLs() []string {
