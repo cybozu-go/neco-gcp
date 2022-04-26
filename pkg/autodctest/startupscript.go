@@ -138,14 +138,16 @@ prepare_necoapps()
 {
 mkdir -p ${GOPATH}/src/github.com/cybozu-go &&
 cd ${GOPATH}/src/github.com/cybozu-go &&
-git clone --depth 1 -b %s https://github.com/cybozu-go/neco-apps
+gcloud secrets versions access latest --secret="%s" > cybozu_private_repo_read_pat &&
+git clone --depth 1 -b %s https://cybozu-neco:$(cat cybozu_private_repo_read_pat)@github.com/cybozu-go/neco-apps &&
+rm cybozu_private_repo_read_pat
 }
 
 if ! prepare_necoapps ; then
   echo '[auto-dctest] Failed to checkout neco-apps branch "%s"'
   delete_myself
 fi
-`, b.necoAppsBranch, b.necoAppsBranch)
+`, cybozuPrivateRepoReadPATName, b.necoAppsBranch, b.necoAppsBranch)
 	}
 
 	if len(b.necoBranch) > 0 {
