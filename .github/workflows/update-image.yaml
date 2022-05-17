@@ -22,7 +22,7 @@ jobs:
       - run: ./build/necogcp neco-test create-image --project-id neco-dev
 
   update-neco-test:
-    name: Update neco-dev project
+    name: Update neco-test project
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
