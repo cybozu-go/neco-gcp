@@ -68,7 +68,10 @@ export HOME GOPATH GO111MODULE PATH NECO_DIR
 delete_myself()
 {
 echo "[auto-dctest] Auto dctest failed. Deleting the instance..."
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
+gcloud --quiet compute instances delete $NAME --zone=$ZONE
+# last resort
+sleep 30
+poweroff
 }
 `
 
@@ -102,6 +105,14 @@ if ! with_fluentd ; then delete_myself; fi
 	}
 
 	s += `
+# Check for the presence of gcloud command. It sometimes does not exist. (why...?)
+which gcloud > /dev/null
+if [ $? != 0 ]; then
+	echo "[auto-dctest] Auto dctest failed. gcloud command not found. Powering off... Please check the logs and delete the instance manually."
+	sleep 30
+	poweroff
+fi
+
 prepare()
 {
 # fetch NAME and ZONE for automatic deletion and mkfs and mount local SSD on /var/scratch
