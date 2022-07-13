@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cybozu-go/log"
@@ -169,8 +170,36 @@ func (c *ComputeClient) GetNameSet(filter string) (map[string]struct{}, error) {
 	return res, nil
 }
 
+// GetAggregatedNameList gets a list of existing GCP instances with the given filter from all zones
+func (c *ComputeClient) GetAggregatedNameList(filter string) (map[string][]string, error) {
+	aggregatedList, err := c.service.Instances.AggregatedList(c.projectID).Filter(filter).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	res := map[string][]string{}
+	for scope, scopedList := range aggregatedList.Items {
+		// scope is like "zones/asia-northeast1-a"
+		ss := strings.Split(scope, "/")
+		if len(ss) != 2 || ss[0] != "zones" {
+			// unexpected
+			return nil, fmt.Errorf("unexpected response from instances.aggregatedList call: scope is not prefixed with \"zones/\"")
+		}
+		zoneName := ss[1]
+		for _, instance := range scopedList.Instances {
+			res[zoneName] = append(res[zoneName], instance.Name)
+		}
+	}
+	return res, nil
+}
+
 // Delete deletes a GCP instance
 func (c *ComputeClient) Delete(name string) error {
-	_, err := c.service.Instances.Delete(c.projectID, c.zone, name).Do()
+	return c.DeleteWithZone(c.zone, name)
+}
+
+// DeleteWithZone deletes a GCP instance in the zone
+func (c *ComputeClient) DeleteWithZone(zone, name string) error {
+	_, err := c.service.Instances.Delete(c.projectID, zone, name).Do()
 	return err
 }
