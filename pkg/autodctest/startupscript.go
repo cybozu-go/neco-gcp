@@ -139,7 +139,7 @@ prepare_necoapps()
 mkdir -p ${GOPATH}/src/github.com/cybozu-go &&
 cd ${GOPATH}/src/github.com/cybozu-go &&
 gcloud secrets versions access latest --secret="%s" > cybozu_private_repo_read_pat &&
-git clone --depth 1 -b %s https://cybozu-neco:$(cat cybozu_private_repo_read_pat)@github.com/cybozu-go/neco-apps &&
+git clone --depth 1 -b %s https://cybozu-neco:$(cat cybozu_private_repo_read_pat)@github.com/cybozu-private/neco-apps &&
 rm cybozu_private_repo_read_pat
 }
 

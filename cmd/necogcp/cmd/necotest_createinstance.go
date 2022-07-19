@@ -98,6 +98,6 @@ func init() {
 	necotestCreateInstanceCmd.Flags().StringVarP(&createInstanceName, "instance-name", "n", "", "Instance name")
 	necotestCreateInstanceCmd.Flags().StringVarP(&serviceAccountEmail, "service-account", "a", "", "Service account email address")
 	necotestCreateInstanceCmd.Flags().StringVar(&necoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")
-	necotestCreateInstanceCmd.Flags().StringVar(&necoAppsBranch, "neco-apps-branch", "release", "Branch of cybozu-go/neco-apps to run")
+	necotestCreateInstanceCmd.Flags().StringVar(&necoAppsBranch, "neco-apps-branch", "release", "Branch of cybozu-private/neco-apps to run")
 	necotestCmd.AddCommand(necotestCreateInstanceCmd)
 }
