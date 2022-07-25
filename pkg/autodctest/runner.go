@@ -87,7 +87,7 @@ func (r Runner) CreateInstancesIfNotExist(
 
 // DeleteFilteredInstances deletes instances which match the given filter
 func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) error {
-	set, err := r.compute.GetNameSet(filter)
+	aggregatedList, err := r.compute.GetAggregatedNameList(filter)
 	if err != nil {
 		log.Error("failed to get instances list", map[string]interface{}{
 			log.FnError: err,
@@ -96,28 +96,34 @@ func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) erro
 	}
 
 	log.Info("fetched instances successfully", map[string]interface{}{
-		"names": set,
+		"names": aggregatedList,
 	})
 	e := well.NewEnvironment(ctx)
-	for n := range set {
-		name := n
-		e.Go(func(ctx context.Context) error {
-			log.Info("start deleting instance", map[string]interface{}{
-				"name": name,
-			})
-			err := r.compute.Delete(name)
-			if err != nil {
-				log.Error("failed to delete instance", map[string]interface{}{
-					log.FnError: err,
-					"name":      name,
+	for z, scopedList := range aggregatedList {
+		zoneName := z
+		for _, n := range scopedList {
+			name := n
+			e.Go(func(ctx context.Context) error {
+				log.Info("start deleting instance", map[string]interface{}{
+					"zone": zoneName,
+					"name": name,
 				})
-				return err
-			}
-			log.Info("instance is deleted successfully", map[string]interface{}{
-				"name": name,
+				err := r.compute.DeleteWithZone(zoneName, name)
+				if err != nil {
+					log.Error("failed to delete instance", map[string]interface{}{
+						log.FnError: err,
+						"zone":      zoneName,
+						"name":      name,
+					})
+					return err
+				}
+				log.Info("instance is deleted successfully", map[string]interface{}{
+					"zone": zoneName,
+					"name": name,
+				})
+				return nil
 			})
-			return nil
-		})
+		}
 	}
 	e.Stop()
 	return e.Wait()
