@@ -136,8 +136,8 @@ fi
 		s += fmt.Sprintf(`
 prepare_necoapps()
 {
-mkdir -p ${GOPATH}/src/github.com/cybozu-go &&
-cd ${GOPATH}/src/github.com/cybozu-go &&
+mkdir -p ${GOPATH}/src/github.com/cybozu-private &&
+cd ${GOPATH}/src/github.com/cybozu-private &&
 gcloud secrets versions access latest --secret="%s" > cybozu_private_repo_read_pat &&
 git clone --depth 1 -b %s https://cybozu-neco:$(cat cybozu_private_repo_read_pat)@github.com/cybozu-private/neco-apps &&
 rm cybozu_private_repo_read_pat
@@ -172,7 +172,7 @@ fi
 run_necoapps()
 {
 # Run neco-apps
-cd ${GOPATH}/src/github.com/cybozu-go/neco-apps/test &&
+cd ${GOPATH}/src/github.com/cybozu-private/neco-apps/test &&
 gcloud secrets versions access latest --secret="%s" > account.json &&
 gcloud secrets versions access latest --secret="%s" > ghcr_dockerconfig.json &&
 gcloud secrets versions access latest --secret="%s" > quay_dockerconfig.json &&
