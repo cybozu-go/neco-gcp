@@ -31,7 +31,7 @@ This system consists of the following two types of components:
       For example, `sample-0` and `sample-1` are created if team_name = sample and
       instance num = 2.  
       If `sample-0` already exists before creating, this function does nothing for it.
-    - Neco/[neco-apps](https://github.com/cybozu-go/neco-apps) are started using (startup-script)[https://cloud.google.com/compute/docs/startupscript]
+    - Neco/[neco-apps](https://github.com/cybozu-private/neco-apps) are started using (startup-script)[https://cloud.google.com/compute/docs/startupscript]
 - `slack-notifier`: notify messages via Slack
   - Cloud Logging Sink: filters the log and push events to Cloud Pub/Sub
   - Cloud Pub/Sub: messaging queue to accept messages from Cloud Logging Sink
@@ -139,7 +139,7 @@ make -f Makefile.slack clean`
 
 1. Starting instance creation
 2. Finished `cybozu-go/neco` DC test bootstrap
-3. Finished `cybozu-go/neco-apps` DC test bootstrap
+3. Finished `cybozu-private/neco-apps` DC test bootstrap
 4. Deleting the instance
 
 To enable Slack notification, you need to prepare a YAML setting file:
@@ -178,15 +178,15 @@ Neco environment can be created with `necogcp neco-test` commands.
 
 #### `create-instance`
 
-| Flag (short)      | Default Value                          | Description                   |
-| :---------------- | :------------------------------------- | :---------------------------- |
-| project-id (p)    | -                                      | Project ID for GCP (required) |
-| zone (z)          | asia-northeast1-c                      | Zone name for GCP             |
-| machine-type (t)  | n1-standard-64                         | VM Machine type               |
-| local-ssd (s)     | 1                                      | Number of local SSDs(*)       |
-| instance-name (n) | -                                      | Instance name (required)      |
-| neco-branch       | Branch of `cybozu-go/neco` to run      | release                       |
-| neco-apps-branch  | Branch of `cybozu-go/neco-apps` to run | release                       |
+| Flag (short)      | Default Value                               | Description                   |
+| :---------------- | :------------------------------------------ | :---------------------------- |
+| project-id (p)    | -                                           | Project ID for GCP (required) |
+| zone (z)          | asia-northeast1-c                           | Zone name for GCP             |
+| machine-type (t)  | n1-standard-64                              | VM Machine type               |
+| local-ssd (s)     | 1                                           | Number of local SSDs(*)       |
+| instance-name (n) | -                                           | Instance name (required)      |
+| neco-branch       | Branch of `cybozu-go/neco` to run           | release                       |
+| neco-apps-branch  | Branch of `cybozu-private/neco-apps` to run | release                       |
 
 (*) There are constraints around how many local SSDs you can attach based on each machine type.
 See the [GCE documentation](https://cloud.google.com/compute/docs/disks#local_ssd_machine_type_restrictions).
