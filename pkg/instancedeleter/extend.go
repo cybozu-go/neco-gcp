@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -71,7 +71,7 @@ func findGCPInstanceByName(service *compute.Service, project string, instance st
 
 func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gcp.Config) {
 	defer r.Body.Close()
-	bodyRaw, err := ioutil.ReadAll(r.Body)
+	bodyRaw, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error("failed to read body", map[string]interface{}{
 			log.FnError: err,
