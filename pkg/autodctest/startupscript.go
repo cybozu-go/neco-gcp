@@ -57,18 +57,20 @@ func (b *StartupScriptBuilder) Build() string {
 
 echo "starting auto dctest..."
 
+# Wait for auto-refresh to be done
+snap watch --last=auto-refresh
+
 # Set environment variables
 HOME=/root
 GOPATH=${HOME}/go
-GO111MODULE=on
 PATH=${PATH}:/usr/local/go/bin:${GOPATH}/bin
 NECO_DIR=${GOPATH}/src/github.com/cybozu-go/neco
-export HOME GOPATH GO111MODULE PATH NECO_DIR
+export HOME GOPATH PATH NECO_DIR
 
 delete_myself()
 {
 echo "[auto-dctest] Auto dctest failed. Deleting the instance..."
-/snap/bin/gcloud --quiet compute instances delete $NAME --zone=$ZONE
+gcloud --quiet compute instances delete $NAME --zone=$ZONE
 }
 `
 
