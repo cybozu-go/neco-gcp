@@ -5,9 +5,9 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/cybozu-go/log"
 	"github.com/slack-go/slack"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
 const slackNotifierConfigName = "slack-notifier-config"

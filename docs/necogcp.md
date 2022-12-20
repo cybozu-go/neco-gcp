@@ -18,6 +18,12 @@ Synopsis
     Launch `host-vm` instance using `vmx-enabled` image.
     If `host-vm` instance already exists, it is re-created.
 
+* `necogcp create-runner`
+
+    Launch runner instance which runs self-hosted-runner with `vmx-enabled` image.
+    If runner instance already exists in the project, new runner is not created
+    You must have ServiceAccount which has permission `secretmanager.versions.access` in your project.
+
 * `necogcp delete-image`
 
     Delete `vmx-enabled` image.
