@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       # Cloud Functions does not support the latest Go runtimes. Currently, it only supports up to Go 1.16.
