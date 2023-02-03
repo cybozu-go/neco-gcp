@@ -3,11 +3,7 @@ all: build
 
 .PHONY: setup
 setup:
-	if go version | grep -q go1.16; then \
-		env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@v0.2.2; \
-	else \
-		env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@latest; \
-	fi
+	env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@latest
 	env GOFLAGS= go install github.com/cybozu/neco-containers/golang/analyzer/cmd/custom-checker@latest
 
 .PHONY: check-generate
