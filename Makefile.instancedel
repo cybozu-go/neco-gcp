@@ -59,7 +59,7 @@ deploy-extend-function:
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ExtendEntryPoint \
-		--runtime go116 \
+		--runtime go119 \
 		--trigger-http \
 		--allow-unauthenticated \
 		--memory 128MB \
@@ -76,7 +76,7 @@ deploy-shutdown-function:
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ShutdownEntryPoint \
-		--runtime go116 \
+		--runtime go119 \
 		--trigger-topic $(TOPIC_NAME) \
 		--memory 128MB \
 		--timeout 300s \
