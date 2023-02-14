@@ -2,7 +2,6 @@ package setup
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/bzip2"
 	"compress/gzip"
 	"context"
@@ -47,16 +46,6 @@ func VMXEnabled(ctx context.Context, project string, artifacts *ArtifactSet, opt
 	}
 
 	err = apt(ctx, "install", "-y", "software-properties-common", "dirmngr")
-	if err != nil {
-		return err
-	}
-
-	err = configureSWTPM(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = configureKubic(ctx)
 	if err != nil {
 		return err
 	}
@@ -216,21 +205,6 @@ func configureApt(ctx context.Context) error {
 	return nil
 }
 
-func configureSWTPM(ctx context.Context) error {
-	return well.CommandContext(ctx, "add-apt-repository", "-y", "ppa:smoser/swtpm").Run()
-}
-
-func configureKubic(ctx context.Context) error {
-	err := well.CommandContext(ctx, "sh", "-c",
-		`echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list`).Run()
-	if err != nil {
-		return err
-	}
-
-	return well.CommandContext(ctx, "sh", "-c",
-		"curl -fsSL https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/devel_kubic_libcontainers_stable.gpg > /dev/null").Run()
-}
-
 func configureDocker(ctx context.Context) error {
 	resp, err := http.Get("https://download.docker.com/linux/ubuntu/gpg")
 	if err != nil {
@@ -240,19 +214,25 @@ func configureDocker(ctx context.Context) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to get docker repository GPG key: %d", resp.StatusCode)
 	}
-	key, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
+		return fmt.Errorf("failed to read Docker PGP key: %w", err)
+	}
+
+	if err := os.WriteFile("/etc/apt/keyrings/docker-key.asc", data, 0644); err != nil {
 		return err
 	}
 
-	cmd := well.CommandContext(ctx, "apt-key", "add", "-")
-	cmd.Stdin = bytes.NewReader(key)
-	err = cmd.Run()
+	cmd := well.CommandContext(ctx, "lsb_release", "-cs")
+	out, err := cmd.Output()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to invoke lsb_release -cs: %w", err)
 	}
 
-	return well.CommandContext(ctx, "add-apt-repository", "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable").Run()
+	codename := strings.TrimSuffix(string(out), "\n")
+	repo := fmt.Sprintf("deb [arch=amd64 signed-by=%s] https://download.docker.com/linux/ubuntu %s stable\n", "/etc/apt/keyrings/docker-key.asc", codename)
+
+	return os.WriteFile("/etc/apt/sources.list.d/docker.list", []byte(repo), 0644)
 }
 
 func installAptPackages(ctx context.Context, debPackages []string) error {
