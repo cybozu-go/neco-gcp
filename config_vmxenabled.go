@@ -47,6 +47,7 @@ var VMXEnabledArtifacts = setup.ArtifactSet{
 		// docker CE
 		"docker-ce",
 		"docker-ce-cli",
+		"docker-buildx-plugin",
 		"containerd.io",
 	},
 }
