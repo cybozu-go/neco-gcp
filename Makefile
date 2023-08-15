@@ -4,7 +4,7 @@ all: build
 .PHONY: setup
 setup:
 	env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@latest
-	env GOFLAGS= go install github.com/cybozu/neco-containers/golang/analyzer/cmd/custom-checker@latest
+	env GOFLAGS= go install github.com/cybozu-go/golang-custom-analyzer/cmd/custom-checker@latest
 
 .PHONY: check-generate
 check-generate:
