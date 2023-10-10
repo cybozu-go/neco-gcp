@@ -100,7 +100,7 @@ deploy-function:
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point AutoDCTestEntryPoint \
-		--runtime go119 \
+		--runtime go121 \
 		--trigger-topic $(TOPIC_NAME) \
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
 		--memory 128MB \
