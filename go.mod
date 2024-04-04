@@ -1,6 +1,6 @@
 module github.com/cybozu-go/neco-gcp
 
-go 1.22.1
+go 1.21
 
 require (
 	cloud.google.com/go/pubsub v1.37.0
@@ -9,7 +9,7 @@ require (
 	github.com/cybozu-go/log v1.7.0
 	github.com/cybozu-go/well v1.11.2
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-github/v56 v56.0.0
+	github.com/google/go-github/v61 v61.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/slack-go/slack v0.12.5
@@ -17,7 +17,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	golang.org/x/oauth2 v0.18.0
 	google.golang.org/api v0.172.0
-	google.golang.org/grpc v1.62.1
+	google.golang.org/grpc v1.63.0
 	google.golang.org/protobuf v1.33.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -34,7 +34,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-github/v60 v60.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
@@ -71,7 +71,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
+	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
