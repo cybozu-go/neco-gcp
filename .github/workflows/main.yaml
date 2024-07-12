@@ -15,7 +15,7 @@ jobs:
       # Therefore, we should run tests with both the Cloud Functions Go runtime version and our development environment Go version.
       # See `--runtime` options for `gcloud functions deploy` in `Makefile.*` to find the Cloud Functions runtime Go version we use.
       matrix:
-        go-version: ["1.21"]
+        go-version: ["1.22"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
