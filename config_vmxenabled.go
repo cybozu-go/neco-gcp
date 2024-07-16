@@ -6,16 +6,16 @@ import "github.com/cybozu-go/neco-gcp/pkg/setup"
 // This setting is used by both "necogcp create-image" and "necogcp neco-test create-image".
 const (
 	VMXEnabledBaseImageProject = "ubuntu-os-cloud"
-	VMXEnabledBaseImage        = "ubuntu-2204-jammy-v20240319"
+	VMXEnabledBaseImage        = "ubuntu-2204-jammy-v20240701"
 )
 
 // The settings of software which installed in the VMXEnabled image.
 // This setting is used by both "necogcp create-image" and "necogcp neco-test create-image".
 var VMXEnabledArtifacts = setup.ArtifactSet{
-	GoVersion:       "1.22.4",
-	EtcdVersion:     "3.5.13",
-	PlacematVersion: "2.4.5",
-	CoreOSVersion:   "3815.2.1",
+	GoVersion:       "1.22.5",
+	EtcdVersion:     "3.5.14",
+	PlacematVersion: "2.4.6",
+	CoreOSVersion:   "3815.2.5",
 	CtVersion:       "0.9.3", //If upgrading a version, make sure the binary is included in the GitHub release
 	DebPackages: []string{
 		"git",
