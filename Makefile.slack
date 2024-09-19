@@ -57,7 +57,7 @@ deploy-function:
 		--runtime go121 \
 		--trigger-topic $(TOPIC_NAME) \
 		--set-env-vars GCP_PROJECT=$(GCP_PROJECT),CYBOZU_LOG_LEVEL=$(LOG_LEVEL) \
-		--memory 128MB \
+		--memory 128MiB \
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
 
 delete-function:

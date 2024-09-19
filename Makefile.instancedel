@@ -62,7 +62,7 @@ deploy-extend-function:
 		--runtime go121 \
 		--trigger-http \
 		--allow-unauthenticated \
-		--memory 128MB \
+		--memory 128MiB \
 		--timeout 300s \
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
 	gcloud functions add-iam-policy-binding extend \
@@ -78,7 +78,7 @@ deploy-shutdown-function:
 		--entry-point ShutdownEntryPoint \
 		--runtime go121 \
 		--trigger-topic $(TOPIC_NAME) \
-		--memory 128MB \
+		--memory 128MiB \
 		--timeout 300s \
 		--service-account=$(SERVICE_ACCOUNT_EMAIL)
 
