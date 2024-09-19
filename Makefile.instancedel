@@ -56,6 +56,7 @@ delete-service-account:
 # ref: https://cloud.google.com/functions/docs/securing/managing-access-iam#allowing_unauthenticated_http_function_invocation
 deploy-extend-function:
 	gcloud --quiet functions deploy extend \
+		--no-gen2 \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ExtendEntryPoint \
@@ -73,6 +74,7 @@ deploy-extend-function:
 
 deploy-shutdown-function:
 	gcloud --quiet functions deploy shutdown \
+		--no-gen2 \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point ShutdownEntryPoint \
