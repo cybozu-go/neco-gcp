@@ -51,6 +51,7 @@ delete-service-account:
 
 deploy-function:
 	gcloud --quiet functions deploy $(FUNCTION_NAME) \
+		--no-gen2 \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point SlackNotifierEntryPoint \
