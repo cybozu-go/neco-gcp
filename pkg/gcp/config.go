@@ -11,7 +11,7 @@ const (
 	// DefaultNumLocalSSDs is the default number of local SSDs
 	defaultNumLocalSSDs = 1
 	// DefaultBootDiskSizeGB is default instance boot disk size
-	defaultBootDiskSizeGB = 20
+	defaultBootDiskSizeGB = 30
 	// DefaultHomeDisk is default value for attaching home disk image in host-vm
 	defaultHomeDisk = false
 	// DefaultHomeDiskSizeGB is default home disk size
