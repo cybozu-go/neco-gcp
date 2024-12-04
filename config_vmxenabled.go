@@ -12,10 +12,10 @@ const (
 // The settings of software which installed in the VMXEnabled image.
 // This setting is used by both "necogcp create-image" and "necogcp neco-test create-image".
 var VMXEnabledArtifacts = setup.ArtifactSet{
-	GoVersion:       "1.22.5",
-	EtcdVersion:     "3.5.14",
-	PlacematVersion: "2.4.6",
-	CoreOSVersion:   "3815.2.5",
+	GoVersion:       "1.23.2",
+	EtcdVersion:     "3.5.17",
+	PlacematVersion: "2.4.7",
+	CoreOSVersion:   "3975.2.2",
 	CtVersion:       "0.9.3", //If upgrading a version, make sure the binary is included in the GitHub release
 	DebPackages: []string{
 		"git",
