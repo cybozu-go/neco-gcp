@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       # Cloud Functions only supports a limited set of Go runtime versions.
@@ -15,7 +15,7 @@ jobs:
       # Therefore, we should run tests with both the Cloud Functions Go runtime version and our development environment Go version.
       # See `--runtime` options for `gcloud functions deploy` in `Makefile.*` to find the Cloud Functions runtime Go version we use.
       matrix:
-        go-version: ["1.23"]
+        go-version: ["1.24"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
