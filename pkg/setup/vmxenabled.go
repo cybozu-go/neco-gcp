@@ -444,6 +444,13 @@ func downloadFile(client *http.Client, url, destDir string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to download %s, status code: %d, failed to read body: %w", url, resp.StatusCode, err)
+		}
+		return fmt.Errorf("failed to download %s, status code: %d, body: %s", url, resp.StatusCode, body)
+	}
 	f, err := os.OpenFile(filepath.Join(destDir, filepath.Base(url)), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
