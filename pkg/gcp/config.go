@@ -134,6 +134,8 @@ func NecoTestConfig(projectID, zone string) *Config {
 				Timezone:   defaultTimeZone,
 				ShutdownAt: defaultAppShutdownAt,
 				AdditionalZones: []string{
+					"asia-northeast1-a",
+					"asia-northeast1-b",
 					"asia-northeast1-c",
 				},
 			},
