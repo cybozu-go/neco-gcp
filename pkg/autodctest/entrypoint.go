@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/cybozu-go/log"
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
