@@ -39,6 +39,9 @@ create-service-account:
 	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
 		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
 		--role=roles/logging.logWriter
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/run.invoker
 
 delete-service-account:
 	gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
