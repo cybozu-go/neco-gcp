@@ -50,8 +50,8 @@ delete-service-account:
 	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
 
 deploy-function:
+	gcloud --quiet pubsub topics create $(TOPIC_NAME) --project $(GCP_PROJECT)
 	gcloud --quiet functions deploy $(FUNCTION_NAME) \
-		--no-gen2 \
 		--project $(GCP_PROJECT) \
 		--region $(REGION) \
 		--entry-point SlackNotifierEntryPoint \
