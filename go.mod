@@ -11,7 +11,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/slack-go/slack v0.20.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
