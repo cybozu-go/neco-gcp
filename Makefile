@@ -3,11 +3,11 @@ all: build
 
 .PHONY: setup
 setup:
-	env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@latest
-	env GOFLAGS= go install github.com/cybozu-go/golang-custom-analyzer/cmd/custom-checker@latest
+	env GOFLAGS= go install honnef.co/go/tools/cmd/staticcheck@ff63afafc529279f454e02f1d060210bd4263951 # v0.7.0
+	env GOFLAGS= go install github.com/cybozu-go/golang-custom-analyzer/cmd/custom-checker@5cda2f85e31dbe2453825f6520710a76465f197e # v0.1.5
 
-.PHONY: check-generate
-check-generate:
+.PHONY: check-generated
+check-generated:
 	go mod tidy
 	git diff --exit-code --name-only
 
