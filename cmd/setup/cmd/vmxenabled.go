@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/cybozu-go/log"
 	necogcp "github.com/cybozu-go/neco-gcp"
@@ -26,7 +27,7 @@ Please run this command on vmx-enabled instance.`,
 			if err != nil {
 				return err
 			}
-			if hostname != "vmx-enabled" {
+			if !strings.HasPrefix(hostname, "vmx-enabled") {
 				return errors.New("this host is not supported")
 			}
 
