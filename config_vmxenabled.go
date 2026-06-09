@@ -38,7 +38,7 @@ var VMXEnabledArtifacts = setup.ArtifactSet{
 		"bash-completion",
 		"dbus",
 		"jq",
-		"libgpgme11",
+		"libgpgme45",
 		"freeipmi-tools",
 		"unzip",
 		"skopeo",
