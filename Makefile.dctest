@@ -109,8 +109,12 @@ deploy-function:
 		--service-account=$(SERVICE_FUNCTION_ACCOUNT_EMAIL)
 
 delete-function:
-	gcloud --quiet functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION)
-	gcloud --quiet pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT)
+	if [ -n "$$(gcloud functions list --project $(GCP_PROJECT) --regions=$(REGION) --filter='name=projects/$(GCP_PROJECT)/locations/$(REGION)/functions/$(FUNCTION_NAME)' --format='value(name)')" ]; then \
+		gcloud --quiet functions delete $(FUNCTION_NAME) --project $(GCP_PROJECT) --region $(REGION); \
+	fi
+	if [ -n "$$(gcloud pubsub topics list --project $(GCP_PROJECT) --filter='name=projects/$(GCP_PROJECT)/topics/$(TOPIC_NAME)' --format='value(name)')" ]; then \
+		gcloud --quiet pubsub topics delete $(TOPIC_NAME) --project $(GCP_PROJECT); \
+	fi
 
 create-creating-scheduler:
 	if [ $(words $(TEAM_NAME)) -eq 0 ] || [ $(words $(INSTANCE_NUM)) -eq 0 ]; then \
