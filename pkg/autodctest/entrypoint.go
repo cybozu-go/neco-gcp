@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/pubsub/v2"
 	"github.com/cybozu-go/log"
+
 	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
@@ -35,35 +36,35 @@ type messageBody struct {
 
 // EntryPoint consumes a Pub/Sub message
 func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numLocalSSDs int, zone string, jpHolidays []string) error {
-	log.Debug("msg body", map[string]interface{}{
+	log.Debug("msg body", map[string]any{
 		"data": string(m.Data),
 	})
 	var b messageBody
 	err := json.Unmarshal(m.Data, &b)
 	if err != nil {
-		log.Error("failed to unmarshal json", map[string]interface{}{
+		log.Error("failed to unmarshal json", map[string]any{
 			"data":      string(m.Data),
 			log.FnError: err,
 		})
 		return err
 	}
-	log.Debug("unmarshalled msg body", map[string]interface{}{
+	log.Debug("unmarshalled msg body", map[string]any{
 		"body": b,
 	})
 
 	projectID := os.Getenv(projectIDEnvName)
 	if len(projectID) == 0 {
 		err := errors.New(projectIDEnvName + " env should not be empty")
-		log.Error(err.Error(), map[string]interface{}{})
+		log.Error(err.Error(), map[string]any{})
 		return err
 	}
-	log.Debug("project id", map[string]interface{}{
+	log.Debug("project id", map[string]any{
 		"projectid": projectID,
 	})
 
 	client, err := gcp.NewComputeClient(ctx, projectID, zone)
 	if err != nil {
-		log.Error("failed to create client", map[string]interface{}{
+		log.Error("failed to create client", map[string]any{
 			log.FnError: err,
 		})
 		return err
@@ -72,21 +73,21 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 
 	switch b.Mode {
 	case createInstancesMode:
-		log.Info("create instance(s)", map[string]interface{}{
+		log.Info("create instance(s)", map[string]any{
 			"prefix": b.InstanceNamePrefix,
 			"num":    b.InstancesNum,
 		})
 
 		today, err := getDateStrInJST()
 		if err != nil {
-			log.Error("failed to get today's date", map[string]interface{}{
+			log.Error("failed to get today's date", map[string]any{
 				log.FnError: err,
 			})
 			return err
 		}
-		log.Debug("today is "+today, map[string]interface{}{})
+		log.Debug("today is "+today, map[string]any{})
 		if isHoliday(today, jpHolidays) {
-			log.Info("today is holiday! skip creating dctest", map[string]interface{}{})
+			log.Info("today is holiday! skip creating dctest", map[string]any{})
 			return nil
 		}
 
@@ -95,7 +96,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 			WithNeco(necoBranch).
 			WithNecoApps(necoAppsBranch)
 		if err != nil {
-			log.Error("failed to construct startup-script builder", map[string]interface{}{
+			log.Error("failed to construct startup-script builder", map[string]any{
 				log.FnError: err,
 			})
 			return err
@@ -114,7 +115,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 			builder.Build(),
 		)
 		if err != nil {
-			log.Error("failed to create instance(s)", map[string]interface{}{
+			log.Error("failed to create instance(s)", map[string]any{
 				"prefix":         b.InstanceNamePrefix,
 				"num":            b.InstancesNum,
 				"serviceaccount": sa,
@@ -124,7 +125,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 			})
 			return err
 		}
-		log.Info("created instance(s) successfully", map[string]interface{}{
+		log.Info("created instance(s) successfully", map[string]any{
 			"prefix":         b.InstanceNamePrefix,
 			"num":            b.InstancesNum,
 			"serviceaccount": sa,
@@ -134,7 +135,7 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 
 		return nil
 	case deleteInstancesMode:
-		log.Info("delete all instance(s)", map[string]interface{}{
+		log.Info("delete all instance(s)", map[string]any{
 			"force": b.DoForceDelete,
 		})
 		var filter string
@@ -143,19 +144,19 @@ func EntryPoint(ctx context.Context, m *pubsub.Message, machineType string, numL
 		}
 		err := runner.DeleteFilteredInstances(ctx, filter)
 		if err != nil {
-			log.Error("failed to delete instance(s)", map[string]interface{}{
+			log.Error("failed to delete instance(s)", map[string]any{
 				"force":     b.DoForceDelete,
 				log.FnError: err,
 			})
 			return err
 		}
-		log.Info("deleted all instance(s) successfully", map[string]interface{}{
+		log.Info("deleted all instance(s) successfully", map[string]any{
 			"force": b.DoForceDelete,
 		})
 		return nil
 	default:
 		err := fmt.Errorf("invalid mode was given: %s", b.Mode)
-		log.Error(err.Error(), map[string]interface{}{})
+		log.Error(err.Error(), map[string]any{})
 		return err
 	}
 }

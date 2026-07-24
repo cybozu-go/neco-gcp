@@ -47,7 +47,7 @@ func enableXForwarding() error {
 	reTo := `SSHD_OPTS="-o X11UseLocalhost=no"`
 	destFile := "/etc/default/ssh"
 
-	f, err := os.OpenFile(destFile, os.O_RDWR, 0644)
+	f, err := os.OpenFile(destFile, os.O_RDWR, 0o644)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func enableXForwarding() error {
 }
 
 func mountHomeDisk(ctx context.Context) error {
-	f, err := os.OpenFile("/etc/fstab", os.O_RDWR, 0644)
+	f, err := os.OpenFile("/etc/fstab", os.O_RDWR, 0o644)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func mountHomeDisk(ctx context.Context) error {
 	}
 
 	var active bool
-	for retryCount := 0; retryCount < 300; retryCount++ {
+	for range 300 {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -115,14 +115,14 @@ func mountHomeDisk(ctx context.Context) error {
 
 		result, err := IsActiveService(ctx, accountDaemon)
 		if err != nil {
-			log.Error("failed to check account daemon", map[string]interface{}{
+			log.Error("failed to check account daemon", map[string]any{
 				log.FnError: err,
 				"service":   accountDaemon + ".service",
 			})
 			continue
 		}
 		if !result {
-			log.Error("account daemon is not yet active", map[string]interface{}{
+			log.Error("account daemon is not yet active", map[string]any{
 				"service": accountDaemon + ".service",
 			})
 			continue
@@ -212,7 +212,7 @@ func setupLocalSSD(ctx context.Context) error {
 		return err
 	}
 
-	err = os.MkdirAll(localSSDMountPoint, 0755)
+	err = os.MkdirAll(localSSDMountPoint, 0o755)
 	if err != nil {
 		return err
 	}
@@ -228,5 +228,5 @@ func setupLocalSSD(ctx context.Context) error {
 		return err
 	}
 
-	return os.Chmod(localSSDMountPoint, 0777)
+	return os.Chmod(localSSDMountPoint, 0o777)
 }

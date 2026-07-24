@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var (

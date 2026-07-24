@@ -24,14 +24,12 @@ const (
 	ctPath   = "/usr/local/bin/ct"
 )
 
-var (
-	staticFiles = []string{
-		"/etc/apt/apt.conf.d/20auto-upgrades",
-		"/etc/containers/registries.conf",
-		"/etc/docker/daemon.json",
-		"/etc/profile.d/go.sh",
-	}
-)
+var staticFiles = []string{
+	"/etc/apt/apt.conf.d/20auto-upgrades",
+	"/etc/containers/registries.conf",
+	"/etc/docker/daemon.json",
+	"/etc/profile.d/go.sh",
+}
 
 // VMXEnabled setup vmx-enabled instance
 func VMXEnabled(ctx context.Context, project string, artifacts *ArtifactSet, optionalPackages []string) error {
@@ -118,7 +116,7 @@ func configureDNS(ctx context.Context) error {
 		return err
 	}
 
-	for _, line := range strings.Fields(string(data)) {
+	for line := range strings.FieldsSeq(string(data)) {
 		param := strings.SplitN(line, "=", 2)
 		if param[0] != "ID" {
 			continue
@@ -144,18 +142,18 @@ func configureDNS(ctx context.Context) error {
 		return err
 	}
 
-	newData := strings.Replace(string(data), "nameserver 127.0.0.53", "nameserver 169.254.169.254", -1)
+	newData := strings.ReplaceAll(string(data), "nameserver 127.0.0.53", "nameserver 169.254.169.254")
 
 	err = os.Remove("/etc/resolv.conf")
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Dir("/etc/resolv.conf"), 0755)
+	err = os.MkdirAll(filepath.Dir("/etc/resolv.conf"), 0o755)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile("/etc/resolv.conf", []byte(newData), 0644)
+	return os.WriteFile("/etc/resolv.conf", []byte(newData), 0o644)
 }
 
 func apt(ctx context.Context, args ...string) error {
@@ -218,7 +216,7 @@ func configureDocker(ctx context.Context) error {
 		return fmt.Errorf("failed to read Docker PGP key: %w", err)
 	}
 
-	if err := os.WriteFile("/etc/apt/keyrings/docker-key.asc", data, 0644); err != nil {
+	if err := os.WriteFile("/etc/apt/keyrings/docker-key.asc", data, 0o644); err != nil {
 		return err
 	}
 
@@ -231,7 +229,7 @@ func configureDocker(ctx context.Context) error {
 	codename := strings.TrimSuffix(string(out), "\n")
 	repo := fmt.Sprintf("deb [arch=amd64 signed-by=%s] https://download.docker.com/linux/ubuntu %s stable\n", "/etc/apt/keyrings/docker-key.asc", codename)
 
-	return os.WriteFile("/etc/apt/sources.list.d/docker.list", []byte(repo), 0644)
+	return os.WriteFile("/etc/apt/sources.list.d/docker.list", []byte(repo), 0o644)
 }
 
 func installAptPackages(ctx context.Context, debPackages []string) error {
@@ -294,7 +292,7 @@ func untargz(r io.Reader, dst string) error {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
+				if err := os.MkdirAll(target, 0o755); err != nil {
 					return err
 				}
 			}
@@ -343,19 +341,19 @@ func installBinaryFile(ctx context.Context, client *http.Client, url, dest strin
 	}
 	defer resp.Body.Close()
 
-	return writeToFile(dest, resp.Body, 0755)
+	return writeToFile(dest, resp.Body, 0o755)
 }
 
 func dumpStaticFiles() error {
 	for _, file := range staticFiles {
 		err := copyStatic(file)
 		if err != nil {
-			log.Error("failed to copy file: "+file, map[string]interface{}{
+			log.Error("failed to copy file: "+file, map[string]any{
 				log.FnError: err,
 			})
 			return err
 		}
-		log.Info("wrote", map[string]interface{}{
+		log.Info("wrote", map[string]any{
 			"file": file,
 		})
 	}
@@ -375,7 +373,7 @@ func copyStatic(fileName string) error {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Dir(fileName), 0755)
+	err = os.MkdirAll(filepath.Dir(fileName), 0o755)
 	if err != nil {
 		return err
 	}
@@ -396,7 +394,7 @@ func copyStatic(fileName string) error {
 }
 
 func downloadAssets(client *http.Client, assetURLs, bz2Files []string) error {
-	err := os.MkdirAll(assetDir, 0755)
+	err := os.MkdirAll(assetDir, 0o755)
 	if err != nil {
 		return err
 	}
@@ -407,7 +405,7 @@ func downloadAssets(client *http.Client, assetURLs, bz2Files []string) error {
 		if err != nil {
 			return err
 		}
-		log.Info("downloaded", map[string]interface{}{
+		log.Info("downloaded", map[string]any{
 			"url": url,
 		})
 	}
@@ -424,11 +422,11 @@ func downloadAssets(client *http.Client, assetURLs, bz2Files []string) error {
 		}()
 		f := bzip2.NewReader(bz2)
 		extName := strings.TrimRight(bz2.Name(), ".bz2")
-		err = writeToFile(extName, f, 0644)
+		err = writeToFile(extName, f, 0o644)
 		if err != nil {
 			return err
 		}
-		log.Info("decompressed", map[string]interface{}{
+		log.Info("decompressed", map[string]any{
 			"from": bz2.Name(),
 			"to":   extName,
 		})
@@ -451,7 +449,7 @@ func downloadFile(client *http.Client, url, destDir string) error {
 		}
 		return fmt.Errorf("failed to download %s, status code: %d, body: %s", url, resp.StatusCode, body)
 	}
-	f, err := os.OpenFile(filepath.Join(destDir, filepath.Base(url)), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(filepath.Join(destDir, filepath.Base(url)), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}

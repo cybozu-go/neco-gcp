@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var createInstanceCmd = &cobra.Command{

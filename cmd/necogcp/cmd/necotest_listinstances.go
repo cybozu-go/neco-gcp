@@ -5,9 +5,10 @@ import (
 	"errors"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var filter string
@@ -24,19 +25,19 @@ var necotestListInstancesCmd = &cobra.Command{
 			}
 			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
-				log.Error("failed to create compute client: %v", map[string]interface{}{
+				log.Error("failed to create compute client: %v", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
-			log.Info("start getting instance list", map[string]interface{}{
+			log.Info("start getting instance list", map[string]any{
 				"project": projectID,
 				"zone":    zone,
 				"filter":  filter,
 			})
 			set, err := cc.GetNameSet(filter)
 			if err != nil {
-				log.Error("failed to get instances", map[string]interface{}{
+				log.Error("failed to get instances", map[string]any{
 					log.FnError: err,
 				})
 				return err
@@ -46,7 +47,7 @@ var necotestListInstancesCmd = &cobra.Command{
 			for v := range set {
 				list = append(list, v)
 			}
-			log.Info("fetched instance names successfully", map[string]interface{}{
+			log.Info("fetched instance names successfully", map[string]any{
 				"names": list,
 			})
 			return nil

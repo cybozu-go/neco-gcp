@@ -18,7 +18,7 @@ func SleepContext(ctx context.Context, d time.Duration) error {
 // RetryWithSleep invoke f until it succeeds or reach to max.
 func RetryWithSleep(ctx context.Context, max int, d time.Duration, f func(ctx context.Context) error, logger func(err error)) error {
 	var err error
-	for i := 0; i < max; i++ {
+	for range max {
 		err = f(ctx)
 		if err == nil {
 			return nil

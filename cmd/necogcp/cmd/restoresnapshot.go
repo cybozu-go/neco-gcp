@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
-var (
-	destZone string
-)
+var destZone string
 
 var restoreSnapshotCmd = &cobra.Command{
 	Use:   "restore-snapshot",

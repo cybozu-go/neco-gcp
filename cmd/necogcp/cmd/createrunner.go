@@ -8,14 +8,17 @@ import (
 	"text/template"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
-	"github.com/cybozu-go/neco-gcp/pkg/github"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/github"
 )
 
-const secretPrefix = "ghatoken"
-const defaultRunnerLabel = "gcp-runner"
+const (
+	secretPrefix       = "ghatoken"
+	defaultRunnerLabel = "gcp-runner"
+)
 
 var (
 	runnerMachineType    string
@@ -145,13 +148,13 @@ If runner instance already exists in the project, new runner is not created.`,
 
 			computeClient, err := gcp.NewComputeClient(ctx, runnerProjectId, zone)
 			if err != nil {
-				log.Error("failed to create compute client", map[string]interface{}{
+				log.Error("failed to create compute client", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
 			serviceaccount := fmt.Sprintf("bootstrap-dctest@%s.iam.gserviceaccount.com", runnerProjectId)
-			log.Info("start creating instance", map[string]interface{}{
+			log.Info("start creating instance", map[string]any{
 				"project":        runnerProjectId,
 				"zone":           zone,
 				"name":           runnerName,

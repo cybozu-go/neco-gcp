@@ -19,25 +19,25 @@ func makeConfigURL(projectID string) string {
 
 // EntryPoint consumes a Pub/Sub message to send notification via Slack
 func EntryPoint(ctx context.Context, m *pubsub.Message) error {
-	log.Debug("msg body", map[string]interface{}{
+	log.Debug("msg body", map[string]any{
 		"data": string(m.Data),
 	})
 
 	b, err := NewComputeLog(m.Data)
 	if err != nil {
-		log.Error("failed to unmarshal json", map[string]interface{}{
+		log.Error("failed to unmarshal json", map[string]any{
 			"data":      string(m.Data),
 			log.FnError: err,
 		})
 		return err
 	}
-	log.Debug("unmarshalled msg body", map[string]interface{}{
+	log.Debug("unmarshalled msg body", map[string]any{
 		"body": b,
 	})
 
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		log.Error("failed to setup client", map[string]interface{}{
+		log.Error("failed to setup client", map[string]any{
 			log.FnError: err,
 		})
 		return err
@@ -50,18 +50,18 @@ func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 		},
 	)
 	if err != nil {
-		log.Error("failed to access secret version", map[string]interface{}{
+		log.Error("failed to access secret version", map[string]any{
 			log.FnError: err,
 		})
 		return err
 	}
-	log.Info("notifier config YAML is successfully fetched", map[string]interface{}{
+	log.Info("notifier config YAML is successfully fetched", map[string]any{
 		"len": len(result.GetPayload().GetData()),
 	})
 
 	c, err := NewConfig(result.GetPayload().GetData())
 	if err != nil {
-		log.Error("failed to read config", map[string]interface{}{
+		log.Error("failed to read config", map[string]any{
 			log.FnError: err,
 		})
 		return err
@@ -70,26 +70,26 @@ func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 	name := b.GetInstanceName()
 	teams, err := c.FindTeamsByInstanceName(name)
 	if err != nil {
-		log.Error("failed to get teams", map[string]interface{}{
+		log.Error("failed to get teams", map[string]any{
 			"instancename": name,
 			log.FnError:    err,
 		})
 		return err
 	}
-	log.Info("target teams", map[string]interface{}{
+	log.Info("target teams", map[string]any{
 		"teams": teams,
 	})
 
 	urls, err := c.GetWebHookURLsFromTeams(teams)
 	if err != nil {
-		log.Error("failed to convert teams to URLs", map[string]interface{}{
+		log.Error("failed to convert teams to URLs", map[string]any{
 			"teams":     teams,
 			log.FnError: err,
 		})
 		return err
 	}
 	if len(urls) == 0 {
-		log.Info("No target URL is selected.", map[string]interface{}{
+		log.Info("No target URL is selected.", map[string]any{
 			"teams": teams,
 		})
 		return nil
@@ -98,13 +98,13 @@ func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 	logMsg := b.GetMessage()
 	color, err := c.FindColorByMessage(logMsg)
 	if err != nil {
-		log.Error("failed to get color from message", map[string]interface{}{
+		log.Error("failed to get color from message", map[string]any{
 			"text":      logMsg,
 			log.FnError: err,
 		})
 		return err
 	}
-	log.Debug("color", map[string]interface{}{
+	log.Debug("color", map[string]any{
 		"color": color,
 	})
 
@@ -116,14 +116,14 @@ func EntryPoint(ctx context.Context, m *pubsub.Message) error {
 		b.GetMessage(),
 		color,
 	)
-	log.Debug("msg", map[string]interface{}{
+	log.Debug("msg", map[string]any{
 		"msg": whMsg,
 	})
 
 	for url := range urls {
 		err = slack.PostWebhookContext(ctx, url, whMsg)
 		if err != nil {
-			log.Error("failed to post slack message", map[string]interface{}{
+			log.Error("failed to post slack message", map[string]any{
 				"message":   whMsg,
 				log.FnError: err,
 			})

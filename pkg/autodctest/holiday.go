@@ -1,6 +1,9 @@
 package autodctest
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 func getDateStrInJST() (string, error) {
 	loc, err := time.LoadLocation("Asia/Tokyo")
@@ -11,10 +14,5 @@ func getDateStrInJST() (string, error) {
 }
 
 func isHoliday(target string, holidays []string) bool {
-	for _, h := range holidays {
-		if target == h {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(holidays, target)
 }

@@ -94,10 +94,12 @@ func (cc *ComputeCLIClient) gCloudDiskSnapshot() []string {
 }
 
 func (cc *ComputeCLIClient) gCloudComputeSSH(command []string) []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "ssh",
+	return []string{
+		"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "ssh",
 		"--zone", cc.cfg.Common.Zone,
 		fmt.Sprintf("%s@%s", cc.user, cc.instance),
-		fmt.Sprintf("--command=%s", strings.Join(command, " "))}
+		fmt.Sprintf("--command=%s", strings.Join(command, " ")),
+	}
 }
 
 // CreateVMXEnabledInstance creates vmx-enabled instance
@@ -254,7 +256,7 @@ func (cc *ComputeCLIClient) ResizeHomeDisk(ctx context.Context) error {
 		return err
 	}
 
-	var info map[string]interface{}
+	var info map[string]any
 	err = json.Unmarshal(outBuf.Bytes(), &info)
 	if err != nil {
 		return err
@@ -271,7 +273,7 @@ func (cc *ComputeCLIClient) ResizeHomeDisk(ctx context.Context) error {
 	configSize := strconv.Itoa(cc.cfg.Compute.HostVM.HomeDiskSizeGB) + "GB"
 	configSizeInt := cc.cfg.Compute.HostVM.HomeDiskSizeGB
 	if currentSizeInt >= configSizeInt {
-		log.Info("current home disk size is smaller or equal to the size in configuration file", map[string]interface{}{
+		log.Info("current home disk size is smaller or equal to the size in configuration file", map[string]any{
 			"currentSize": currentSizeInt,
 			"configSize":  configSizeInt,
 		})
@@ -310,7 +312,7 @@ func (cc *ComputeCLIClient) WaitInstance(ctx context.Context) error {
 			return c.Run()
 		},
 		func(err error) {
-			log.Error("failed to check online of the instance", map[string]interface{}{
+			log.Error("failed to check online of the instance", map[string]any{
 				log.FnError: err,
 				"instance":  cc.instance,
 			})
@@ -483,9 +485,11 @@ func (cc *ComputeCLIClient) CreateVolumeSnapshot(ctx context.Context) error {
 
 // RestoreVolumeFromSnapshot restores home volume in the target zone
 func (cc *ComputeCLIClient) RestoreVolumeFromSnapshot(ctx context.Context, destZone string) error {
-	gcmdSnapshot := []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount,
+	gcmdSnapshot := []string{
+		"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount,
 		"--project", cc.cfg.Common.Project, "compute", "snapshots", "list",
-		"--sort-by=date", "--limit=1", "--filter=sourceDisk:disks/home", "--format=json"}
+		"--sort-by=date", "--limit=1", "--filter=sourceDisk:disks/home", "--format=json",
+	}
 
 	outBuf := new(bytes.Buffer)
 	c := well.CommandContext(ctx, gcmdSnapshot[0], gcmdSnapshot[1:]...)

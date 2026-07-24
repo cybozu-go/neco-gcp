@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/setup"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/setup"
 )
 
 var hostvmCmd = &cobra.Command{

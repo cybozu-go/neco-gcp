@@ -7,10 +7,11 @@ import (
 
 	"cloud.google.com/go/pubsub/v2"
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message, necoTestProject, necoTestZone string) error {
@@ -93,12 +94,12 @@ func shutdown(ctx context.Context, m *pubsub.Message, client *http.Client, cfg *
 			}
 		}
 	}
-	log.Info("shutdown instances", map[string]interface{}{
+	log.Info("shutdown instances", map[string]any{
 		"deleted": status.Deleted,
 		"stopped": status.Stopped,
 	})
 	if len(errList) != 0 {
-		log.Error("shutdown failed", map[string]interface{}{
+		log.Error("shutdown failed", map[string]any{
 			"errors": errList,
 		})
 		return errList[0]

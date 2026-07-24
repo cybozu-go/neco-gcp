@@ -10,12 +10,12 @@ import (
 )
 
 // RenderJSON renders response in JSON format
-func RenderJSON(w http.ResponseWriter, data interface{}, status int) {
+func RenderJSON(w http.ResponseWriter, data any, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		log.Error("failed to output JSON", map[string]interface{}{
+		log.Error("failed to output JSON", map[string]any{
 			log.FnError: err.Error(),
 		})
 	}
@@ -32,7 +32,7 @@ func RenderError(ctx context.Context, w http.ResponseWriter, e APIError) {
 	w.WriteHeader(e.Status)
 	err := json.NewEncoder(w).Encode(fields)
 	if err != nil {
-		log.Error("failed to output JSON", map[string]interface{}{
+		log.Error("failed to output JSON", map[string]any{
 			log.FnError: err.Error(),
 		})
 	}
