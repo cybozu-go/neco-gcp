@@ -8,14 +8,17 @@ import (
 	"text/template"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
-	"github.com/cybozu-go/neco-gcp/pkg/github"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/github"
 )
 
-const secretPrefix = "ghatoken"
-const defaultRunnerLabel = "gcp-runner"
+const (
+	secretPrefix       = "ghatoken"
+	defaultRunnerLabel = "gcp-runner"
+)
 
 var (
 	runnerMachineType    string
@@ -145,13 +148,13 @@ If runner instance already exists in the project, new runner is not created.`,
 
 			computeClient, err := gcp.NewComputeClient(ctx, runnerProjectId, zone)
 			if err != nil {
-				log.Error("failed to create compute client", map[string]interface{}{
+				log.Error("failed to create compute client", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
 			serviceaccount := fmt.Sprintf("bootstrap-dctest@%s.iam.gserviceaccount.com", runnerProjectId)
-			log.Info("start creating instance", map[string]interface{}{
+			log.Info("start creating instance", map[string]any{
 				"project":        runnerProjectId,
 				"zone":           zone,
 				"name":           runnerName,
@@ -186,9 +189,9 @@ func init() {
 	createRunnerCmd.Flags().StringVarP(&pat, "pat", "", "", "Personal Access Token")
 	createRunnerCmd.Flags().StringSliceVarP(&labels, "labels", "", []string{}, "Labels added to runner")
 	createRunnerCmd.Flags().StringVarP(&runnerRepo, "runner-repository", "", "", "GitHub Repository name which formatted in owner/repository")
-	createRunnerCmd.MarkFlagRequired("runner-repository")
+	createRunnerCmd.MarkFlagRequired("runner-repository") //nolint:errcheck // errors only if "runner-repository" is a typo not matching the flag defined above
 	createRunnerCmd.Flags().StringVarP(&runnerName, "runner-name", "", "", "Actions runner name which formatted in '^[a-z]([-a-z0-9]*[a-z0-9])?'")
-	createRunnerCmd.MarkFlagRequired("runner-name")
+	createRunnerCmd.MarkFlagRequired("runner-name") //nolint:errcheck // errors only if "runner-name" is a typo not matching the flag defined above
 	createRunnerCmd.Flags().StringVarP(&runnerMachineType, "machine-type", "t", "n1-standard-64", "Machine type")
 	createRunnerCmd.Flags().IntVarP(&runnerNumLocalSSDs, "local-ssd", "s", 4, "Number of local SSDs")
 	createRunnerCmd.Flags().StringVar(&runnerNecoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")

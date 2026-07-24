@@ -16,7 +16,7 @@ var VMXEnabledArtifacts = setup.ArtifactSet{
 	EtcdVersion:     "3.6.13",
 	PlacematVersion: "2.5.1",
 	CoreOSVersion:   "4593.2.3",
-	CtVersion:       "0.9.3", //If upgrading a version, make sure the binary is included in the GitHub release
+	CtVersion:       "0.9.3", // If upgrading a version, make sure the binary is included in the GitHub release
 	DebPackages: []string{
 		"git",
 		"build-essential",

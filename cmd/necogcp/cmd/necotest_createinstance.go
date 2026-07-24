@@ -6,10 +6,11 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var (
@@ -35,19 +36,19 @@ var necotestCreateInstanceCmd = &cobra.Command{
 		}
 		if len(serviceAccountEmail) == 0 {
 			serviceAccountEmail = autodctest.MakeNecoDevServiceAccountEmail(projectID)
-			log.Info("Use default service account", map[string]interface{}{
+			log.Info("Use default service account", map[string]any{
 				"serviceaccount": serviceAccountEmail,
 			})
 		}
 		builder := autodctest.NewStartupScriptBuilder().WithFluentd()
 		if len(necoBranch) > 0 {
-			log.Info("run neco", map[string]interface{}{
+			log.Info("run neco", map[string]any{
 				"branch": necoBranch,
 			})
 			builder.WithNeco(necoBranch)
 		}
 		if len(necoAppsBranch) > 0 {
-			log.Info("run neco-apps", map[string]interface{}{
+			log.Info("run neco-apps", map[string]any{
 				"branch": necoAppsBranch,
 			})
 			_, err := builder.WithNecoApps(necoAppsBranch)
@@ -59,13 +60,13 @@ var necotestCreateInstanceCmd = &cobra.Command{
 		well.Go(func(ctx context.Context) error {
 			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
-				log.Error("failed to create compute client", map[string]interface{}{
+				log.Error("failed to create compute client", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
 
-			log.Info("start creating instance", map[string]interface{}{
+			log.Info("start creating instance", map[string]any{
 				"project":        projectID,
 				"zone":           zone,
 				"name":           createInstanceName,

@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	"github.com/cybozu-go/log"
-	necogcp "github.com/cybozu-go/neco-gcp"
-	"github.com/cybozu-go/neco-gcp/pkg/setup"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	necogcp "github.com/cybozu-go/neco-gcp"
+	"github.com/cybozu-go/neco-gcp/pkg/setup"
 )
 
 var vmxenabledCmd = &cobra.Command{

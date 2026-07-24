@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 // Runner runs dctest environments on GCP instances
@@ -36,27 +37,27 @@ func (r Runner) CreateInstancesIfNotExist(
 ) error {
 	set, err := r.compute.GetNameSet("")
 	if err != nil {
-		log.Error("failed to get instances list", map[string]interface{}{
+		log.Error("failed to get instances list", map[string]any{
 			log.FnError: err,
 		})
 		return err
 	}
 
-	log.Info("fetched instances successfully", map[string]interface{}{
+	log.Info("fetched instances successfully", map[string]any{
 		"names": set,
 	})
 	e := well.NewEnvironment(ctx)
-	for i := 0; i < instancesNum; i++ {
+	for i := range instancesNum {
 		name := r.makeInstanceName(instanceNamePrefix, i)
 		if _, ok := set[name]; ok {
-			log.Info("skip creating instance because it already exists", map[string]interface{}{
+			log.Info("skip creating instance because it already exists", map[string]any{
 				"name": name,
 			})
 			continue
 		}
 
 		e.Go(func(ctx context.Context) error {
-			log.Info("start creating instance", map[string]interface{}{
+			log.Info("start creating instance", map[string]any{
 				"name": name,
 			})
 			err := r.compute.Create(
@@ -68,13 +69,13 @@ func (r Runner) CreateInstancesIfNotExist(
 				startupScript,
 			)
 			if err != nil {
-				log.Error("failed to create instance", map[string]interface{}{
+				log.Error("failed to create instance", map[string]any{
 					log.FnError: err,
 					"name":      name,
 				})
 				return err
 			}
-			log.Info("instance is created successfully", map[string]interface{}{
+			log.Info("instance is created successfully", map[string]any{
 				"name": name,
 			})
 
@@ -89,13 +90,13 @@ func (r Runner) CreateInstancesIfNotExist(
 func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) error {
 	aggregatedList, err := r.compute.GetAggregatedNameList(filter)
 	if err != nil {
-		log.Error("failed to get instances list", map[string]interface{}{
+		log.Error("failed to get instances list", map[string]any{
 			log.FnError: err,
 		})
 		return err
 	}
 
-	log.Info("fetched instances successfully", map[string]interface{}{
+	log.Info("fetched instances successfully", map[string]any{
 		"names": aggregatedList,
 	})
 	e := well.NewEnvironment(ctx)
@@ -104,20 +105,20 @@ func (r Runner) DeleteFilteredInstances(ctx context.Context, filter string) erro
 		for _, n := range scopedList {
 			name := n
 			e.Go(func(ctx context.Context) error {
-				log.Info("start deleting instance", map[string]interface{}{
+				log.Info("start deleting instance", map[string]any{
 					"zone": zoneName,
 					"name": name,
 				})
 				err := r.compute.DeleteWithZone(zoneName, name)
 				if err != nil {
-					log.Error("failed to delete instance", map[string]interface{}{
+					log.Error("failed to delete instance", map[string]any{
 						log.FnError: err,
 						"zone":      zoneName,
 						"name":      name,
 					})
 					return err
 				}
-				log.Info("instance is deleted successfully", map[string]interface{}{
+				log.Info("instance is deleted successfully", map[string]any{
 					"zone": zoneName,
 					"name": name,
 				})

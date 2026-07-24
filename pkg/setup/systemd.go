@@ -63,7 +63,7 @@ func ExistsService(ctx context.Context, name string) (bool, error) {
 	if !ok {
 		return false, err
 	}
-	switch exitError.ProcessState.ExitCode() {
+	switch exitError.ExitCode() {
 	case 3:
 		// service exists, but is inactive
 		return true, nil

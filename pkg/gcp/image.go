@@ -11,14 +11,14 @@ func MakeVMXEnabledImageURL(projectID string) string {
 
 // CreateVMXEnabledImage creates vmx-enabled image
 func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, baseImageProject, baseImage string) error {
-	cc.DeleteInstance(ctx)
+	cc.DeleteInstance(ctx) //nolint:errcheck // best-effort cleanup; the instance may not exist yet
 
 	err := cc.CreateVMXEnabledInstance(ctx, baseImageProject, baseImage)
 	if err != nil {
 		return err
 	}
 
-	defer cc.DeleteInstance(ctx)
+	defer cc.DeleteInstance(ctx) //nolint:errcheck // best-effort cleanup after image creation
 
 	err = cc.WaitInstance(ctx)
 	if err != nil {
@@ -36,7 +36,7 @@ func CreateVMXEnabledImage(ctx context.Context, cc *ComputeCLIClient, baseImageP
 		return err
 	}
 
-	cc.DeleteVMXEnabledImage(ctx)
+	cc.DeleteVMXEnabledImage(ctx) //nolint:errcheck // best-effort cleanup; the image may not exist yet
 
 	err = cc.CreateVMXEnabledImage(ctx)
 	if err != nil {

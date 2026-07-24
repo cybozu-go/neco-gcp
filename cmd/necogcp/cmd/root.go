@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var (
@@ -40,9 +41,7 @@ var rootCmd = &cobra.Command{
 		yamlTagOption := func(c *mapstructure.DecoderConfig) {
 			c.TagName = "yaml"
 		}
-		viper.Unmarshal(cfg, yamlTagOption)
-
-		return nil
+		return viper.Unmarshal(cfg, yamlTagOption)
 	},
 }
 
@@ -74,5 +73,11 @@ func initConfig() {
 		viper.SetConfigType("yml")
 	}
 
-	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		// the config file is optional (e.g. --config was left at its default path),
+		// so only report errors other than "file not found"
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.ErrorExit(err)
+		}
+	}
 }

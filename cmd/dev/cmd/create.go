@@ -5,10 +5,11 @@ import (
 	"errors"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 const (
@@ -43,12 +44,12 @@ Please push "Run Now" button on Cloud Scheduler when running dctest`,
 
 			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
-				log.Error("failed to create compute client", map[string]interface{}{
+				log.Error("failed to create compute client", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
-			log.Info("start creating instance", map[string]interface{}{
+			log.Info("start creating instance", map[string]any{
 				"project":            projectID,
 				"zone":               zone,
 				"instancenameprefix": instanceNamePrefix,

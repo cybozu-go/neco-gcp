@@ -7,15 +7,17 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/slack-go/slack"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var errShutdownMetadataNotFound = errors.New(gcp.MetadataKeyShutdownAt + " is not found")
@@ -30,12 +32,7 @@ func ExtendEntryPoint(w http.ResponseWriter, r *http.Request, project, zone stri
 }
 
 func contain(name string, items []string) bool {
-	for _, item := range items {
-		if name == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(items, name)
 }
 
 func getShutdownAt(instance *compute.Instance) (time.Time, error) {
@@ -60,7 +57,7 @@ func findGCPInstanceByName(service *compute.Service, project string, instance st
 			return target, zone, nil
 		}
 	}
-	log.Error("failed to get target instance", map[string]interface{}{
+	log.Error("failed to get target instance", map[string]any{
 		log.FnError: err,
 		"project":   project,
 		"zones":     targetZones,
@@ -73,7 +70,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 	defer r.Body.Close()
 	bodyRaw, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error("failed to read body", map[string]interface{}{
+		log.Error("failed to read body", map[string]any{
 			log.FnError: err,
 		})
 		RenderError(r.Context(), w, InternalServerError(err))
@@ -82,7 +79,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 
 	body, err := url.QueryUnescape(string(bodyRaw))
 	if err != nil {
-		log.Error("failed to unescape query", map[string]interface{}{
+		log.Error("failed to unescape query", map[string]any{
 			log.FnError: err,
 		})
 		RenderError(r.Context(), w, InternalServerError(err))
@@ -94,7 +91,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 
 	service, err := compute.NewService(r.Context(), option.WithHTTPClient(client))
 	if err != nil {
-		log.Error("failed to create client", map[string]interface{}{
+		log.Error("failed to create client", map[string]any{
 			log.FnError: err,
 		})
 		RenderError(r.Context(), w, InternalServerError(err))
@@ -103,7 +100,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 
 	p, err := service.Projects.Get(project).Do()
 	if err != nil {
-		log.Error("failed to get project", map[string]interface{}{
+		log.Error("failed to get project", map[string]any{
 			"project": project,
 		})
 		RenderError(r.Context(), w, InternalServerError(err))
@@ -116,7 +113,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 		}
 	}
 	if len(verificationToken) == 0 {
-		log.Error("token not found", map[string]interface{}{})
+		log.Error("token not found", map[string]any{})
 		RenderError(r.Context(), w, InternalServerError(errors.New("SLACK_VERIFICATION_TOKEN not found")))
 		return
 	}
@@ -124,7 +121,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 	var message slack.InteractionCallback
 	err = json.Unmarshal([]byte(body), &message)
 	if err != nil {
-		log.Error("failed to unmarshal body", map[string]interface{}{
+		log.Error("failed to unmarshal body", map[string]any{
 			log.FnError: err,
 		})
 		RenderError(r.Context(), w, InternalServerError(err))
@@ -132,13 +129,13 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 	}
 
 	if message.Token != verificationToken {
-		log.Error("invalid token", map[string]interface{}{})
+		log.Error("invalid token", map[string]any{})
 		RenderError(r.Context(), w, InternalServerError(errors.New("invalid token")))
 		return
 	}
 
 	if len(message.ActionCallback.BlockActions) < 1 {
-		log.Error("block_actions is empty", map[string]interface{}{})
+		log.Error("block_actions is empty", map[string]any{})
 		RenderError(r.Context(), w, InternalServerError(errors.New("block_actions is empty")))
 		return
 	}
@@ -179,7 +176,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 
 	_, err = service.Instances.SetMetadata(project, zone, instance, metadata).Do()
 	if err != nil {
-		log.Error("failed to set metadata", map[string]interface{}{
+		log.Error("failed to set metadata", map[string]any{
 			log.FnError:   err,
 			"project":     project,
 			"zone":        zone,
@@ -190,7 +187,7 @@ func extend(w http.ResponseWriter, r *http.Request, client *http.Client, cfg *gc
 		return
 	}
 
-	log.Info("extended instance", map[string]interface{}{
+	log.Info("extended instance", map[string]any{
 		"project":     project,
 		"zone":        zone,
 		"instance":    instance,

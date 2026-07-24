@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub/v2"
+
 	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
 	"github.com/cybozu-go/neco-gcp/pkg/instancedeleter"
 	"github.com/cybozu-go/neco-gcp/pkg/slacknotifier"

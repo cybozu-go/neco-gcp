@@ -96,7 +96,7 @@ func (c *ComputeClient) Create(
 		},
 	}
 
-	for i := 0; i < numLocalSSDs; i++ {
+	for range numLocalSSDs {
 		instance.Disks = append(instance.Disks, &compute.AttachedDisk{
 			Type: "SCRATCH",
 			InitializeParams: &compute.AttachedDiskInitializeParams{
@@ -135,7 +135,7 @@ func (c *ComputeClient) Create(
 	ticker := time.NewTicker(time.Second * 2)
 	defer ticker.Stop()
 	var status string
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		select {
 		case <-c.ctx.Done():
 			return nil

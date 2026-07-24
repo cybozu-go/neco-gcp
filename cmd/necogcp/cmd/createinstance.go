@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var createInstanceCmd = &cobra.Command{
@@ -20,7 +21,7 @@ If host-vm instance already exists in the project, it is re-created.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cc := gcp.NewComputeCLIClient(cfg, "host-vm")
 		well.Go(func(ctx context.Context) error {
-			cc.DeleteInstance(ctx)
+			cc.DeleteInstance(ctx) //nolint:errcheck // best-effort cleanup; the instance may not exist yet
 
 			err := cc.CreateHostVMInstance(ctx)
 			if err != nil {

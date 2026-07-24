@@ -5,9 +5,10 @@ import (
 	"errors"
 
 	"github.com/cybozu-go/log"
-	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 	"github.com/cybozu-go/well"
 	"github.com/spf13/cobra"
+
+	"github.com/cybozu-go/neco-gcp/pkg/gcp"
 )
 
 var deleteInstanceName string
@@ -27,12 +28,12 @@ var necotestDeleteInstanceCmd = &cobra.Command{
 		well.Go(func(ctx context.Context) error {
 			cc, err := gcp.NewComputeClient(ctx, projectID, zone)
 			if err != nil {
-				log.Error("failed to create compute client", map[string]interface{}{
+				log.Error("failed to create compute client", map[string]any{
 					log.FnError: err,
 				})
 				return err
 			}
-			log.Info("start deleting instance", map[string]interface{}{
+			log.Info("start deleting instance", map[string]any{
 				"project": projectID,
 				"zone":    zone,
 				"name":    deleteInstanceName,
