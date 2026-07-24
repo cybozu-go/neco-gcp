@@ -41,9 +41,7 @@ var rootCmd = &cobra.Command{
 		yamlTagOption := func(c *mapstructure.DecoderConfig) {
 			c.TagName = "yaml"
 		}
-		viper.Unmarshal(cfg, yamlTagOption)
-
-		return nil
+		return viper.Unmarshal(cfg, yamlTagOption)
 	},
 }
 
@@ -75,5 +73,11 @@ func initConfig() {
 		viper.SetConfigType("yml")
 	}
 
-	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		// the config file is optional (e.g. --config was left at its default path),
+		// so only report errors other than "file not found"
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.ErrorExit(err)
+		}
+	}
 }

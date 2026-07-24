@@ -189,9 +189,9 @@ func init() {
 	createRunnerCmd.Flags().StringVarP(&pat, "pat", "", "", "Personal Access Token")
 	createRunnerCmd.Flags().StringSliceVarP(&labels, "labels", "", []string{}, "Labels added to runner")
 	createRunnerCmd.Flags().StringVarP(&runnerRepo, "runner-repository", "", "", "GitHub Repository name which formatted in owner/repository")
-	createRunnerCmd.MarkFlagRequired("runner-repository")
+	createRunnerCmd.MarkFlagRequired("runner-repository") //nolint:errcheck // errors only if "runner-repository" is a typo not matching the flag defined above
 	createRunnerCmd.Flags().StringVarP(&runnerName, "runner-name", "", "", "Actions runner name which formatted in '^[a-z]([-a-z0-9]*[a-z0-9])?'")
-	createRunnerCmd.MarkFlagRequired("runner-name")
+	createRunnerCmd.MarkFlagRequired("runner-name") //nolint:errcheck // errors only if "runner-name" is a typo not matching the flag defined above
 	createRunnerCmd.Flags().StringVarP(&runnerMachineType, "machine-type", "t", "n1-standard-64", "Machine type")
 	createRunnerCmd.Flags().IntVarP(&runnerNumLocalSSDs, "local-ssd", "s", 4, "Number of local SSDs")
 	createRunnerCmd.Flags().StringVar(&runnerNecoBranch, "neco-branch", "release", "Branch of cybozu-go/neco to run")

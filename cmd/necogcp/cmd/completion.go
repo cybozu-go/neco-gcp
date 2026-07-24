@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/cybozu-go/log"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +21,9 @@ To configure your bash shell to load completions for each session add to your ba
 . <(necogcp completion)
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		rootCmd.GenBashCompletion(os.Stdout)
+		if err := rootCmd.GenBashCompletion(os.Stdout); err != nil {
+			log.ErrorExit(err)
+		}
 	},
 }
 

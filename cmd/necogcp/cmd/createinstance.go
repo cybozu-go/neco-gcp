@@ -21,7 +21,7 @@ If host-vm instance already exists in the project, it is re-created.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cc := gcp.NewComputeCLIClient(cfg, "host-vm")
 		well.Go(func(ctx context.Context) error {
-			cc.DeleteInstance(ctx)
+			cc.DeleteInstance(ctx) //nolint:errcheck // best-effort cleanup; the instance may not exist yet
 
 			err := cc.CreateHostVMInstance(ctx)
 			if err != nil {
