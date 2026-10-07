@@ -1,0 +1,107 @@
+GCP_PROJECT = neco-test
+PROJECT_NUMBER = $(shell gcloud projects describe $(GCP_PROJECT) --format='value(projectNumber)')
+
+# The workflows in this repository authenticate to Google Cloud with Workload Identity Federation.
+# Only the workflows running on the main branch of this repository can impersonate the service account.
+GITHUB_REPOSITORY := cybozu-go/neco-gcp
+GITHUB_REPOSITORY_ID := 285470719
+GITHUB_REF := refs/heads/main
+
+WORKLOAD_IDENTITY_POOL := github-actions
+WORKLOAD_IDENTITY_PROVIDER := neco-gcp
+PRINCIPAL_SET = principalSet://iam.googleapis.com/projects/$(PROJECT_NUMBER)/locations/global/workloadIdentityPools/$(WORKLOAD_IDENTITY_POOL)/attribute.repository_id/$(GITHUB_REPOSITORY_ID)
+
+SERVICE_ACCOUNT_NAME := neco-gcp-actions
+SERVICE_ACCOUNT_EMAIL := $(SERVICE_ACCOUNT_NAME)@$(GCP_PROJECT).iam.gserviceaccount.com
+SERVICE_ACCOUNT_DISPNAME := "For GitHub Actions in $(GITHUB_REPOSITORY)"
+SERVICE_ACCOUNT_ROLES := \
+	roles/compute.instanceAdmin.v1 \
+	roles/cloudfunctions.admin \
+	roles/pubsub.editor
+
+# The Cloud Functions deployed by Makefile.instancedel run as this service account.
+INSTANCE_DELETER_SERVICE_ACCOUNT_EMAIL := gcp-instance-deleter@$(GCP_PROJECT).iam.gserviceaccount.com
+
+init: \
+	enable-api \
+	create-workload-identity-pool \
+	create-service-account \
+	print-workload-identity-provider
+
+# The workload identity pool is soft-deleted and kept for 30 days.
+# Run `gcloud iam workload-identity-pools undelete` instead of re-creating the pool with the same ID in the meantime.
+clean: \
+	delete-service-account \
+	delete-workload-identity-pool
+
+enable-api:
+	gcloud services enable --project $(GCP_PROJECT) iam.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) iamcredentials.googleapis.com
+	gcloud services enable --project $(GCP_PROJECT) sts.googleapis.com
+
+create-workload-identity-pool:
+	gcloud iam workload-identity-pools create $(WORKLOAD_IDENTITY_POOL) \
+		--project $(GCP_PROJECT) \
+		--location global \
+		--display-name "GitHub Actions"
+	gcloud iam workload-identity-pools providers create-oidc $(WORKLOAD_IDENTITY_PROVIDER) \
+		--project $(GCP_PROJECT) \
+		--location global \
+		--workload-identity-pool $(WORKLOAD_IDENTITY_POOL) \
+		--display-name "$(GITHUB_REPOSITORY)" \
+		--issuer-uri "https://token.actions.githubusercontent.com" \
+		--attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref" \
+		--attribute-condition "assertion.repository_id == '$(GITHUB_REPOSITORY_ID)' && assertion.ref == '$(GITHUB_REF)'"
+
+delete-workload-identity-pool:
+	gcloud --quiet iam workload-identity-pools delete $(WORKLOAD_IDENTITY_POOL) \
+		--project $(GCP_PROJECT) \
+		--location global
+
+create-service-account:
+	gcloud iam service-accounts create $(SERVICE_ACCOUNT_NAME) \
+		--project $(GCP_PROJECT) \
+		--display-name $(SERVICE_ACCOUNT_DISPNAME)
+	for role in $(SERVICE_ACCOUNT_ROLES); do \
+		gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+			--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+			--role=$${role} || exit 1; \
+	done
+	gcloud iam service-accounts add-iam-policy-binding $(INSTANCE_DELETER_SERVICE_ACCOUNT_EMAIL) \
+		--project $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud iam service-accounts add-iam-policy-binding $(SERVICE_ACCOUNT_EMAIL) \
+		--project $(GCP_PROJECT) \
+		--member=$(PRINCIPAL_SET) \
+		--role=roles/iam.workloadIdentityUser
+
+delete-service-account:
+	for role in $(SERVICE_ACCOUNT_ROLES); do \
+		gcloud --quiet projects remove-iam-policy-binding $(GCP_PROJECT) \
+			--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+			--role=$${role}; \
+	done
+	gcloud --quiet iam service-accounts remove-iam-policy-binding $(INSTANCE_DELETER_SERVICE_ACCOUNT_EMAIL) \
+		--project $(GCP_PROJECT) \
+		--member=serviceAccount:$(SERVICE_ACCOUNT_EMAIL) \
+		--role=roles/iam.serviceAccountUser
+	gcloud --quiet iam service-accounts delete $(SERVICE_ACCOUNT_EMAIL) --project $(GCP_PROJECT)
+
+# Set the output to the NECO_TEST_WORKLOAD_IDENTITY_PROVIDER variable of this repository.
+print-workload-identity-provider:
+	@gcloud iam workload-identity-pools providers describe $(WORKLOAD_IDENTITY_PROVIDER) \
+		--project $(GCP_PROJECT) \
+		--location global \
+		--workload-identity-pool $(WORKLOAD_IDENTITY_POOL) \
+		--format 'value(name)'
+
+.PHONY: \
+	init \
+	clean \
+	enable-api \
+	create-workload-identity-pool \
+	delete-workload-identity-pool \
+	create-service-account \
+	delete-service-account \
+	print-workload-identity-provider
