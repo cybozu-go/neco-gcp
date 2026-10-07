@@ -73,33 +73,43 @@ func NewComputeCLIClient(cfg *Config, instance string) *ComputeCLIClient {
 	}
 }
 
+// gCloud returns the base gcloud command.
+// If no service account is configured, the active account of gcloud is used.
+func (cc *ComputeCLIClient) gCloud() []string {
+	gcmd := []string{"gcloud", "--quiet"}
+	if cc.cfg.Common.ServiceAccount != "" {
+		gcmd = append(gcmd, "--account", cc.cfg.Common.ServiceAccount)
+	}
+	return append(gcmd, "--project", cc.cfg.Common.Project)
+}
+
 func (cc *ComputeCLIClient) gCloudCompute() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute"}
+	return append(cc.gCloud(), "compute")
 }
 
 func (cc *ComputeCLIClient) gCloudComputeInstances() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "instances"}
+	return append(cc.gCloud(), "compute", "instances")
 }
 
 func (cc *ComputeCLIClient) gCloudComputeImages() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "images"}
+	return append(cc.gCloud(), "compute", "images")
 }
 
 func (cc *ComputeCLIClient) gCloudComputeDisks() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "disks"}
+	return append(cc.gCloud(), "compute", "disks")
 }
 
 func (cc *ComputeCLIClient) gCloudDiskSnapshot() []string {
-	return []string{"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "disks", "snapshot"}
+	return append(cc.gCloud(), "compute", "disks", "snapshot")
 }
 
 func (cc *ComputeCLIClient) gCloudComputeSSH(command []string) []string {
-	return []string{
-		"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount, "--project", cc.cfg.Common.Project, "compute", "ssh",
+	return append(cc.gCloud(),
+		"compute", "ssh",
 		"--zone", cc.cfg.Common.Zone,
 		fmt.Sprintf("%s@%s", cc.user, cc.instance),
 		fmt.Sprintf("--command=%s", strings.Join(command, " ")),
-	}
+	)
 }
 
 // CreateVMXEnabledInstance creates vmx-enabled instance
@@ -112,7 +122,10 @@ func (cc *ComputeCLIClient) CreateVMXEnabledInstance(ctx context.Context, baseIm
 		"--image", baseImage,
 		"--boot-disk-type", "pd-ssd",
 		"--boot-disk-size", bootDiskSize,
-		"--machine-type", cc.cfg.Compute.MachineType)
+		"--machine-type", cc.cfg.Compute.MachineType,
+		// The instance does not need to access Google Cloud APIs.
+		"--no-service-account",
+		"--no-scopes")
 	c := well.CommandContext(ctx, gcmd[0], gcmd[1:]...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
@@ -485,11 +498,10 @@ func (cc *ComputeCLIClient) CreateVolumeSnapshot(ctx context.Context) error {
 
 // RestoreVolumeFromSnapshot restores home volume in the target zone
 func (cc *ComputeCLIClient) RestoreVolumeFromSnapshot(ctx context.Context, destZone string) error {
-	gcmdSnapshot := []string{
-		"gcloud", "--quiet", "--account", cc.cfg.Common.ServiceAccount,
-		"--project", cc.cfg.Common.Project, "compute", "snapshots", "list",
+	gcmdSnapshot := append(cc.gCloud(),
+		"compute", "snapshots", "list",
 		"--sort-by=date", "--limit=1", "--filter=sourceDisk:disks/home", "--format=json",
-	}
+	)
 
 	outBuf := new(bytes.Buffer)
 	c := well.CommandContext(ctx, gcmdSnapshot[0], gcmdSnapshot[1:]...)
