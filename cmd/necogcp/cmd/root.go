@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -74,9 +76,11 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		// the config file is optional (e.g. --config was left at its default path),
-		// so only report errors other than "file not found"
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		// the config file is optional when --config is left at its default path,
+		// so only report errors other than "file not found" in that case
+		var notFound viper.ConfigFileNotFoundError
+		explicit := rootCmd.PersistentFlags().Changed("config")
+		if explicit || (!errors.As(err, &notFound) && !errors.Is(err, fs.ErrNotExist)) {
 			log.ErrorExit(err)
 		}
 	}

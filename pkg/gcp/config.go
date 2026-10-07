@@ -1,7 +1,6 @@
 package gcp
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -119,9 +118,8 @@ func NewConfig() (*Config, error) {
 func NecoTestConfig(projectID, zone string) *Config {
 	return &Config{
 		Common: CommonConfig{
-			Project:        projectID,
-			ServiceAccount: fmt.Sprintf("%s@%s.iam.gserviceaccount.com", projectID, projectID),
-			Zone:           zone,
+			Project: projectID,
+			Zone:    zone,
 		},
 		App: AppConfig{
 			Shutdown: ShutdownConfig{
