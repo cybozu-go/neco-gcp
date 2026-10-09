@@ -51,7 +51,14 @@ create-workload-identity-pool:
 		--display-name "$(GITHUB_REPOSITORY)" \
 		--issuer-uri "https://token.actions.githubusercontent.com" \
 		--attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref" \
-		--attribute-condition "assertion.repository_id == '$(GITHUB_REPOSITORY_ID)' && assertion.ref == '$(GITHUB_REF)'"
+		--attribute-condition "\
+			assertion.repository_id == '$(GITHUB_REPOSITORY_ID)' \
+			&& assertion.ref == '$(GITHUB_REF)' \
+			&& assertion.event_name in ['schedule', 'workflow_dispatch'] \
+			&& assertion.workflow_ref in [ \
+				'$(GITHUB_REPOSITORY)/.github/workflows/cleanup-sshkey.yaml@$(GITHUB_REF)', \
+				'$(GITHUB_REPOSITORY)/.github/workflows/update-necogcp-functions.yaml@$(GITHUB_REF)', \
+				'$(GITHUB_REPOSITORY)/.github/workflows/update-vmxenabled-image.yaml@$(GITHUB_REF)']"
 
 delete-workload-identity-pool:
 	gcloud --quiet iam workload-identity-pools delete $(WORKLOAD_IDENTITY_POOL) \
