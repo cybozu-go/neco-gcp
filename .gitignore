@@ -1,3 +1,6 @@
 build/
 pkg/gcp/bin/setup
 slack-notifier-config.yaml
+
+# credentials created by google-github-actions/auth
+gha-creds-*.json

@@ -1,0 +1,39 @@
+name: Update vmx-enabled Image
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 15 * * 0'
+
+# The workflow creates and deletes the instance with the fixed name, so do not run it in parallel.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+jobs:
+  update-neco-test:
+    name: Update neco-test project
+    permissions:
+      contents: read
+      id-token: write # Takumi Guard (OIDC), Workload Identity Federation
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - uses: flatt-security/setup-takumi-guard-golang@1c8aa7498f7f635fbd6ad6a0f436d03092b3502d # v1.1.0
+        with:
+          bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
+      # Required roles for the service account in the neco-test project:
+      # - roles/compute.instanceAdmin.v1: create/stop/delete the instance, create/delete the image,
+      #   and add SSH keys to the project metadata for `gcloud compute ssh`/`scp`
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.NECO_TEST_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: neco-gcp-actions@neco-test.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - run: make build-necogcp
+      - run: ./build/necogcp neco-test create-image --project-id neco-test

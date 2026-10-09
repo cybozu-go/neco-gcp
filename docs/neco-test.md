@@ -36,6 +36,16 @@ Edit [artifacts.go](../../gcp/artifacts.go)
 make -f Makefile.instancedel init
 ```
 
+### Set up GitHub Actions
+
+The workflows in this repository update the `vmx-enabled` image, the Cloud Functions app and so on in neco-test.
+They authenticate to Google Cloud with Workload Identity Federation, and only the workflows running on the main branch are allowed.
+
+```console
+make -f Makefile.github-actions init
+gh variable set NECO_TEST_WORKLOAD_IDENTITY_PROVIDER --body "$(make -s -f Makefile.github-actions print-workload-identity-provider)"
+```
+
 ### Create or Update `vmx-enabled` image for neco-test
 
 ```console

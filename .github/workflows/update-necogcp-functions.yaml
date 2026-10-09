@@ -1,0 +1,34 @@
+name: Update Google Cloud Functions for neco-gcp
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 15 * * *'
+
+permissions:
+  contents: read
+jobs:
+  update-neco-test:
+    name: Update neco-test project
+    permissions:
+      contents: read
+      id-token: write # Workload Identity Federation
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Required roles for the service account in the neco-test project:
+      # - roles/cloudfunctions.admin: deploy/delete the functions, and allow unauthenticated invocation of the extend function
+      # - roles/pubsub.editor: create/delete the shutdown-events topic
+      # - roles/iam.serviceAccountUser on gcp-instance-deleter@neco-test.iam.gserviceaccount.com:
+      #   run the functions as the service account
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.NECO_TEST_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: neco-gcp-actions@neco-test.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - run: make -f Makefile.instancedel delete-extend-function
+        continue-on-error: true
+      - run: make -f Makefile.instancedel delete-shutdown-function
+        continue-on-error: true
+      - run: make -f Makefile.instancedel deploy-extend-function
+      - run: make -f Makefile.instancedel deploy-shutdown-function
