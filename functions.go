@@ -6,9 +6,7 @@ import (
 
 	"cloud.google.com/go/pubsub/v2"
 
-	"github.com/cybozu-go/neco-gcp/pkg/autodctest"
 	"github.com/cybozu-go/neco-gcp/pkg/instancedeleter"
-	"github.com/cybozu-go/neco-gcp/pkg/slacknotifier"
 )
 
 // NOTE: An entrypoint of the Cloud Functions must be in the root of this project.
@@ -21,14 +19,4 @@ func ExtendEntryPoint(w http.ResponseWriter, r *http.Request) {
 
 func ShutdownEntryPoint(ctx context.Context, m *pubsub.Message) error {
 	return instancedeleter.ShutdownEntryPoint(ctx, m, NecoTestProject, NecoTestZone)
-}
-
-// SlackNotifierEntryPoint is the entrypoint for the "slack-notifier" function.
-func SlackNotifierEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	return slacknotifier.EntryPoint(ctx, m)
-}
-
-// AutoDCTestEntryPoint is the entrypoint for the "auto-dctest" function.
-func AutoDCTestEntryPoint(ctx context.Context, m *pubsub.Message) error {
-	return autodctest.EntryPoint(ctx, m, autoDCTestMachineType, autoDCTestNumLocalSSDs, autoDCTestZone, autoDCTestJPHolidays)
 }
