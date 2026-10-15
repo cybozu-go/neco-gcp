@@ -20,12 +20,7 @@ test:
 	go test -tags='$(GOTAGS)' -race -v ./...
 
 .PHONY: build
-build: build-dev build-necogcp
-
-.PNOHY: build-dev
-build-dev:
-	mkdir -p build
-	go build -o ./build/dev ./cmd/dev
+build: build-necogcp
 
 .PHONY: build-setup
 build-setup:
