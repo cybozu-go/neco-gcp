@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v93/github"
 	"golang.org/x/oauth2"
 )
 
@@ -17,15 +17,19 @@ type clientWrapper struct {
 }
 
 // newClientFromPAT creates GitHub Actions Client from a personal access token (PAT).
-func newClientFromPAT(pat string) *clientWrapper {
+func newClientFromPAT(pat string) (*clientWrapper, error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: pat},
 	)
 	tc := oauth2.NewClient(ctx, ts)
-	return &clientWrapper{
-		client: github.NewClient(tc),
+	client, err := github.NewClient(github.WithHTTPClient(tc))
+	if err != nil {
+		return nil, err
 	}
+	return &clientWrapper{
+		client: client,
+	}, nil
 }
 
 // newClientFromAppKey creates GitHub Actions Client from a private key of a GitHub app.
@@ -34,8 +38,12 @@ func newClientFromAppKey(appID, appInstallationID int64, privateKeyPath string) 
 	if err != nil {
 		return nil, err
 	}
+	client, err := github.NewClient(github.WithHTTPClient(&http.Client{Transport: rt}))
+	if err != nil {
+		return nil, err
+	}
 	return &clientWrapper{
-		client: github.NewClient(&http.Client{Transport: rt}),
+		client: client,
 	}, nil
 }
 
@@ -64,7 +72,11 @@ func (c *clientWrapper) createRegistrationToken(ctx context.Context, owner, repo
 
 func CreateRegistrationToken(owner, repository, pat, privateKeyPath string, appId int64, installationId int64) (string, time.Time, error) {
 	if pat != "" {
-		token, err := newClientFromPAT(pat).createRegistrationToken(context.Background(), owner, repository)
+		client, err := newClientFromPAT(pat)
+		if err != nil {
+			return "", time.Time{}, err
+		}
+		token, err := client.createRegistrationToken(context.Background(), owner, repository)
 		if err != nil {
 			return "", time.Time{}, err
 		}
