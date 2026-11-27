@@ -1,0 +1,2 @@
+# placemat 2.7 and later keep the TPM state under <data-dir>/swtpm/. Only the default data-dir is allowed.
+/var/scratch/placemat/swtpm/** rwk,
