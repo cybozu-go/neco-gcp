@@ -25,6 +25,7 @@ const (
 )
 
 var staticFiles = []string{
+	"/etc/apparmor.d/local/usr.bin.swtpm",
 	"/etc/apt/apt.conf.d/20auto-upgrades",
 	"/etc/containers/registries.conf",
 	"/etc/docker/daemon.json",
@@ -97,6 +98,12 @@ func VMXEnabled(ctx context.Context, project string, artifacts *ArtifactSet, opt
 	}
 
 	err = dumpStaticFiles()
+	if err != nil {
+		return err
+	}
+
+	// Reload so that a broken rule fails the image build instead of the tests.
+	err = well.CommandContext(ctx, "apparmor_parser", "-r", "-W", "/etc/apparmor.d/usr.bin.swtpm").Run()
 	if err != nil {
 		return err
 	}
